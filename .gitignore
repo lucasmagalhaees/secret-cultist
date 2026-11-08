@@ -1,0 +1,23 @@
+# test output
+tests/shots/
+__pycache__/
+*.pyc
+
+# tooling
+node_modules/
+dist/
+.vercel/
+.env
+.env.*
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# harness state
+.claude/.stop-blocks
+.claude/settings.local.json
+tests/.coverage/
+tests/.build/
+tests/.build-bench/

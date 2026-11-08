@@ -1,0 +1,39 @@
+name: Produção
+
+# After a merge, production must serve the commit that was merged, and keep serving it.
+# The build stamps its commit into the page; scripts/check_production.py reads that stamp from the production address.
+# In the project this was taken from, four merges in a row left production on the oldest one: the host finished that deployment last.
+# On a pull request this only reports which commit production is serving; it never fails there.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: producao-${{ github.ref }}
+  cancel-in-progress: true   # only the newest push to main is worth checking
+
+jobs:
+  confere:
+    name: produção
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 50      # the report names which earlier commit production is serving
+      - name: Which commit is production serving? (pull request)
+        if: github.event_name == 'pull_request'
+        env:
+          APP_PROD_URL: ${{ vars.APP_PROD_URL }}   # optional repository variable; empty means the default in the script
+        run: python3 scripts/check_production.py --report
+      - name: Production must serve this commit and keep serving it
+        if: github.event_name != 'pull_request'
+        env:
+          APP_PROD_URL: ${{ vars.APP_PROD_URL }}
+        # exit 3 = this runner could not reach production at all: inconclusive, reported as a warning
+        run: python3 scripts/check_production.py || [ $? -eq 3 ]

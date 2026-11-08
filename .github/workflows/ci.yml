@@ -1,0 +1,91 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install Playwright and the build tools
+        run: |
+          pip install -r tests/requirements.txt
+          playwright install --with-deps chromium
+          npm ci
+      - name: Types, build, docs, core, unit and contract checks
+        run: scripts/verify.sh --quick
+
+  coverage:
+    name: coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install Playwright and the build tools
+        run: |
+          pip install -r tests/requirements.txt
+          playwright install --with-deps chromium
+          npm ci
+      - name: Everything, with the coverage minimums
+        run: scripts/verify.sh
+
+  e2e:
+    name: e2e (${{ matrix.theme }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        theme: [dark]  # the light theme e2e left CI on 2026-10-30 (D47): slow and flaky
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install Playwright
+        run: |
+          pip install -r tests/requirements.txt
+          playwright install --with-deps chromium
+      - name: Build the page the test opens
+        run: |
+          npm ci
+          npm run build
+      - name: End to end
+        run: python tests/e2e.py ${{ matrix.theme }}
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: shots-${{ matrix.theme }}
+          path: tests/shots/
+          if-no-files-found: ignore

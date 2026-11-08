@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Secret Cultist</title>
+<meta name="description" content="Jogo de cartas de dedução social: liberais contra cultistas, num celular passando de mão em mão.">
+<meta name="app-commit" content="__APP_COMMIT__">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Secret Cultist">
+<meta name="theme-color" content="#0d0b09" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#1d1a17" media="(prefers-color-scheme: light)">
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <b class="brand">Secret <span id="boss">Cultist</span></b>
+  <span class="score" id="score" aria-label="Leis aprovadas"></span>
+</div></header>
+
+<div class="update" id="update" hidden></div>
+
+<main><div class="wrap" id="view"></div></main>
+
+<div class="toast" id="toast" role="status" hidden></div>
+<div class="stamp" id="stamp" aria-hidden="true" hidden></div>
+<div class="flash" id="flash" aria-hidden="true" hidden></div>
+<div class="decree" id="decree" role="status" hidden></div>
+<div class="power-effect" id="power-effect" role="status" hidden></div>
+<div class="confetti" id="confetti" aria-hidden="true"></div>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

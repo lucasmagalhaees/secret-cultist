@@ -1,0 +1,7 @@
+# the host only needs what the build reads (index.html, src/, package files, vite and ts config); the rest stays out
+.github
+.claude
+docs
+tests
+scripts
+*.md

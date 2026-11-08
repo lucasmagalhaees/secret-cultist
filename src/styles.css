@@ -1,0 +1,1171 @@
+/* one phone-width column. Every colour is a token on :root, so the dark theme is the same rules with other values.
+   The look: a 1930s political poster. Aged paper, black ink, a liberal blue and a cultist vermilion, condensed capitals,
+   thick borders and hard offset shadows. Fonts are the device's own (Futura on Apple devices): nothing is downloaded. */
+:root{
+  --bg:#efe0c2; --surface:#f8eedb; --line:#2a2521; --fg:#1d1a17; --muted:#6b5d4b;
+  --accent:#8f2a1b; --accent-bg:#e4572e; --on-accent:#fff4e2; --neg:#b3261e;
+  --lib:#2f6690; --lib-bg:#bfdbe6; --fas:#c4381f; --fas-bg:#f4c3a6; --on-party:#fff4e2;
+  --ink:#1d1a17; --paper:#f8eedb; --grain:rgba(80,50,20,.06); --shadow:#2a2521; --gold:#b8963a;
+  color-scheme:light; --dock:60px;
+  --font:"Avenir Next","Avenir","Segoe UI",system-ui,-apple-system,Roboto,sans-serif;
+  --display:"Futura","Futura PT","Century Gothic","Avenir Next Condensed","Arial Narrow","Roboto Condensed","Segoe UI",sans-serif;
+}
+/* the dark palette appears twice, identical: once for "the device asked for it", once for "the person chose it"
+   (tests/docs_check.py checks that the two are the same) */
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#14110e; --surface:#221d18; --line:#d8c8a6; --fg:#f3e8d0; --muted:#b9ab90;
+    --accent:#ff9466; --accent-bg:#e4572e; --on-accent:#fff4e2; --neg:#ff8a72;
+    --lib:#93c8e8; --lib-bg:#1b3850; --fas:#ff8059; --fas-bg:#4a1d12; --on-party:#14110e;
+    --ink:#0a0907; --paper:#f1e5cc; --grain:rgba(255,230,190,.035); --shadow:#000; --gold:#c9a646;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+    --bg:#14110e; --surface:#221d18; --line:#d8c8a6; --fg:#f3e8d0; --muted:#b9ab90;
+    --accent:#ff9466; --accent-bg:#e4572e; --on-accent:#fff4e2; --neg:#ff8a72;
+    --lib:#93c8e8; --lib-bg:#1b3850; --fas:#ff8059; --fas-bg:#4a1d12; --on-party:#14110e;
+    --ink:#0a0907; --paper:#f1e5cc; --grain:rgba(255,230,190,.035); --shadow:#000; --gold:#c9a646;
+    color-scheme:dark;
+}
+/* the art deco style: ivory and navy with gold rules, or navy and gold at night. Its dark palette also appears twice,
+   identical (tests/docs_check.py checks it too) */
+:root[data-look="deco"]{
+  --bg:#f3ede0; --surface:#fffaf0; --line:#1a2238; --fg:#141a2b; --muted:#6a6450;
+  --accent:#7d6219; --accent-bg:#c9a646; --on-accent:#141a2b; --neg:#a3202e;
+  --lib:#24507a; --lib-bg:#d6e3ee; --fas:#9b1c2c; --fas-bg:#f1d4d2; --on-party:#fffaf0;
+  --ink:#121a2e; --paper:#fffaf0; --grain:rgba(184,150,58,.07); --shadow:rgba(18,26,46,.22); --gold:#b8963a;
+  --display:"Didot","Bodoni 72","Bodoni MT","Playfair Display",Georgia,"Times New Roman",serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root[data-look="deco"]:not([data-theme="light"]){
+    --bg:#0b0f1a; --surface:#121a2b; --line:#c9a646; --fg:#efe6cf; --muted:#a9a18a;
+    --accent:#e3c46a; --accent-bg:#c9a646; --on-accent:#0b0f1a; --neg:#ff8a8a;
+    --lib:#8fb8e0; --lib-bg:#16294a; --fas:#f08a8a; --fas-bg:#3d1520; --on-party:#0b0f1a;
+    --ink:#070a12; --paper:#efe6cf; --grain:rgba(201,166,70,.05); --shadow:rgba(0,0,0,.55); --gold:#c9a646;
+    color-scheme:dark;
+  }
+}
+:root[data-look="deco"][data-theme="dark"]{
+    --bg:#0b0f1a; --surface:#121a2b; --line:#c9a646; --fg:#efe6cf; --muted:#a9a18a;
+    --accent:#e3c46a; --accent-bg:#c9a646; --on-accent:#0b0f1a; --neg:#ff8a8a;
+    --lib:#8fb8e0; --lib-bg:#16294a; --fas:#f08a8a; --fas-bg:#3d1520; --on-party:#0b0f1a;
+    --ink:#070a12; --paper:#efe6cf; --grain:rgba(201,166,70,.05); --shadow:rgba(0,0,0,.55); --gold:#c9a646;
+    color-scheme:dark;
+}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);background-image:repeating-linear-gradient(0deg,var(--grain) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,var(--grain) 0 1px,transparent 1px 4px);
+  color:var(--fg);font:16px/1.45 var(--font);-webkit-text-size-adjust:100%;padding-bottom:env(safe-area-inset-bottom)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.wrap{max-width:720px;margin:0 auto;padding:0 16px}
+
+/* the masthead: a black band with the name in wide capitals */
+.top{position:sticky;top:0;z-index:5;background:var(--ink);color:#f1e5cc;border-bottom:4px solid var(--accent-bg);padding-top:env(safe-area-inset-top)}
+.top .wrap{display:flex;align-items:center;justify-content:space-between;min-height:58px;gap:12px}
+.brand{font:800 21px/1 var(--display);letter-spacing:.14em;text-transform:uppercase}
+.brand span{color:var(--accent-bg)}
+.score{display:flex;gap:6px}
+.chip{font:800 15px/1 var(--display);letter-spacing:.06em;padding:7px 10px;border:2px solid #f1e5cc}
+.chip.L{background:#2f6690;color:#f1e5cc}
+.chip.F{background:#c4381f;color:#f1e5cc}
+
+.label{font:700 12px/1.2 var(--display);letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
+main .wrap{display:flex;flex-direction:column;gap:16px;padding-top:16px;padding-bottom:28px}
+
+/* a card is a printed panel: thick ink border, an inner rule, a hard shadow */
+.card{background:var(--surface);border:3px solid var(--line);box-shadow:5px 5px 0 var(--shadow);padding:16px;display:flex;flex-direction:column;gap:12px;position:relative}
+.card::before{content:"";position:absolute;inset:4px;border:1px solid var(--line);opacity:.35;pointer-events:none}
+.card>.label:first-child{align-self:flex-start;background:var(--line);color:var(--surface);padding:4px 10px;margin:-16px 0 0 -16px}
+.card.secret{border-style:double;border-width:6px;background:repeating-linear-gradient(-45deg,var(--surface) 0 14px,var(--bg) 14px 15px)}
+.card.win.L{border-color:var(--lib);box-shadow:5px 5px 0 var(--lib)}
+.card.win.F{border-color:var(--fas);box-shadow:5px 5px 0 var(--fas)}
+.card.win .big b{font:800 28px/1.1 var(--display);text-transform:uppercase;letter-spacing:.04em}
+.card.win.L .big b{color:var(--lib)}
+.card.win.F .big b{color:var(--fas)}
+.big{font-size:19px;line-height:1.35}
+.big b{font-family:var(--display);letter-spacing:.02em}
+
+.row{display:flex;gap:8px}
+.row .field{flex:1;min-width:0}
+.row .btn{flex:none}
+.field{display:flex;align-items:center;gap:10px;border:2px solid var(--line);padding:0 12px;background:var(--bg)}
+/* 16 px or more in a field: below that the iPhone zooms in when the field takes the focus */
+.field input{flex:1;min-width:0;border:0;background:none;color:var(--fg);height:48px;font:inherit;font-size:16px;outline:none}
+
+/* buttons are stamped blocks that sink when pressed */
+.btn{min-height:48px;padding:0 16px;font:800 16px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;background:var(--accent-bg);color:var(--on-accent);border:2px solid var(--line);box-shadow:3px 3px 0 var(--shadow);transition:transform .05s,box-shadow .05s}
+.btn:active:not(:disabled){transform:translate(3px,3px);box-shadow:0 0 0 var(--shadow)}
+.btn.ghost{background:var(--surface);color:var(--fg)}
+.btn.ghost.on{background:var(--fg);color:var(--surface)}
+.btn.elect{background:var(--lib);color:var(--on-party)}
+.btn.danger{background:var(--fas);color:var(--on-party)}
+.btn.block{width:100%}
+.btn.vote{background:var(--surface);border-width:3px}
+.btn.vote.L{color:var(--lib);border-color:var(--lib)}
+.btn.vote.F{color:var(--fas);border-color:var(--fas)}
+.btn.vote.on.L{background:var(--lib);color:var(--on-party)}
+.btn.vote.on.F{background:var(--fas);color:var(--on-party)}
+.pick:has(.btn.vote.on) .btn.vote:not(.on){opacity:.55;box-shadow:none}
+.btn:disabled{background:var(--surface);color:var(--muted);border-style:dashed;cursor:default;box-shadow:none}
+.segm{display:flex;border:2px solid var(--line)}
+.segm button{flex:1;min-height:44px;font:700 14px/1 var(--display);letter-spacing:.08em;text-transform:uppercase}
+.segm button+button{border-left:2px solid var(--line)}
+.segm button.on{background:var(--fg);color:var(--surface)}
+
+.names{list-style:none;padding:0;display:flex;flex-direction:column}
+.names li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px dashed var(--muted);min-height:46px;overflow-wrap:anywhere}
+.names li:first-child{border-top:0}
+.names li.dead{color:var(--muted)}
+.tag,.role{font:800 12px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;padding:5px 8px;white-space:nowrap;border:2px solid var(--line)}
+.tag{background:var(--fg);color:var(--surface)}
+.role.L{background:var(--lib);color:var(--on-party)}
+.role.F{background:var(--fas);color:var(--on-party)}
+.pick{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pick .btn{overflow-wrap:anywhere;text-transform:none;letter-spacing:.02em;font-size:17px}
+
+/* law cards: a printed policy with a seal */
+.hand{display:flex;gap:12px;justify-content:center}
+.law{flex:1;max-width:118px;aspect-ratio:5/7;border:3px solid var(--line);box-shadow:4px 4px 0 var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:12px 6px;font:800 12px/1 var(--display);text-transform:uppercase;letter-spacing:.14em;position:relative}
+.law::before{content:"Lei";font-size:10px;letter-spacing:.3em;opacity:.8}
+.law::after{content:"";position:absolute;inset:5px;border:1.5px solid currentColor;opacity:.5;pointer-events:none}
+.law .sym{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;border:3px solid currentColor;overflow:hidden;letter-spacing:0}
+.law .sym .glyph{font-size:38px;line-height:1}
+.law.L{background:var(--lib-bg);color:var(--lib)}
+.law.F{background:var(--fas-bg);color:var(--fas)}
+button.law.on{transform:rotate(-4deg) translateY(4px);opacity:.6;box-shadow:none}
+button.law.on .sym{position:relative}
+button.law.on .sym::after{content:"✕";position:absolute;font-size:64px;color:var(--fg)}
+
+/* the role: a poster with sunburst rays */
+.role-card{padding:26px 16px;text-align:center;display:flex;flex-direction:column;gap:6px;border:3px solid var(--line);color:#f1e5cc;
+  background:repeating-conic-gradient(from 0deg at 50% 120%,rgba(255,255,255,.09) 0 6deg,transparent 6deg 12deg),var(--c)}
+.role-card small{font:700 13px/1 var(--display);letter-spacing:.3em;text-transform:uppercase}
+.role-card b{font:900 42px/1 var(--display);text-transform:uppercase;letter-spacing:.08em;text-shadow:3px 3px 0 rgba(0,0,0,.35)}
+.role-card.L{--c:#2f6690}
+.role-card.F{--c:#c4381f}
+
+/* the boards: one per party, the slots printed on them */
+.track{display:grid;grid-template-columns:repeat(var(--n,6),minmax(0,1fr));gap:4px;padding:6px;border:3px solid var(--line)}
+#board .track:nth-of-type(1){background:var(--lib-bg)}
+#board .track:nth-of-type(2){background:var(--fas-bg)}
+#board .label{margin-bottom:-6px}
+.slot{aspect-ratio:3/4;border:2px dashed currentColor;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:22px;gap:2px;text-align:center;opacity:.9}
+.slot.L{color:var(--lib)}
+.slot.F{color:var(--fas)}
+.slot small{font:700 9px/1.1 var(--font);letter-spacing:0;max-width:100%;overflow:hidden;text-overflow:clip;white-space:nowrap}
+.slot.on{border:2px solid var(--line);box-shadow:2px 2px 0 var(--shadow);opacity:1}
+.slot.on.L{background:var(--lib);color:var(--on-party)}
+.slot.on.F{background:var(--fas);color:var(--on-party)}
+.meta{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;font:700 12px/1.2 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.dots{display:inline-flex;gap:5px;vertical-align:middle;margin-left:4px}
+.dots i{width:13px;height:13px;border-radius:50%;border:2px solid var(--line)}
+.dots i.on{background:var(--fas)}
+
+.log{padding-left:22px;font-size:14px;display:flex;flex-direction:column;gap:5px;max-height:240px;overflow:auto}
+.rules{padding-left:20px;font-size:15px;display:flex;flex-direction:column;gap:8px}
+.rules li::marker{color:var(--fas)}
+.hint a{color:inherit}
+.hint,.empty{font-size:13px;color:var(--muted)}
+.x{width:38px;height:38px;border:2px solid var(--line);font-size:18px;line-height:1;flex:none;background:var(--surface)}
+.msg{color:var(--neg);font-size:14px;font-weight:700}
+.update{position:sticky;top:62px;z-index:4;background:var(--accent-bg);color:var(--on-accent);border-bottom:3px solid var(--ink)}
+.update .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:52px}
+.update .btn{background:var(--ink);color:#f1e5cc;min-height:38px;border-color:#f1e5cc;box-shadow:none}
+.toast{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#f1e5cc;border:2px solid var(--accent-bg);padding:10px 14px;font:700 14px/1.3 var(--display);letter-spacing:.04em;max-width:calc(100% - 32px)}
+
+/* who governs now, always in view */
+.status{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:8px}
+.status span{background:var(--surface);border:2px solid var(--line);padding:6px 10px;display:flex;flex-direction:column;min-width:0}
+.status small{font:700 10px/1.2 var(--display);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.status b{font:800 16px/1.2 var(--display);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* the hand-off: whose turn it is to hold the phone */
+.handoff{display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;padding:6px 0 4px}
+.handoff .who{font:900 34px/1.1 var(--display);text-transform:uppercase;letter-spacing:.06em;overflow-wrap:anywhere;max-width:100%}
+.phone{width:34px;height:58px;border:3px solid var(--fg);border-radius:8px;position:relative;margin-bottom:6px;animation:pass 1.8s ease-in-out infinite}
+.phone::after{content:"";position:absolute;left:50%;bottom:5px;width:12px;height:3px;margin-left:-6px;border-radius:2px;background:var(--fg)}
+@keyframes pass{0%,100%{transform:rotate(-10deg)}50%{transform:translateX(8px) rotate(10deg)}}
+
+/* the history folds away */
+details.card{display:block}
+details.card>summary{cursor:pointer;list-style:none;display:inline-block}
+details.card>summary::-webkit-details-marker{display:none}
+details.card>summary::after{content:" ▾"}
+details.card[open]>summary::after{content:" ▴"}
+details.card .log{margin-top:12px}
+
+/* motion: only what just changed moves */
+@keyframes enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes flip{from{opacity:0;transform:perspective(700px) rotateY(75deg)}to{opacity:1;transform:none}}
+@keyframes stamp{0%{opacity:0;transform:scale(1.45) rotate(-14deg)}60%{opacity:1;transform:scale(.94) rotate(3deg)}100%{transform:none}}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+.card.enter{animation:enter .28s ease-out}
+/* laws are dealt from the deck into a fan; the next three lift a corner when peeked at */
+@keyframes deal{0%{opacity:0;transform:translate(var(--dx,0),-70px) rotate(-24deg) scale(.55)}70%{opacity:1;transform:translateY(4px) rotate(var(--fan,0deg))}100%{transform:none}}
+@keyframes lift{0%{opacity:0;transform:translateY(16px)}55%{opacity:1;transform:perspective(500px) rotateX(-28deg) translateY(-8px)}100%{transform:none}}
+.flip .hand .law{animation:deal .55s cubic-bezier(.2,.8,.2,1) both}
+.flip .hand .law:nth-child(1){--dx:60px;--fan:-6deg}
+.flip .hand .law:nth-child(2){--dx:0px;--fan:0deg;animation-delay:.1s}
+.flip .hand .law:nth-child(3){--dx:-60px;--fan:6deg;animation-delay:.2s}
+.flip #peek .law{animation:lift .7s ease-out both}
+.flip #peek .law:nth-child(2){animation-delay:.15s}
+.flip #peek .law:nth-child(3){animation-delay:.3s}
+/* the discarded law falls away */
+@keyframes toss{to{opacity:0;transform:translate(30px,160px) rotate(38deg) scale(.6)}}
+button.law.toss{animation:toss .38s ease-in forwards}
+.track{overflow:hidden}
+.slot.new{animation:stamp .55s cubic-bezier(.2,.8,.2,1) both}
+.toast:not([hidden]){animation:toastIn .2s ease-out}
+button.law{transition:transform .15s,opacity .15s}
+
+
+/* ---------- art deco: the same screens, other lines ---------- */
+[data-look="deco"] body{background-image:repeating-linear-gradient(45deg,var(--grain) 0 1px,transparent 1px 14px),repeating-linear-gradient(-45deg,var(--grain) 0 1px,transparent 1px 14px)}
+[data-look="deco"] .top{border-bottom:5px double var(--gold)}
+[data-look="deco"] .brand{font-weight:700;letter-spacing:.32em;font-size:19px}
+[data-look="deco"] .brand span{color:var(--gold)}
+[data-look="deco"] .chip{border-color:var(--gold);border-radius:999px}
+[data-look="deco"] .card{border:1px solid var(--gold);box-shadow:0 6px 18px var(--shadow);border-radius:3px}
+[data-look="deco"] .card::before{inset:5px;border:1px solid var(--gold);opacity:.6}
+[data-look="deco"] .card::after{content:"";position:absolute;top:-1px;right:-1px;width:28px;height:28px;pointer-events:none;
+  background:repeating-radial-gradient(circle at 100% 0,transparent 0 5px,var(--gold) 5px 6px);opacity:.7}
+[data-look="deco"] .card>.label:first-child{background:none;color:var(--accent);border-bottom:1px solid var(--gold);padding:0 0 6px;margin:0;letter-spacing:.3em}
+[data-look="deco"] .card.secret{border:3px double var(--gold);background:var(--surface)}
+[data-look="deco"] .btn{border:1px solid var(--gold);box-shadow:none;border-radius:2px;letter-spacing:.22em;font-weight:700}
+[data-look="deco"] .btn:active:not(:disabled){transform:translateY(1px)}
+[data-look="deco"] .btn.ghost{background:transparent}
+[data-look="deco"] .segm,[data-look="deco"] .field,[data-look="deco"] .x,[data-look="deco"] .status span{border-width:1px;border-color:var(--gold)}
+[data-look="deco"] .segm button+button{border-left:1px solid var(--gold)}
+[data-look="deco"] .tag,[data-look="deco"] .role{border:1px solid var(--gold);border-radius:999px}
+[data-look="deco"] .law{border:1px solid var(--gold);border-radius:6px;box-shadow:0 6px 14px var(--shadow)}
+[data-look="deco"] .law::after{border:3px double currentColor;border-radius:3px}
+[data-look="deco"] .role-card{border:1px solid var(--gold);background:repeating-conic-gradient(from -90deg at 50% 100%,rgba(255,215,120,.16) 0 4deg,transparent 4deg 10deg),var(--c)}
+[data-look="deco"] .role-card b{font-weight:700;letter-spacing:.14em;text-shadow:none}
+[data-look="deco"] .track{border:1px solid var(--gold);border-radius:3px}
+[data-look="deco"] .slot{border-style:solid;border-width:1px;border-radius:3px}
+[data-look="deco"] .slot.on{border:1px solid var(--gold);box-shadow:0 3px 8px var(--shadow)}
+[data-look="deco"] .names li{border-top:1px solid var(--gold);border-top-color:color-mix(in srgb,var(--gold) 45%,transparent)}
+[data-look="deco"] .toast{border:1px solid var(--gold);border-radius:3px}
+[data-look="deco"] .update{border-bottom:3px double var(--gold)}
+
+/* the drawings */
+.role-card .art{width:132px;height:132px;margin:0 auto 4px;display:block}
+.slot .glyph{font-size:22px;line-height:1}
+.role-card.H{--c:#15110e;border-color:var(--fas);box-shadow:inset 0 -12px 0 #c4381f}
+.role-card.H b{color:#ffb199}
+[data-look="deco"] .role-card.H{--c:#05070c;box-shadow:inset 0 -8px 0 #9b1c2c}
+
+/* who a cultist knows: one row per kind, Leader apart */
+.allies{display:flex;flex-direction:column;gap:8px}
+.ally{display:flex;align-items:baseline;gap:10px;padding:8px 12px;border:2px solid var(--line);background:var(--surface);overflow-wrap:anywhere}
+.ally small{flex:none;width:156px;text-align:center;font:800 11px/1.2 var(--display);letter-spacing:.14em;text-transform:uppercase;padding:4px 8px;color:#f1e5cc}
+.ally span{font-size:17px}
+.ally.H small{background:#15110e;box-shadow:inset 0 -3px 0 #c4381f}
+.ally.F small{background:var(--fas)}
+[data-look="deco"] .ally{border-width:1px;border-color:var(--gold)}
+
+/* a secret card turns over: its back first, then the face */
+.turn{position:relative;perspective:1000px}
+.turn .back{display:none}
+.turn.go .back{display:grid;place-items:center;position:absolute;inset:0;z-index:2;border:3px solid var(--line);backface-visibility:hidden;
+  background:repeating-linear-gradient(45deg,var(--ink) 0 10px,#2b241f 10px 20px);animation:turnAway .8s cubic-bezier(.3,.7,.3,1) both}
+.turn .back span{font:900 64px/1 var(--display);color:var(--accent-bg);border:4px solid var(--accent-bg);width:96px;height:96px;display:grid;place-items:center;border-radius:50%}
+.turn.go .role-card{backface-visibility:hidden;animation:turnIn .8s cubic-bezier(.3,.7,.3,1) both}
+@keyframes turnAway{0%{transform:rotateY(0)}35%{transform:rotateY(0)}100%{transform:rotateY(180deg)}}
+@keyframes turnIn{0%{transform:rotateY(-180deg)}35%{transform:rotateY(-180deg)}100%{transform:rotateY(0)}}
+[data-look="deco"] .turn.go .back{border:1px solid var(--gold);background:repeating-conic-gradient(from 0deg at 50% 50%,var(--ink) 0 10deg,#1c2640 10deg 20deg)}
+[data-look="deco"] .turn .back span{color:var(--gold);border-color:var(--gold)}
+
+/* the investigation: a magnifying glass passes over the card */
+.role-card{position:relative;overflow:hidden}
+.lens{position:absolute;top:22%;left:-30%;width:64px;height:64px;border:5px solid #f1e5cc;border-radius:50%;opacity:0;pointer-events:none;
+  box-shadow:0 0 0 2px rgba(0,0,0,.35),inset 0 0 18px rgba(255,255,255,.35)}
+.lens::after{content:"";position:absolute;right:-22px;bottom:-14px;width:28px;height:7px;background:#f1e5cc;border-radius:4px;transform:rotate(40deg)}
+.turn.go .lens{animation:lens 1.6s .8s ease-in-out both}
+@keyframes lens{0%{opacity:0;left:-30%}15%{opacity:1}50%{left:58%;top:18%}85%{opacity:1;left:30%;top:30%}100%{opacity:0;left:30%;top:30%}}
+
+/* the vote result, stamped over the screen */
+.stamp{position:fixed;left:50%;top:calc(100px + env(safe-area-inset-top));z-index:20;pointer-events:none;font:900 30px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;
+  padding:6px 16px;border:5px double currentColor;transform:translate(-50%,-50%) rotate(-8deg);background:rgba(255,248,230,.92)}
+.stamp.L{color:var(--lib)}
+.stamp.F{color:var(--fas)}
+.stamp.go{animation:stampDown .9s cubic-bezier(.2,.9,.3,1.2) both}
+@keyframes stampDown{0%{opacity:0;transform:translate(-50%,-50%) rotate(-8deg) scale(2.4)}22%{opacity:1;transform:translate(-50%,-50%) rotate(-8deg) scale(.92)}32%{transform:translate(-50%,-50%) rotate(-8deg) scale(1)}80%{opacity:1}100%{opacity:0}}
+/* the rejection tracker shakes when it moves, and on chaos */
+.dots.bump{animation:shake .5s}
+@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-4px) rotate(-3deg)}40%{transform:translateX(4px) rotate(3deg)}60%{transform:translateX(-3px)}80%{transform:translateX(2px)}}
+
+/* an elimination: the screen goes dark and the name is struck out */
+.flash{position:fixed;inset:0;z-index:19;pointer-events:none;background:#000;opacity:0}
+.flash.go{animation:dark .9s ease-out both}
+@keyframes dark{0%{opacity:0}25%{opacity:.75}100%{opacity:0}}
+.names li.struck{text-decoration:none;position:relative}
+.names li.struck>span:first-child{background:linear-gradient(var(--fas),var(--fas)) left 55%/0 3px no-repeat;animation:strike .6s .35s ease-out forwards}
+@keyframes strike{to{background-size:100% 3px}}
+
+/* the end: confetti in the winners' colour, and their character cheering */
+.confetti{position:fixed;inset:0;z-index:18;pointer-events:none;overflow:hidden}
+.confetti i{position:absolute;top:-16px;width:9px;height:14px;opacity:0;animation-name:fall;animation-timing-function:linear;animation-fill-mode:both}
+.confetti i.L{background:var(--lib)}
+.confetti i.F{background:var(--fas)}
+.confetti i:nth-child(3n){background:#e8b730}
+.confetti i:nth-child(5n){background:#f1e5cc}
+@keyframes fall{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:1;transform:translateY(105vh) rotate(var(--r,360deg)) translateX(30px)}}
+.cheer{align-self:center}
+.cheer .art{width:150px;height:150px;display:block;animation:cheer 1s ease-in-out 3}
+@keyframes cheer{0%,100%{transform:translateY(0) rotate(0)}30%{transform:translateY(-14px) rotate(-6deg)}60%{transform:translateY(0) rotate(5deg)}}
+
+/* the game, round by round, at the end */
+.timeline{padding-left:24px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.timeline li::marker{color:var(--muted)}
+.timeline li.gov.L::marker,.timeline li.inv::marker{color:var(--lib)}
+.timeline li.gov.F::marker,.timeline li.exec::marker{color:var(--fas)}
+.timeline .role{font-size:10px;padding:2px 6px;border-width:1px}
+
+/* help for the phase, and taking back the last public tap */
+.help{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.helpbtn{display:inline-flex;align-items:center;gap:10px;min-height:44px;padding:0 10px 0 0;font:700 14px/1.2 var(--display);letter-spacing:.04em;color:var(--fg)}
+.helpbtn b{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;border:2px solid var(--line);background:var(--surface);font:900 16px/1 var(--display)}
+.helpbtn[aria-expanded="true"] b{background:var(--fg);color:var(--surface)}
+.helptext{flex:1;font-size:14px;background:var(--surface);border:2px solid var(--line);padding:8px 10px}
+.undo{align-self:flex-start;font:700 13px/1 var(--display);letter-spacing:.06em;text-transform:uppercase;padding:8px 12px;border:2px dashed var(--line);background:var(--surface)}
+[data-look="deco"] .helpbtn b,[data-look="deco"] .helptext,[data-look="deco"] .undo{border-width:1px;border-color:var(--gold)}
+
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none !important;transition:none !important}.confetti{display:none}.turn.go .back{display:none}}
+
+/* ---------- players run by the app (D10) ---------- */
+small.ai{font:800 10px/1 var(--display);letter-spacing:.1em;padding:3px 5px;border:1.5px solid currentColor;vertical-align:2px;opacity:.8}
+.row .btn.ghost{flex:0 0 auto}
+#solo .segm button{letter-spacing:.02em;font-size:12px;padding:0 3px;overflow-wrap:anywhere}
+.thinking{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px}
+.dots-wait{display:inline-flex;gap:4px;margin-left:2px}
+.dots-wait i{width:6px;height:6px;border-radius:50%;background:currentColor;animation:wait 1s infinite ease-in-out}
+.dots-wait i:nth-child(2){animation-delay:.15s}.dots-wait i:nth-child(3){animation-delay:.3s}
+@keyframes wait{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}
+.voter{display:grid;gap:6px;margin:10px 0}
+.voter .btn.on{outline:3px solid var(--fg);outline-offset:2px}
+.claim .pick .btn{font-size:15px}
+.timeline .hands{display:block;margin-top:3px;font-size:12px;color:var(--muted)}
+.mini{display:inline-block;font:800 10px/1 var(--display);font-style:normal;padding:2px 4px;margin-left:2px;color:var(--surface)}
+.mini.L{background:var(--lib)}.mini.F{background:var(--fas)}
+
+/* ---------- a law approved, over the screen (D11) ---------- */
+.decree{position:fixed;left:0;right:0;top:calc(66px + env(safe-area-inset-top));display:flex;justify-content:center;z-index:60;pointer-events:none;padding:0 16px}
+.decree[hidden]{display:none}
+.decree-card{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto auto;column-gap:10px;align-items:center;max-width:420px;width:100%;padding:6px 12px;border:3px solid var(--line);background:var(--surface);color:var(--fg);box-shadow:6px 6px 0 var(--line)}
+.decree-card .glyph{grid-row:1/4;font-size:30px;line-height:1}
+.decree-card.L .glyph{color:var(--lib)}.decree-card.F .glyph{color:var(--fas)}
+.decree-card .who{font:800 15px/1.15 var(--display);overflow-wrap:anywhere}
+.decree-card span:not(.who):not(.glyph){font-size:12px;line-height:1.1;color:var(--muted)}
+.decree-card b{font:900 18px/1.05 var(--display);text-transform:uppercase;letter-spacing:.06em}
+.decree-card.L b{color:var(--lib)}.decree-card.F b{color:var(--fas)}
+.decree.go .decree-card{animation:decree 2.2s cubic-bezier(.2,.9,.3,1.2) both}
+.decree.go .decree-card .glyph{animation:decreeSeal .5s .25s ease-out both}
+@keyframes decree{0%{transform:translateY(-140%) rotate(-3deg);opacity:0}14%{transform:translateY(0) rotate(-1deg);opacity:1}85%{transform:translateY(0) rotate(-1deg);opacity:1}100%{transform:translateY(-30%);opacity:0}}
+@keyframes decreeSeal{0%{transform:scale(2.4) rotate(-20deg);opacity:0}70%{transform:scale(.9) rotate(4deg);opacity:1}100%{transform:scale(1)}}
+[data-look="deco"] .decree-card{border-width:1px;border-color:var(--gold);box-shadow:0 0 0 4px var(--surface),0 0 0 5px var(--gold)}
+.tally{list-style:none;margin:6px 0 10px;padding:0}
+.tally li{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-top:1px dashed var(--muted);font-size:15px}
+.tally li:first-child{border-top:0}
+#log #showata{margin:8px 0}
+
+/* ---------- the theme of the game (D12) ---------- */
+.packs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.packs button{display:grid;justify-items:center;gap:6px;padding:10px 6px;border:2px solid var(--line);background:var(--surface);color:var(--fg);font:800 13px/1.15 var(--display);letter-spacing:.04em;text-transform:uppercase;min-height:44px}
+.packs button.on{background:var(--fg);color:var(--surface)}
+.packart{display:flex;justify-content:center}
+.packart svg{width:46px;height:46px;margin:0 -3px}
+[data-look="deco"] .packs button{border-width:1px;border-color:var(--gold)}
+.role-card b{font-size:clamp(28px,9.5vw,42px);overflow-wrap:anywhere}
+#solo .segm.roles{display:grid;grid-template-columns:1fr 1fr}
+#solo .segm.roles button+button{border-left:0}
+#solo .segm.roles button:nth-child(2n){border-left:2px solid var(--line)}
+#solo .segm.roles button:nth-child(n+3){border-top:2px solid var(--line)}
+[data-look="deco"] #solo .segm.roles button:nth-child(2n){border-left:1px solid var(--gold)}
+[data-look="deco"] #solo .segm.roles button:nth-child(n+3){border-top:1px solid var(--gold)}
+
+/* ---------- the person's notebook (D12) ---------- */
+#players .names li .who{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-width:0}
+#players .names li .who .tag{font-size:10px;padding:3px 6px}
+.names.noted li{gap:8px}
+.tag.you{background:transparent;color:var(--muted);border-color:var(--muted)}
+.notes-segm{display:inline-flex;flex:0 0 auto}
+.notes-segm button{min-width:50px;min-height:40px;font-size:12px;padding:0 6px;white-space:nowrap}
+.notes-segm button.on.L{background:var(--lib);color:var(--surface)}
+.notes-segm button.on.F{background:var(--fas);color:var(--surface)}
+#notes li.L>.who{color:var(--lib);font-weight:700}
+#notes li.F>.who{color:var(--fas);font-weight:700}
+.sure-tag.F{background:var(--fas);border-color:var(--fas);color:var(--surface)}
+.sure-tag.L{background:var(--lib);border-color:var(--lib);color:var(--surface)}
+
+/* ---------- the trainer and what the app players thought (D13) ---------- */
+.coach p{margin:.5em 0;font-size:15px}
+.thoughts{list-style:none;margin:6px 0 0;padding:0}
+.thoughts li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px;padding:8px 0;border-top:1px dashed var(--muted)}
+.thoughts li:first-child{border-top:0}
+.thoughts li>span{overflow-wrap:anywhere;font-size:15px}
+.thoughts li>span .role{margin-left:4px;font-size:10px;padding:3px 5px}
+.thoughts b{font:800 16px/1 var(--display);min-width:3.2em;text-align:right;white-space:nowrap}
+.thoughts b small{font-weight:600;font-size:12px;color:var(--muted)}
+.spark{width:96px;height:48px;overflow:visible}
+.spark-line{fill:none;stroke:var(--fas);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.spark-base{stroke:var(--muted);stroke-width:1;stroke-dasharray:3 3}
+.spark-dot{fill:var(--fas);stroke:var(--surface);stroke-width:1}
+.tag.mark{font-size:11px;padding:4px 8px}
+.tag.mark.L{background:var(--lib);border-color:var(--lib);color:var(--surface)}
+.tag.mark.F{background:var(--fas);border-color:var(--fas);color:var(--surface)}
+
+/* ---------- the notebook as a side panel, and the live suspicion (D14) ---------- */
+.drawer{position:fixed;top:calc(62px + env(safe-area-inset-top));right:0;bottom:calc(var(--dock) + env(safe-area-inset-bottom));z-index:44;width:min(320px,86vw);overflow-y:auto;padding:14px 14px 20px;background:var(--surface);border-left:3px solid var(--line);box-shadow:-8px 0 0 rgba(0,0,0,.12);transform:translateX(105%);transition:transform .25s ease;visibility:hidden}
+.drawer.open{transform:none;visibility:visible}
+.drawer .names li{flex-wrap:wrap}
+[data-look="deco"] .drawer{border-left:1px solid var(--gold)}
+@media (min-width:1400px){.drawer{transform:none;visibility:visible;top:72px;bottom:auto;max-height:calc(100vh - 92px);right:16px;border:3px solid var(--line);padding:14px}}
+.live-toggle{display:block;width:100%;margin:2px 0 6px;padding:10px 12px;min-height:44px;text-align:left;border:2px dashed var(--line);background:transparent;color:var(--fg);font:800 12px/1 var(--display);letter-spacing:.08em;text-transform:uppercase}
+.live-toggle[aria-pressed="true"]{border-style:solid}
+.meter-toggles{display:flex;gap:8px;margin:2px 0 6px}
+.meter-toggles .live-toggle{flex:1;width:auto;margin:0;padding:10px 8px}
+[data-look="deco"] .live-toggle{border-width:1px;border-color:var(--gold)}
+.meter{position:relative;display:inline-flex;align-items:center;width:74px;height:20px;border:1.5px solid var(--line);margin-left:auto;flex:0 0 auto}
+.meter i{position:absolute;left:0;top:0;bottom:0;background:var(--fas);opacity:.85}
+.meter b{position:relative;width:100%;text-align:center;font:800 11px/1 var(--display);color:var(--fg);text-shadow:0 0 3px var(--surface)}
+
+/* ---------- the crucial point (D15) ---------- */
+.crux{margin:10px 0 6px;padding:10px 12px;border-left:4px solid var(--fas);background:color-mix(in srgb,var(--fas) 10%,transparent)}
+.crux small{display:block;font:800 11px/1.2 var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.crux p{margin:6px 0 4px;font-size:15px}
+.crux>b{font:800 16px/1 var(--display);color:var(--fas)}
+/* the minutes number their laws themselves ("1ª", "2ª"): no list numbers beside them */
+.timeline.ata-list{list-style:none;padding-left:0}
+/* the bar at the bottom that opens the side panels (D17): it has its own room at the end of the page (.dock-gap), so it
+   covers nothing; a panel opens above it, and a note pops up above it */
+.dock{position:fixed;left:0;right:0;bottom:0;z-index:47;display:flex;gap:8px;height:calc(var(--dock) + env(safe-area-inset-bottom));padding:8px max(16px,calc((100vw - 720px) / 2)) calc(8px + env(safe-area-inset-bottom));background:var(--bg);border-top:3px solid var(--line)}
+.dock-btn{flex:1 1 0;min-width:0;border:2px solid var(--line);background:var(--surface);color:var(--fg);font:800 13px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dock-btn.open{background:var(--fg);color:var(--surface)}
+.dock-gap{height:calc(var(--dock) + env(safe-area-inset-bottom))}
+/* in a game, a note pops up in that room at the bottom, over the bar if there is one, and lets taps through */
+body:has(.dock-gap) .toast{bottom:calc(6px + env(safe-area-inset-bottom));z-index:48;pointer-events:none;font-size:13px;padding:8px 12px;width:max-content}
+[data-look="deco"] .dock{border-top:1px solid var(--gold)}
+[data-look="deco"] .dock-btn{border:1px solid var(--gold)}
+@media (min-width:1400px){.dock-btn.notes{display:none}.dock:not(:has(.dock-btn:not(.notes))){display:none}}
+/* D18: the whole table at a glance, at the top */
+.seats{list-style:none;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.seat{display:inline-flex;align-items:center;gap:5px;min-height:30px;padding:2px 8px;border:2px solid var(--line);background:var(--surface);font:700 13px/1.2 var(--display);max-width:100%}
+.seat.L{box-shadow:inset 5px 0 0 var(--lib)}
+.seat.F{box-shadow:inset 5px 0 0 var(--fas)}
+.seat.sure.L{border-color:var(--lib)}
+.seat.sure.F{border-color:var(--fas)}
+.seat.dead{opacity:.5}
+.seat i{font:800 10px/1 var(--display);font-style:normal;letter-spacing:.06em;text-transform:uppercase;padding:3px 5px;background:var(--fg);color:var(--surface)}
+.seat i.you{background:none;color:var(--muted);border:1px solid var(--muted)}
+.seat i.sus{background:var(--fas);color:var(--on-party)}
+[data-look="deco"] .seat{border-width:1px;border-color:var(--gold)}
+/* D18: a choice that opens more choices, and the tabs at the end */
+.more{display:inline-flex;align-items:center;min-height:44px;font:800 13px/1 var(--display);letter-spacing:.1em;text-transform:uppercase;color:var(--fg);text-decoration:underline;text-underline-offset:4px}
+#moreopts{display:contents}
+.endtabs{position:sticky;top:calc(62px + env(safe-area-inset-top));z-index:5;background:var(--bg)}
+/* D19: the review of a person's plays, at the end */
+.plays{list-style:none;padding:0;margin:6px 0 12px;display:grid;gap:8px}
+.plays li{border-left:5px solid var(--line);padding:4px 10px;font-size:15px;line-height:1.4}
+.plays.good li{border-left-color:var(--lib)}
+.plays.bad li{border-left-color:var(--fas)}
+.plays-head{display:block;margin-top:8px;font:800 12px/1 var(--display);letter-spacing:.14em;text-transform:uppercase}
+.plays-head.good{color:var(--lib)}.plays-head.bad{color:var(--fas)}
+.plays.good li::before{content:"✓ ";font-weight:800;color:var(--lib)}.plays.bad li::before{content:"✗ ";font-weight:800;color:var(--fas)}
+/* D21: what the last government told the table, kept in view */
+.said{margin:0;padding:8px 12px;border-left:5px solid var(--line);background:var(--surface);font-size:14px;line-height:1.4}
+.said small{display:block;font:800 10px/1.2 var(--display);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+[data-look="deco"] .said{border-left-color:var(--gold)}
+.segm.regions{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--line)}
+.segm.regions button{font-size:13px;letter-spacing:0;text-transform:none;padding:0 2px;min-width:0;border-left:0!important;background:var(--surface)}
+.segm.regions button.on{background:var(--fg);color:var(--surface)}
+/* D25: every drawing */
+.cast{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 12px}
+.cast figure{margin:0;text-align:center}
+.cast svg{width:100%;max-width:120px;height:auto;aspect-ratio:1;background:var(--bg);border:2px solid var(--line)}
+.cast figcaption{font-size:12px;line-height:1.25;color:var(--muted)}
+.cast figcaption b{display:block;color:var(--fg);font:800 12px/1.3 var(--display);letter-spacing:.06em;text-transform:uppercase}
+/* telling the table from the notebook (D26) */
+.note-acts{display:inline-flex;align-items:center;gap:6px;margin-left:auto;flex:0 0 auto}
+.drawer .tell{width:40px;min-height:40px;padding:0;font-size:18px;line-height:1;background:transparent;border:2px solid var(--line);cursor:pointer}
+.drawer .tell.F{border-color:var(--fas)}
+.drawer .tell.L{border-color:var(--lib)}
+.drawer .told{width:40px;text-align:center;color:var(--muted)}
+.persona{display:inline-block;padding:0 5px;border:1px solid currentColor;border-radius:3px;font-size:11px;opacity:.75;font-weight:400}
+.heard{margin-top:12px;padding:10px;border:2px solid var(--line)}
+.heard ul{list-style:none;margin:6px 0 0;padding:0;display:grid;gap:4px}
+.heard li.yes::before{content:"✓ ";color:var(--lib)}
+.heard li.no::before{content:"✗ ";color:var(--fas)}
+.heard li.meh::before{content:"? ";color:var(--muted)}
+.dlc{margin-top:10px}.dlc summary{cursor:pointer;color:var(--muted);font-size:14px;min-height:40px;display:flex;align-items:center}
+.drawer .notes-segm button{min-width:44px}
+/* the notebook scored at the end (D28) */
+.big-score{font-size:20px;margin:6px 0}.big-score b{font-size:32px}
+.heard-list{list-style:none;margin:6px 0;padding:0;display:grid;gap:4px}
+.heard-list li.yes::before{content:"✓ ";color:var(--lib)}
+.heard-list li.no::before{content:"✗ ";color:var(--fas)}
+.drawer .names.noted li{flex-wrap:nowrap;align-items:center}
+.drawer .noted .who{flex:1 1 auto;min-width:0;overflow-wrap:anywhere}
+.drawer .noted .persona{display:block;width:max-content;margin-top:3px}
+.drawer .notes-segm button{flex:0 0 auto;min-width:0;padding:0 7px;font-size:11px;letter-spacing:.04em}
+.drawer .noted .sure-tag{font-size:11px;padding:5px 6px}
+/* the continent's colours on the cards and the laws (D29): a band at the foot, like a flag's ribbon */
+[data-region="brasil"]{--reg:linear-gradient(90deg,#1f9a4b 0 45%,#f2c230 45% 75%,#2b4fa8 75%)}
+[data-region="americas"]{--reg:repeating-linear-gradient(135deg,#c8553d 0 6px,#2a9d8f 6px 12px,#f4a259 12px 18px)}
+[data-region="europa"]{--reg:repeating-linear-gradient(90deg,#1d3a6e 0 12px,#d9b23a 12px 15px)}
+[data-region="asia"]{--reg:repeating-linear-gradient(90deg,#b8202b 0 14px,#e8b730 14px 18px)}
+[data-region="africa"]{--reg:repeating-linear-gradient(90deg,#e8b730 0 8px,#1f7a3a 8px 12px,#b8202b 12px 16px,#1f1b19 16px 20px)}
+[data-region="oceania"]{--reg:repeating-linear-gradient(90deg,#1b6f9c 0 8px,#e9d8a6 8px 11px,#c8553d 11px 14px)}
+.dlc-region{background-image:linear-gradient(90deg,#1f9a4b 0 45%,#f2c230 45% 75%,#2b4fa8 75%);background-size:100% 6px;background-repeat:no-repeat;background-position:bottom}
+.dlc-region.on{background-color:var(--fg);color:var(--surface)}
+
+/* the Yes vote wears the continent (D29): a little flag-like picture behind the word, which keeps its own plate so it reads */
+[data-region="brasil"] .btn.vote.L{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20120%2044%22%20preserveAspectRatio%3D%22none%22%3E%3Crect%20width%3D%22120%22%20height%3D%2244%22%20fill%3D%22%231f9a4b%22/%3E%3Cpath%20d%3D%22M60%204%20L114%2022%20L60%2040%20L6%2022Z%22%20fill%3D%22%23f2c230%22/%3E%3C/svg%3E");background-size:100% 100%}
+[data-region="americas"] .btn.vote.L{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20120%2044%22%20preserveAspectRatio%3D%22none%22%3E%3Crect%20width%3D%22120%22%20height%3D%2244%22%20fill%3D%22%23c8553d%22/%3E%3Cpath%20d%3D%22M0%2014%20L10%206%20L20%2014%20L30%206%20L40%2014%20L50%206%20L60%2014%20L70%206%20L80%2014%20L90%206%20L100%2014%20L110%206%20L120%2014%20V30%20L110%2038%20L100%2030%20L90%2038%20L80%2030%20L70%2038%20L60%2030%20L50%2038%20L40%2030%20L30%2038%20L20%2030%20L10%2038%20L0%2030Z%22%20fill%3D%22%232a9d8f%22/%3E%3Cpath%20d%3D%22M0%2022%20H120%22%20stroke%3D%22%23f4a259%22%20stroke-width%3D%225%22/%3E%3C/svg%3E");background-size:100% 100%}
+[data-region="europa"] .btn.vote.L{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20120%2044%22%20preserveAspectRatio%3D%22none%22%3E%3Crect%20width%3D%22120%22%20height%3D%2244%22%20fill%3D%22%231d3a6e%22/%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2210%22%20r%3D%222.4%22%20fill%3D%22%23e8b730%22/%3E%3Ccircle%20cx%3D%2214%22%20cy%3D%2234%22%20r%3D%222.4%22%20fill%3D%22%23e8b730%22/%3E%3Ccircle%20cx%3D%2228%22%20cy%3D%2222%22%20r%3D%222.4%22%20fill%3D%22%23e8b730%22/%3E%3Ccircle%20cx%3D%22106%22%20cy%3D%2210%22%20r%3D%222.4%22%20fill%3D%22%23e8b730%22/%3E%3Ccircle%20cx%3D%22106%22%20cy%3D%2234%22%20r%3D%222.4%22%20fill%3D%22%23e8b730%22/%3E%3Ccircle%20cx%3D%2292%22%20cy%3D%2222%22%20r%3D%222.4%22%20fill%3D%22%23e8b730%22/%3E%3Ccircle%20cx%3D%2240%22%20cy%3D%228%22%20r%3D%222.4%22%20fill%3D%22%23e8b730%22/%3E%3Ccircle%20cx%3D%2280%22%20cy%3D%228%22%20r%3D%222.4%22%20fill%3D%22%23e8b730%22/%3E%3Ccircle%20cx%3D%2240%22%20cy%3D%2236%22%20r%3D%222.4%22%20fill%3D%22%23e8b730%22/%3E%3Ccircle%20cx%3D%2280%22%20cy%3D%2236%22%20r%3D%222.4%22%20fill%3D%22%23e8b730%22/%3E%3C/svg%3E");background-size:100% 100%}
+[data-region="asia"] .btn.vote.L{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20120%2044%22%20preserveAspectRatio%3D%22none%22%3E%3Crect%20width%3D%22120%22%20height%3D%2244%22%20fill%3D%22%23b8202b%22/%3E%3Cpath%20d%3D%22M0%2034%20C10%2026%2020%2026%2030%2034%20C40%2026%2050%2026%2060%2034%20C70%2026%2080%2026%2090%2034%20C100%2026%20110%2026%20120%2034%20V44%20H0Z%20M0%2012%20C10%204%2020%204%2030%2012%20C40%204%2050%204%2060%2012%20C70%204%2080%204%2090%2012%20C100%204%20110%204%20120%2012%20V0%20H0Z%22%20fill%3D%22%23e8b730%22/%3E%3C/svg%3E");background-size:100% 100%}
+[data-region="africa"] .btn.vote.L{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20120%2044%22%20preserveAspectRatio%3D%22none%22%3E%3Crect%20width%3D%22120%22%20height%3D%2244%22%20fill%3D%22%23e8b730%22/%3E%3Crect%20x%3D%226%22%20width%3D%226%22%20height%3D%2244%22%20fill%3D%22%231f7a3a%22/%3E%3Crect%20x%3D%2214%22%20width%3D%226%22%20height%3D%2244%22%20fill%3D%22%23b8202b%22/%3E%3Crect%20x%3D%2222%22%20width%3D%226%22%20height%3D%2244%22%20fill%3D%22%231f1b19%22/%3E%3Crect%20x%3D%2292%22%20width%3D%226%22%20height%3D%2244%22%20fill%3D%22%231f1b19%22/%3E%3Crect%20x%3D%22100%22%20width%3D%226%22%20height%3D%2244%22%20fill%3D%22%23b8202b%22/%3E%3Crect%20x%3D%22108%22%20width%3D%226%22%20height%3D%2244%22%20fill%3D%22%231f7a3a%22/%3E%3Cpath%20d%3D%22M0%206%20H120%20M0%2038%20H120%22%20stroke%3D%22%231f1b19%22%20stroke-width%3D%223%22/%3E%3C/svg%3E");background-size:100% 100%}
+[data-region="oceania"] .btn.vote.L{background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20120%2044%22%20preserveAspectRatio%3D%22none%22%3E%3Crect%20width%3D%22120%22%20height%3D%2244%22%20fill%3D%22%231b6f9c%22/%3E%3Cpath%20d%3D%22M0%2030%20C15%2022%2030%2038%2045%2030%20C60%2022%2075%2038%2090%2030%20C105%2022%20115%2034%20120%2030%20V44%20H0Z%22%20fill%3D%22%23e9d8a6%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%2210%22%20r%3D%221.6%22%20fill%3D%22%23fff%22/%3E%3Ccircle%20cx%3D%2224%22%20cy%3D%2216%22%20r%3D%221.6%22%20fill%3D%22%23fff%22/%3E%3Ccircle%20cx%3D%2296%22%20cy%3D%2210%22%20r%3D%221.6%22%20fill%3D%22%23fff%22/%3E%3Ccircle%20cx%3D%22108%22%20cy%3D%2216%22%20r%3D%221.6%22%20fill%3D%22%23fff%22/%3E%3Ccircle%20cx%3D%2220%22%20cy%3D%226%22%20r%3D%221.6%22%20fill%3D%22%23fff%22/%3E%3Ccircle%20cx%3D%22100%22%20cy%3D%226%22%20r%3D%221.6%22%20fill%3D%22%23fff%22/%3E%3C/svg%3E");background-size:100% 100%}
+[data-region]:not([data-region="mundo"]) .btn.vote.L{border-color:#1f1b19}
+[data-region]:not([data-region="mundo"]) .btn.vote.L .vw{color:#fff;-webkit-text-stroke:1.5px #000;paint-order:stroke fill;text-shadow:0 2px 0 #000,0 0 3px #000}
+[data-region]:not([data-region="mundo"]) .btn.vote.L.on{outline:3px solid var(--lib);outline-offset:2px}
+[data-region]:not([data-region="mundo"]) .btn.vote.F{background-color:var(--fas);color:#fff;border-color:#1f1b19}
+[data-region]:not([data-region="mundo"]) .btn.vote.F.on{outline:3px solid var(--fas);outline-offset:2px}
+/* the balance of a government (D30) and the claim choice */
+.claim-pick{display:inline-flex;gap:4px}
+.drawer .claim-pick .tell{width:auto;padding:0 6px;font:800 11px/1 var(--display);text-transform:uppercase}
+.drawer .tell.bluff{border-style:dashed}
+
+.said .led-row{display:flex;align-items:center;gap:10px;margin-top:6px}
+.led-who{display:flex;flex-direction:column;min-width:96px;line-height:1.15}
+.led-who small{font:700 10px/1 var(--display);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.led-cards{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.lc{display:inline-block;width:18px;height:26px;border:2px solid var(--line);border-radius:2px;position:relative}
+.lc.L{background:var(--lib)}.lc.F{background:var(--fas)}
+.lc.out{opacity:.35}.lc.out::after{content:"✕";position:absolute;inset:0;display:grid;place-items:center;font:800 14px/1 var(--display);color:var(--fg)}
+.led-arrow{margin:0 2px;color:var(--muted)}
+.led-law{font:700 12px/1 var(--display);text-transform:uppercase;letter-spacing:.06em}
+.led-quiet{color:var(--muted);font-size:13px}
+/* the notebook, plainer (D30): one line per seat, the marks and the claim side by side */
+.drawer .names.noted li{padding:8px 0;gap:6px}
+.drawer .noted .who{font-weight:700}
+.drawer .tell{width:36px;min-height:36px;font-size:16px;border-radius:50%}
+.drawer .claim-pick .tell{border-radius:3px;min-height:36px}
+.drawer .notes-segm button{min-height:36px}
+.drawer .sides{display:flex;gap:6px;margin-left:auto}
+.drawer .side{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 6px;border:2px solid var(--line);min-width:72px}
+.drawer .side b{font:800 11px/1 var(--display);letter-spacing:.08em;text-transform:uppercase}
+.drawer .side.L.on{background:var(--lib);color:var(--on-party)}
+.drawer .side.F.on{background:var(--fas);color:var(--on-party)}
+.drawer .side>span{display:flex;gap:4px}
+.drawer .pen,.drawer .side .tell{width:30px;height:30px;min-height:0;padding:0;font-size:15px;border:2px solid currentColor;background:var(--surface);border-radius:4px;cursor:pointer}
+.drawer .pen.on{outline:2px solid var(--fg)}
+.drawer .side .told{width:30px}
+
+/* Public executive powers use neutral symbols; the investigation's result stays behind its gate. */
+.power-effect{position:fixed;left:0;right:0;top:calc(66px + env(safe-area-inset-top));z-index:61;padding:0 16px;pointer-events:none;display:flex;justify-content:center}
+.power-effect[hidden]{display:none}
+.power-card{display:flex;align-items:center;gap:12px;width:100%;max-width:420px;padding:8px 12px;background:var(--surface);color:var(--fg);border:3px solid var(--line);box-shadow:5px 5px 0 var(--line)}
+.power-mark{width:40px;height:40px;flex:none;transform-origin:center}
+.power-card small{display:block;font:700 12px/1.2 var(--display);text-transform:uppercase;letter-spacing:.08em}
+.power-card b{display:block;font:900 19px/1.2 var(--display);overflow-wrap:anywhere}
+.power-effect.go .power-card{animation:powerNotice 1.6s ease both}
+.power-effect.investigate.go .power-mark{animation:searchPower 1.4s ease-in-out both}
+.power-effect.execute{color:var(--fas)}
+.power-effect.execute .power-mark,.power-effect.execute small{color:var(--fas)}
+.power-effect.execute.go .power-mark{overflow:visible;animation:gunRecoil .8s ease-out both}
+.power-effect.execute.go b{background:linear-gradient(var(--fas),var(--fas)) left 55%/0 3px no-repeat;animation:strike .55s .25s ease-out forwards}
+@keyframes powerNotice{0%{opacity:0;transform:translateY(-20px)}15%,85%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-8px)}}
+@keyframes searchPower{0%,100%{transform:translateX(-5px) rotate(-12deg)}45%{transform:translateX(8px) rotate(10deg)}75%{transform:translateX(0) rotate(-5deg)}}
+@keyframes hammerPower{0%{transform:rotate(-50deg) scale(1.15)}50%{transform:rotate(14deg) scale(1)}70%{transform:rotate(-8deg)}100%{transform:rotate(0)}}
+[data-look="deco"] .power-card{border:1px solid var(--gold);box-shadow:0 0 0 3px var(--surface),0 0 0 4px var(--gold)}
+
+/* A private notebook with progressive disclosure keeps the mobile table readable. */
+.note-detail{margin-top:8px;font-size:14px}
+.note-detail summary{min-height:36px;cursor:pointer;padding:8px 0;color:var(--fg)}
+.note-detail label{display:block;margin:8px 0;font-weight:700}
+.note-detail textarea{box-sizing:border-box;width:100%;resize:vertical;min-height:72px;padding:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font:inherit}
+.note-detail .segm{margin-top:8px}
+.note-facts{border-left:3px solid var(--muted);padding:8px 10px;margin-top:8px}
+.note-facts ul{margin:6px 0;padding-left:18px}
+.note-facts li{display:list-item;font-size:13px;border:0}
+.claim-impact{padding:10px;border-left:3px solid var(--accent);font-weight:700;line-height:1.4}
+.turning-points{padding-left:24px}.turning-points li{margin:14px 0}.turning-points p{margin:4px 0}
+button:focus-visible,summary:focus-visible,textarea:focus-visible{outline:3px solid var(--fg);outline-offset:3px}
+.power-effect.investigate.go .power-mark{position:relative;z-index:1;animation:searchName 1.4s ease-in-out both}
+.power-effect.execute .muzzle,.power-effect.execute .smoke{opacity:0}
+.power-effect.execute.go .muzzle{animation:muzzleFlash .18s .2s ease-out both}
+.power-effect.execute.go .smoke{animation:gunSmoke .8s .3s ease-out both}
+@keyframes searchName{0%,100%{transform:translateX(0) rotate(-12deg)}45%{transform:translateX(74px) rotate(10deg)}75%{transform:translateX(25px) rotate(-5deg)}}
+@keyframes gunRecoil{0%,22%,100%{transform:translateX(0) rotate(0)}30%{transform:translateX(-7px) rotate(-12deg)}60%{transform:translateX(0) rotate(-2deg)}}
+@keyframes muzzleFlash{0%{opacity:0}30%,70%{opacity:1}100%{opacity:0}}
+@keyframes gunSmoke{0%{opacity:0;transform:translateY(0)}20%{opacity:.6}100%{opacity:0;transform:translateY(-14px)}}
+
+
+/* Override earlier compact button rules; iOS must get a real touch box, not emoji-sized content. */
+.turning-points{padding:0}
+.turning-points article{padding:14px 0;border-bottom:1px solid var(--line)}
+.turning-points article:last-child{border-bottom:0;padding-bottom:0}
+.turning-points h3{font:800 19px/1.25 var(--display);margin:0 0 8px;text-transform:none;letter-spacing:0}
+.turning-points p{margin:0;line-height:1.5}
+
+/* A persistent short cue replaces fast dialogue toasts; the transcript has its own public panel. */
+body:has(.dock){--dock:68px}
+body:has(.speech-peek){--dock:116px}
+.dock{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(44px,1fr);gap:6px}
+.speech-peek{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;min-height:32px;text-align:left;padding:0 4px;font:700 13px/1.2 var(--font)}
+.speech-peek span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.speech-peek small{flex:none;color:var(--muted);font-size:11px}
+.diary{width:min(420px,94vw);z-index:45}
+.diary-head{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.diary-close{width:44px;height:44px;border:1px solid var(--line);flex:none}
+.diary-lines article{padding:14px 0;border-top:1px solid var(--line)}
+.diary-lines header{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}
+.diary-lines small{color:var(--muted);overflow-wrap:anywhere}
+.diary-lines p{font-size:16px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 0}
+@media (min-width:1400px){.diary:not(.open){visibility:hidden;transform:translateX(105%)}}
+
+.dock:not(:has(.notes)) .dock-btn{grid-column:1/-1}
+
+.reputation-cue{display:block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:11px}
+.reputation-cue.up{color:var(--lib)}.reputation-cue.down{color:var(--neg)}
+.reputation-note{padding:12px;margin:12px 0;border-left:3px solid var(--muted);background:var(--surface)}
+.reputation-note.up{border-color:var(--lib)}.reputation-note.down{border-color:var(--neg)}
+.reputation-note p{margin:6px 0 0;line-height:1.5;font-size:14px}
+
+/* the notebook as it was (D30): one line per seat, name on the left, the two sides on the right, each with 🗒️ and 📣;
+   36px buttons keep both sides beside the name at 393px (iPhone), the reasons fold underneath */
+#notes>li{display:block;padding:8px 0}
+.note-row{display:flex;align-items:center;gap:8px}
+.note-row .who{flex:1 1 auto;min-width:0;overflow-wrap:anywhere;font-weight:700}
+.note-row .sides{display:flex;gap:6px;flex:0 0 auto}
+.drawer .side{min-width:0;padding:4px 5px}
+.drawer .side .pen,.drawer .side .tell{width:40px;height:40px;min-width:40px;min-height:40px;padding:0;font-size:18px;line-height:1;display:inline-flex;align-items:center;justify-content:center}
+.note-detail{margin-top:4px;font-size:13px}.note-detail summary{min-height:32px;padding:4px 0;color:var(--muted)}
+/* reactions to a claim rise from the foot of the screen (D31) */
+.react-fx{position:fixed;bottom:calc(var(--dock,60px) + 10px);z-index:60;font-size:30px;pointer-events:none;animation:react-up 1.8s ease-out forwards}
+@keyframes react-up{0%{transform:translateY(0) scale(.6);opacity:0}15%{opacity:1;transform:translateY(-20px) scale(1)}100%{transform:translateY(-55vh) scale(1.1);opacity:0}}
+/* the suspicion gauge (D32) */
+.gauge{display:flex;align-items:center;gap:12px;padding:6px 12px;margin:8px 0;border:2px solid var(--line);background:var(--surface)}
+.gauge svg{width:96px;height:56px;color:var(--fg);flex:none}
+.gauge .needle{transform-origin:60px 62px;transition:transform .8s cubic-bezier(.3,1.6,.5,1)}
+.gauge span{display:flex;flex-direction:column;font:700 13px/1.2 var(--display)}
+.gauge small{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.gauge b{font-size:24px}
+@media (prefers-reduced-motion:reduce){.gauge .needle{transition:none}}
+/* your turn stands out, the quick start, your game at a glance (D34) */
+#phase.mine{border-color:var(--lib);animation:mine-glow 1.6s ease-in-out infinite}
+@keyframes mine-glow{50%{box-shadow:0 0 0 4px color-mix(in srgb,var(--lib) 45%,transparent),5px 5px 0 var(--shadow)}}
+@media (prefers-reduced-motion:reduce){#phase.mine{animation:none;box-shadow:0 0 0 3px var(--lib)}}
+.quick .big{font-size:20px;min-height:56px}
+.yours.won{border-color:var(--lib)}.yours.lost{border-color:var(--fas)}
+/* the undo floats above the bar for a moment; seats open the notebook; the record filters (D34) */
+.seat-btn{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:4px}
+.seat-btn:focus-visible{outline:2px solid var(--fg)}
+.log-tabs{margin:6px 0}
+
+/* the law cards never spill out of the screen on an iPhone (D34): the word shrinks, the card may narrow */
+.law{min-width:0;letter-spacing:.06em;font-size:clamp(9px,2.8vw,12px)}
+.law .sym{width:min(64px,15vw);height:min(64px,15vw)}
+.law .sym .glyph{font-size:min(38px,9vw)}
+/* elimination (D38): name, stamp, the card that says whether it was the leader; the screen shakes once */
+.flash .exec{position:absolute;inset:0;background:rgba(8,6,4,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;text-align:center}
+.flash.go:has(.exec){animation:dark-hold 5.4s ease-out both}
+@keyframes dark-hold{0%{opacity:1}90%{opacity:1}100%{opacity:0}}
+.exec-name{font:900 clamp(34px,10vw,56px)/1 var(--display);color:#f3e8d0;letter-spacing:.04em;animation:exec-in .5s .1s both}
+.exec-stamp{font:900 clamp(28px,8vw,44px)/1 var(--display);text-transform:uppercase;color:#d63c2b;border:5px solid #d63c2b;padding:6px 14px;transform:rotate(-8deg);animation:stamp-in .35s .7s both}
+.exec-card{font:800 16px/1.2 var(--display);text-transform:uppercase;letter-spacing:.08em;color:#1d1a17;background:#f3e8d0;padding:14px 18px;border:3px solid #000;animation:flip .7s 1.4s both}
+.exec-card.boss{background:#d63c2b;color:#fff}
+@keyframes exec-in{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
+@keyframes stamp-in{from{opacity:0;transform:rotate(-8deg) scale(2.4)}to{opacity:1;transform:rotate(-8deg) scale(1)}}
+#view.shake{animation:shake .35s .05s}
+@keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(3px)}}
+/* investigation (D38): a confidential file opens, the lens sweeps, the party is stamped */
+.dossier{position:relative}
+.dossier .cover{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:#c9a96e;color:#3a2a14;border:3px solid #3a2a14;transform-origin:top;pointer-events:none;opacity:0}
+.dossier .cover small{font:800 12px/1 var(--display);letter-spacing:.2em;text-transform:uppercase;color:#8a1f12;border:2px solid #8a1f12;padding:4px 8px;transform:rotate(-6deg)}
+.dossier .cover b{font:900 24px/1 var(--display)}
+.dossier.go .cover{animation:file-open 1.1s ease-in both}
+@keyframes file-open{0%{opacity:1;transform:none}55%{opacity:1;transform:none}100%{opacity:0;transform:perspective(700px) rotateX(-100deg)}}
+.inv-stamp{position:absolute;right:10px;top:12px;font:900 15px/1 var(--display);text-transform:uppercase;letter-spacing:.06em;padding:5px 9px;border:4px solid currentColor;transform:rotate(-10deg);opacity:.92}
+.inv-stamp.L{color:var(--lib)}.inv-stamp.F{color:var(--fas)}
+.turn.go .inv-stamp{animation:stamp-in .35s 2.3s both}
+@media (prefers-reduced-motion:reduce){.flash.go:has(.exec),.exec-name,.exec-stamp,.exec-card,#view.shake,.dossier.go .cover,.turn.go .inv-stamp{animation:none}.dossier .cover{display:none}}
+/* the court (D39): a sheet to pick the proof and the tone */
+.court-back{position:fixed;inset:0;z-index:58;background:rgba(0,0,0,.5)}
+.court{position:fixed;left:0;right:0;bottom:0;z-index:59;max-height:85vh;overflow-y:auto;background:var(--surface);border-top:4px solid var(--line);padding:16px 16px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:8px}
+.court h2{margin:4px 0 0;font-size:20px}
+.court .ev{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:3px;border:2px solid var(--line);padding:10px;cursor:pointer;font-size:14px}
+.court .ev small{color:var(--muted);font:800 11px/1 var(--display);letter-spacing:.12em;text-transform:uppercase}
+.court .ev.on{border-color:var(--fas);box-shadow:0 0 0 3px color-mix(in srgb,var(--fas) 35%,transparent)}
+.court .ev-hit{color:var(--fas)}
+.court .lc{display:inline-block;width:12px;height:18px;border:2px solid var(--line);margin-right:2px;vertical-align:middle}.court .lc.L{background:var(--lib)}.court .lc.F{background:var(--fas)}
+.court .tones{display:flex;gap:6px}.court .tones button{flex:1;min-height:44px;border:2px solid var(--line);font:800 12px var(--display);text-transform:uppercase}
+.court .tones button.on{background:var(--fas);color:var(--on-party);border-color:var(--fas)}.court .tones button:disabled{opacity:.4}
+.court .go{background:var(--fas);color:var(--on-party)}
+/* CONTRADIÇÃO! (D39) */
+.contra{position:fixed;inset:0;z-index:70;background:radial-gradient(circle at 50% 22%,#4a1d14 0,#14110e 62%);color:#f3e8d0;overflow:hidden;display:flex;flex-direction:column;gap:14px;padding:calc(70px + env(safe-area-inset-top)) 20px 20px;cursor:pointer}
+.contra .burst{position:absolute;left:50%;top:120px;width:560px;height:560px;transform:translate(-50%,-50%);background:repeating-conic-gradient(rgba(255,122,89,.18) 0 8deg,transparent 8deg 16deg);border-radius:50%;z-index:-1;pointer-events:none}
+.contra .boom{font:900 clamp(30px,10vw,44px)/1 Impact,var(--display);color:#ff7a59;text-shadow:4px 4px 0 #000;transform:rotate(-5deg);text-align:center;text-transform:uppercase;white-space:nowrap;animation:stamp-in .4s both}
+.contra .proof{background:rgba(10,8,6,.9);border-left:5px solid #ff7a59;padding:12px 14px}
+.contra .proof small{color:#b9ab90;font:800 11px/1 var(--display);letter-spacing:.14em;text-transform:uppercase}
+.contra .pr{display:flex;align-items:center;gap:8px;margin-top:10px;font-size:18px;font-weight:700}.contra .pr span{min-width:130px}
+.contra .big{display:inline-block;width:26px;height:38px;border-radius:3px}.contra .big.L{background:#8fc4e8}.contra .big.F{background:#ff7a59}
+.contra .talk2{background:#f3e8d0;color:#1d1a17;padding:12px 14px;border-radius:14px}.contra .talk2 b{color:#b8202b;font-size:13px;letter-spacing:.1em;text-transform:uppercase}.contra .talk2 p{margin:4px 0 0;font-size:18px;font-style:italic}
+.contra .pie{display:flex;align-items:center;gap:16px;background:rgba(10,8,6,.9);padding:12px 14px}
+.contra .donut{width:96px;height:96px;border-radius:50%;flex:none;display:grid;place-content:center;text-align:center;position:relative}
+.contra .donut::before{content:"";position:absolute;inset:16px;border-radius:50%;background:#1a1612}.contra .donut b,.contra .donut small{position:relative}.contra .donut b{font-size:20px}.contra .donut small{font-size:9px;color:#b9ab90;text-transform:uppercase}
+.contra ul{list-style:none;margin:0;padding:0;display:grid;gap:8px}.contra li{display:flex;gap:8px;align-items:flex-start}.contra li i{width:12px;height:12px;border-radius:3px;margin-top:4px;flex:none}
+.contra li span{display:flex;flex-direction:column;font-size:14px}.contra li span b{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#b9ab90}
+.contra .tap{color:#b9ab90;text-align:center;margin-top:auto}
+@media (prefers-reduced-motion:reduce){.contra .boom{animation:none}}
+/* names never break mid-word in the notebook (D34): a long name keeps its line, and the marks drop below it */
+.note-row{flex-wrap:wrap}
+.note-row .who{white-space:nowrap;overflow-wrap:normal;flex:1 0 auto}
+.note-row .sides{margin-left:auto}
+/* accused by an app player (D40) */
+.defense{border-color:var(--fas)}
+.defense .pick{display:grid;grid-template-columns:1fr 1fr;gap:6px}.defense .pick .btn{min-height:44px;font-size:13px;padding:6px}
+/* the notebook a little tighter, so a long name keeps both sides beside it at 393px (iPhone) */
+/* every name on its own line above its two sides, so short and long names line up the same (D41) */
+.note-row{flex-direction:column;align-items:stretch;gap:6px}
+.note-row .sides{margin-left:0;justify-content:flex-end}
+/* achievements (D41) */
+.badges{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}
+.badges small{width:100%;color:var(--muted);font:800 11px/1 var(--display);letter-spacing:.12em;text-transform:uppercase}
+.badge-a{background:#e8b730;color:#1d1a17;font-weight:800;font-size:13px;padding:5px 10px;border-radius:999px}
+.flash:has(.exec){z-index:65}
+/* the answer to an accusation, on the accusation screen (D42) */
+.contra .defend{display:grid;gap:8px;background:rgba(10,8,6,.9);padding:12px 14px;cursor:default}
+.contra .defend>b{font:800 12px/1 var(--display);letter-spacing:.14em;text-transform:uppercase;color:#b9ab90}
+.contra .defend button{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;min-height:48px;padding:8px 12px;background:#f3e8d0;color:#1d1a17;border:0;border-radius:10px;font:800 16px/1.2 var(--font);cursor:pointer}
+.contra .defend button small{font:400 12px/1.2 var(--font);color:#5b544b}
+.contra .defend b.ok{color:#8fd4a8;font-size:18px}.contra .defend b.no{color:#ff7a59;font-size:18px}
+.contra .defend p{margin:0}
+/* reputation at the table (D43): stars beside each name */
+.seat .rep{font-style:normal;letter-spacing:-1px;font-size:11px;color:#e8b730;background:none;border:0;padding:0}
+.seat .rep.r1{color:var(--fas)}
+/* the votes at a little table (D44) */
+.ballot{position:fixed;inset:0;z-index:62;pointer-events:none;background:rgba(10,8,6,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#f3e8d0;padding:16px}
+.b-q{margin:0;text-align:center;font-size:16px}
+.b-table{position:relative;width:min(330px,88vw);height:min(330px,88vw)}
+.b-felt{position:absolute;inset:22%;border-radius:50%;background:radial-gradient(#2c5a3a,#173322);border:6px solid #6b4a2a;box-shadow:0 0 0 3px #000}
+.b-seat{position:absolute;width:60px;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:3px}
+.b-seat b{font:800 11px/1 var(--display);letter-spacing:.06em}.b-seat.me b{color:#ff7a59}.b-seat.me .b-card{outline:3px solid #ff7a59}
+.b-card{width:38px;height:52px;border-radius:5px;border:2px solid #000;box-shadow:0 3px 0 #000;display:grid;place-items:center;color:#fff;font:900 18px/1 Arial,sans-serif;background:repeating-linear-gradient(45deg,#3a2f24 0 6px,#2a221a 6px 12px);animation:b-flip .45s both}
+.b-card span{display:flex;flex-direction:column;align-items:center;gap:2px;opacity:0;animation:b-show .01s both;animation-delay:inherit}
+.b-card small{font-size:9px}
+.b-card.ja{animation-name:b-flip-ja}.b-card.nein{animation-name:b-flip-nein}
+@keyframes b-flip-ja{0%{transform:rotateY(0)}49%{transform:rotateY(90deg);background:repeating-linear-gradient(45deg,#3a2f24 0 6px,#2a221a 6px 12px)}50%{background:#2f9e5b}100%{transform:none;background:#2f9e5b}}
+@keyframes b-flip-nein{0%{transform:rotateY(0)}49%{transform:rotateY(90deg);background:repeating-linear-gradient(45deg,#3a2f24 0 6px,#2a221a 6px 12px)}50%{background:#d63c2b}100%{transform:none;background:#d63c2b}}
+@keyframes b-show{to{opacity:1}}
+.b-center{position:absolute;inset:22%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.b-score{font:900 28px/1 var(--display)}.b-score .g{color:#8fd4a8}.b-score .r{color:#ff7a59}
+.b-stamp{font:900 24px/1 Impact,var(--display);text-transform:uppercase;padding:2px 8px;border:4px solid currentColor;transform:rotate(-8deg);opacity:0;animation:stamp-in .35s both}
+.b-stamp.L{color:#8fd4a8}.b-stamp.F{color:#ff7a59}
+.ballot .tap{color:#b9ab90}
+@media (prefers-reduced-motion:reduce){.b-card,.b-card span,.b-stamp{animation:none!important;opacity:1}.b-card.ja{background:#2f9e5b}.b-card.nein{background:#d63c2b}}
+/* the table comes in and leaves (D45) */
+.ballot{animation:b-in .4s ease-out both}
+.ballot .b-felt{animation:b-felt .5s .1s cubic-bezier(.2,1.4,.4,1) both}
+.ballot .b-seat{animation:b-seat .4s .25s ease-out both}
+.ballot.out{animation:b-out .45s ease-in both}
+@keyframes b-in{from{opacity:0}to{opacity:1}}
+@keyframes b-out{to{opacity:0;transform:scale(1.04)}}
+@keyframes b-felt{from{transform:scale(.4);opacity:0}to{transform:none;opacity:1}}
+@keyframes b-seat{from{opacity:0;transform:translate(-50%,-50%) scale(.6)}to{opacity:1;transform:translate(-50%,-50%)}}
+.ballot.danger .b-felt{animation:b-felt .5s .1s both,b-danger .6s 1 both;animation-delay:.1s,var(--danger-at,2s)}
+@keyframes b-danger{from{filter:none}to{filter:hue-rotate(-120deg) saturate(1.6)}}
+/* the shot (D45): a white flash, the glass cracks from the hit, the crack stays under the name */
+.flash .muzzle{position:absolute;inset:0;z-index:3;background:#fff;opacity:0;animation:muzzle .25s .55s ease-out both}
+@keyframes muzzle{0%{opacity:.95}100%{opacity:0}}
+.flash .crack{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none}
+.flash .crack path{fill:none;stroke:rgba(255,255,255,.75);stroke-width:2;stroke-linejoin:round;stroke-dasharray:700;stroke-dashoffset:700;animation:crack .35s .63s ease-out forwards}
+.flash .crack circle{fill:#000;stroke:rgba(255,255,255,.8);stroke-width:2;transform-origin:center;animation:muzzle .2s reverse both}
+@keyframes crack{to{stroke-dashoffset:0}}
+.flash .exec{z-index:1}
+.flash .exec>*{animation-delay:calc(var(--d,0s) + 1s)}
+.exec-name{--d:.1s}.exec-stamp{--d:.7s}.exec-card{--d:1.4s}
+@media (prefers-reduced-motion:reduce){.flash .muzzle,.flash .crack{display:none}}
+
+/* ---------- D46: more motion ---------- */
+/* effect layers over the screen: never take a tap */
+.fxl{position:fixed;inset:0;z-index:30;pointer-events:none;display:grid;place-items:center;overflow:hidden}
+.fxl .law{width:64px;height:92px;pointer-events:none}
+/* 1. the enacted law flies to its slot, spinning, and the slot (and its power) lights up on landing */
+.fly .law{animation:fly .8s cubic-bezier(.5,0,.6,1) both}
+@keyframes fly{0%{opacity:0;transform:scale(1.8) rotate(-30deg)}20%{opacity:1;transform:scale(1.5) rotate(0)}100%{opacity:.9;transform:translate(var(--dx),var(--dy)) scale(.4) rotate(720deg)}}
+.slot.lit.thud{animation:thud .35s ease-out}
+@keyframes thud{0%{transform:scale(1.25)}60%{transform:scale(.92)}100%{transform:none}}
+.slot.lit small{animation:lit 1.6s .8s ease-out both}
+@keyframes lit{0%,100%{text-shadow:none}30%{text-shadow:0 0 8px #ffd678,0 0 14px #ffd678;color:var(--fg)}}
+/* 2. chaos: the top law falls spinning, CAOS! flashes, the three rejection marks burst */
+.chaos .law.fall{position:absolute;top:30%;animation:fall 1.3s cubic-bezier(.5,0,.8,.4) both}
+@keyframes fall{0%{transform:translateY(-60vh) rotate(0)}100%{transform:translateY(30vh) rotate(900deg);opacity:.2}}
+.chaos-sign{font:900 64px/1 var(--display);text-transform:uppercase;letter-spacing:.06em;color:#fff;background:var(--fas);padding:6px 18px;border:4px solid #15110e;transform:rotate(-6deg);animation:sign 1.4s ease-out both}
+@keyframes sign{0%{opacity:0;transform:scale(2.4) rotate(-6deg)}15%{opacity:1;transform:scale(1) rotate(-6deg)}25%,45%{opacity:.4}35%,55%,85%{opacity:1}100%{opacity:0;transform:rotate(-6deg)}}
+.burst-dots{position:absolute;bottom:22%;left:50%;display:flex;gap:10px}
+.burst-dots i{width:16px;height:16px;border-radius:50%;background:var(--fas);border:2px solid #15110e;animation:burst .9s .2s ease-out both}
+.burst-dots i:nth-child(1){--bx:-90px}.burst-dots i:nth-child(2){--bx:0px}.burst-dots i:nth-child(3){--bx:90px}
+@keyframes burst{0%{transform:none}40%{transform:scale(1.8)}100%{transform:translate(var(--bx),-120px) scale(.2);opacity:0}}
+/* 3. the role card trembles in its envelope before turning; a cultist's allies come in one by one */
+.turn.go .back{animation:tremble .28s 2 linear,turnAway .8s .56s cubic-bezier(.3,.7,.3,1) both}
+.turn.go .role-card{animation-delay:.56s}
+@keyframes tremble{0%,100%{transform:none}25%{transform:translateX(-3px) rotate(-1deg)}75%{transform:translateX(3px) rotate(1deg)}}
+.allies.go .ally{animation:enter .4s ease-out both}
+.allies.go .ally:nth-child(1){animation-delay:1.5s}.allies.go .ally:nth-child(2){animation-delay:2.1s}
+/* 4. a veto accepted: two cards (backs only) tear in half */
+.veto-fx{grid-auto-flow:column;gap:24px;align-content:center}
+.veto-fx .chaos-sign{position:absolute;font-size:48px}
+.tear{display:flex;width:70px;height:100px}
+.tear i{flex:1;background:repeating-linear-gradient(45deg,#15110e 0 8px,#2b241f 8px 16px);border:3px solid #15110e}
+.tear .l{clip-path:polygon(0 0,100% 0,80% 20%,100% 40%,75% 60%,100% 80%,85% 100%,0 100%);animation:tearL 1s .3s ease-in both}
+.tear .r{clip-path:polygon(0 0,100% 0,100% 100%,0 100%,15% 80%,0 60%,25% 40%,0 20%,20% 0);margin-left:-6px;animation:tearR 1s .3s ease-in both}
+@keyframes tearL{to{transform:translate(-40px,60px) rotate(-35deg);opacity:0}}
+@keyframes tearR{to{transform:translate(40px,70px) rotate(30deg);opacity:0}}
+/* 5. special election: a ribbon crosses the screen; the chosen president wears a sash for that round */
+.ribbon>div{width:100%;box-sizing:border-box;padding:10px 0;text-align:center;background:var(--accent-bg,#c4381f);color:#fff;border-block:4px solid #15110e;transform:rotate(-6deg);animation:ribbon 1.6s cubic-bezier(.2,.8,.4,1) both}
+.ribbon b{display:block;font:900 clamp(18px,6.4vw,26px)/1.1 var(--display);text-transform:uppercase;letter-spacing:.1em}
+.ribbon span{font:700 18px/1.2 var(--display)}
+@keyframes ribbon{0%{transform:translateX(-110%) rotate(-6deg)}30%,70%{transform:translateX(0) rotate(-6deg)}100%{transform:translateX(110%) rotate(-6deg)}}
+.seat.pres-sash{position:relative;overflow:hidden;isolation:isolate}
+.seat.pres-sash::before{content:"";position:absolute;z-index:-1;inset:-20% auto -20% 38%;width:14%;background:var(--fas);transform:skewX(-28deg);opacity:.85;pointer-events:none;border-inline:1.5px solid #15110e}
+.seat.pres-sash.sash::before{background:#d9a520}
+.seat.pres-sash.in::before{animation:sashIn .5s cubic-bezier(.2,.8,.3,1) both}
+@keyframes sashIn{0%{translate:-260% 0;opacity:0}100%{translate:0;opacity:.85}}
+.seat.medal{position:relative}
+.seat.medal::after{content:"⚖";position:absolute;top:-8px;right:-4px;width:20px;height:20px;display:grid;place-items:center;font-size:12px;border-radius:50%;background:#d9a520;color:#15110e;border:2px solid #15110e;pointer-events:none}
+.seat.medal.in::after{animation:medal .7s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes medal{0%{transform:translateY(-40px) scale(1.8) rotate(-30deg);opacity:0}60%{transform:translateY(2px) scale(.9)}100%{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){.seat.pres-sash.in::before,.seat.medal.in::after{animation:none}}
+/* 6. the end: roles turn over one by one, the hidden side last; the leader yells over a red screen */
+.role.unveil{display:inline-block;animation:unveil .5s calc(var(--k,0) * .25s + .3s) cubic-bezier(.3,.7,.3,1) both}
+@keyframes unveil{0%{transform:perspective(400px) rotateY(90deg);opacity:0}100%{transform:none;opacity:1}}
+.boss-win{background:rgba(160,16,10,.55);animation:redIn 2.6s ease-out both}
+@keyframes redIn{0%{opacity:0}10%,75%{opacity:1}100%{opacity:0}}
+.boss-yell{display:grid;justify-items:center;gap:8px;width:min(260px,70vw)}
+.boss-yell svg{width:100%;height:auto;animation:yell .12s 12 linear}
+.boss-yell b{font:900 28px/1 var(--display);text-transform:uppercase;color:#fff;text-shadow:0 2px 0 #15110e}
+@keyframes yell{0%,100%{transform:none}50%{transform:translate(2px,-2px) scale(1.02)}}
+/* 7. rising tension: a faint red border from the danger zone on, pulsing slowly, stronger with each cultist law */
+html[data-tension] body::before{content:"";position:fixed;inset:0;z-index:25;pointer-events:none;box-shadow:inset 0 0 var(--tv,60px) rgba(196,30,20,var(--ta,.25));animation:tension 4s ease-in-out infinite}
+html[data-tension="4"] body::before{--tv:80px;--ta:.35}
+html[data-tension="5"] body::before{--tv:110px;--ta:.5;animation-duration:2.6s}
+@keyframes tension{0%,100%{opacity:.55}50%{opacity:1}}
+/* 8. living paper: a very light film grain over the poster */
+html[data-look="poster"] body::after{content:"";position:fixed;inset:-50%;z-index:24;pointer-events:none;opacity:.05;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation:grain 1s steps(4) infinite}
+@keyframes grain{0%{transform:none}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-1%)}}
+/* 10. a new phase comes in like a newspaper page turning, with its headline */
+#phase.enter{animation:page .5s cubic-bezier(.3,.7,.3,1) both;transform-origin:left center;position:relative}
+#phase.enter[data-head]::before{content:attr(data-head);position:absolute;inset:0;z-index:3;display:grid;place-items:center;text-align:center;padding:0 12px 0 calc(12px + .08em);pointer-events:none;
+  font:900 30px/1 var(--display);text-transform:uppercase;letter-spacing:.08em;color:var(--fg);background:var(--surface);border-bottom:3px double var(--line);animation:headline .6s ease-in both}
+@keyframes page{0%{transform:perspective(900px) rotateY(-70deg);opacity:0}100%{transform:none;opacity:1}}
+@keyframes headline{0%,45%{opacity:1}100%{opacity:0;visibility:hidden}}
+/* 11. tactile: law cards lift a little under the finger or the focus */
+button.law{transition:translate .15s ease-out}
+button.law:hover,button.law:focus-visible{translate:0 -4px}
+.btn{transition:transform .06s,box-shadow .06s}
+.seats{overflow-x:clip}
+@media (prefers-reduced-motion:reduce){.fxl{display:none}#phase.enter[data-head]::before{display:none}html[data-look="poster"] body::after{display:none}button.law:hover,button.law:focus-visible{translate:none}}
+
+/* D48: the board says what each slot unlocks and which one comes next; the hand lifts the laws that stay; the record reads as a newspaper */
+.slot .pw{font-style:normal;font-size:18px;line-height:1;opacity:.75}
+.slot.next{border-style:solid;border-width:3px;opacity:1;box-shadow:inset 0 0 0 3px color-mix(in srgb,currentColor 18%,transparent)}
+.hand:has(button.law.on) button.law:not(.on){translate:0 -10px;box-shadow:6px 8px 0 var(--shadow)}
+button.law{transition:translate .15s,transform .15s,opacity .15s,box-shadow .15s}
+@media (max-width:480px){.hand{gap:8px}.law{max-width:none;min-height:150px}.law .sym{width:58px;height:58px}}
+#log .round{margin-top:12px;border-top:3px double var(--line);padding-top:6px}
+#log .round h4{margin:0 0 4px;font:800 13px/1.2 var(--display);text-transform:uppercase;letter-spacing:.06em}
+@media (prefers-reduced-motion:reduce){button.law{transition:none}}
+
+/* D53: why the app player eliminated, under the stamp */
+#flash .exec-why{max-width:min(320px,86vw);margin:0;text-align:center;font:600 15px/1.35 var(--font);color:#fff;text-shadow:0 1px 3px #000;animation:execWhy .4s 1.1s ease-out both}
+@keyframes execWhy{0%{opacity:0;transform:translateY(8px)}100%{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){#flash .exec-why{animation:none}}
+
+/* D55: the accused's own plays, above its answer */
+.myplays{margin:10px 0;text-align:left}
+.myplays>b{display:block;font:800 12px/1 var(--display);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.myplays ol{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.myplays li{padding:6px 8px;border:2px solid var(--line);background:var(--surface);color:var(--fg);font-size:14px}
+.myplays li.hit{border-color:var(--fas);box-shadow:inset 4px 0 0 var(--fas)}
+.myplays small{display:block;margin-top:3px;font-size:13px;opacity:.85}
+
+/* D57: the debate, on pages of a notebook that turn sideways */
+.debate{position:fixed;inset:0;z-index:60;background:rgba(8,6,4,.9);display:flex;flex-direction:column;padding:max(12px,env(safe-area-inset-top)) 0 max(12px,env(safe-area-inset-bottom))}
+.dpages{flex:1;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;scrollbar-width:none}
+.dpages::-webkit-scrollbar{display:none}
+.dpage{flex:0 0 100%;scroll-snap-align:center;box-sizing:border-box;padding:0 14px;overflow-y:auto}
+.dcard{max-width:560px;margin:0 auto;background:var(--bg);color:var(--fg);border:3px solid var(--line);box-shadow:6px 6px 0 #000;padding:0 14px 14px;background-image:repeating-linear-gradient(transparent 0 27px,color-mix(in srgb,var(--lib) 14%,transparent) 27px 28px)}
+.dcard>header{display:flex;justify-content:space-between;align-items:baseline;padding:14px 0 8px;border-bottom:3px double var(--line);margin-bottom:8px}
+.dcard>header b{font:900 20px/1 var(--display);text-transform:uppercase;letter-spacing:.05em;color:var(--fas)}
+.dcard>header span{font:800 12px/1 var(--font)}
+.dcard>*+*{margin-top:10px}
+.dvotes{list-style:none;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.dvotes li{border:2px solid var(--line);background:var(--surface);padding:6px 8px}.dvotes b{display:block;font-size:13px}.dvotes span{font-size:13px}
+.dvotes .v1 span{color:#2f7d4a}.dvotes .v0 span{color:#b33a22}
+.dsay>b{display:block;font:800 12px/1.2 var(--font);text-transform:uppercase;letter-spacing:.05em}
+.dsay>p{margin:4px 0 0;padding:8px 10px;border:2px solid var(--line);background:var(--surface);color:var(--fg)}
+.dsay.acc>p{border-left:6px solid var(--fas)}.dsay.def>p{border-left:6px solid var(--lib)}
+.dsay .lab{color:#b8860b;text-transform:none}
+.dsay.vote>p{display:inline-block}.dsay.v1>p{color:#2f7d4a}.dsay.v0>p{color:#b33a22}
+.dargs>b{display:block;font:800 13px/1 var(--display);text-transform:uppercase;letter-spacing:.08em;margin:6px 0}
+.dargs button{display:block;width:100%;text-align:left;margin:6px 0;padding:8px 10px;border:2px solid var(--line);background:var(--surface);color:var(--fg);box-shadow:3px 3px 0 var(--line);font:inherit;min-height:44px}
+.dargs button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--line)}
+.dargs button small{display:block;font-size:13px;opacity:.8;margin-top:2px}
+.dargs .pw{float:right;font:800 11px/1 var(--font);font-style:normal;padding:2px 5px;border:1px solid}
+.dargs .pw.f{color:#2f7d4a}.dargs .pw.m{color:#9a6a00}.dargs .pw.w{color:#b33a22}
+.dwait{font-style:italic;opacity:.8}
+.dres>p{margin:4px 0 0;padding:8px 10px;border:2px solid var(--line)}.dres.acc>p{background:color-mix(in srgb,var(--fas) 15%,var(--surface))}.dres.def>p{background:color-mix(in srgb,var(--lib) 15%,var(--surface))}
+.ddots{display:flex;gap:8px;justify-content:center;padding-top:10px}.ddots i{width:10px;height:10px;border-radius:50%;border:2px solid #f3e8d0}.ddots i.on{background:#f3e8d0}
+
+/* D58: the shot has a gun: it comes in from the side, aims, fires (flash) and kicks back, then the glass cracks */
+.flash .gun{position:absolute;z-index:4;left:-8%;top:30%;width:min(78vw,340px);transform-origin:20% 70%;animation:gunIn .5s cubic-bezier(.2,.8,.3,1) both,gunKick .35s .55s ease-out both,gunOut .3s 1.05s ease-in forwards}
+.flash .gun .bang{opacity:0;transform-origin:196px 33px;animation:bang .2s .55s ease-out both}
+@keyframes gunIn{from{transform:translateX(-110%) rotate(8deg)}to{transform:none}}
+@keyframes gunKick{0%{transform:none}35%{transform:translate(-14px,-6px) rotate(-12deg)}100%{transform:none}}
+@keyframes gunOut{to{transform:translateX(-120%) rotate(6deg);opacity:0}}
+@keyframes bang{0%{opacity:0;transform:scale(.4)}40%{opacity:1;transform:scale(1.3)}100%{opacity:0;transform:scale(1.6)}}
+
+/* D59: after the shot the name and the crack fade away, and only the verdict is left: the hidden leader (the liberals
+   come to power: a blue dawn, birds rising) or not (the game goes on: a band sweeps across) */
+.flash .exec,.flash .crack,.flash .gun{animation-fill-mode:both}
+.flash.go .exec{animation:fadeAway .5s 2.7s ease-in forwards}
+.flash.go .crack{animation:fadeAway .5s 2.7s ease-in forwards}
+@keyframes fadeAway{to{opacity:0;transform:scale(.97)}}
+.fate{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;opacity:0;animation:fateIn .5s 3.1s ease-out forwards;overflow:hidden}
+.fate>span{position:relative;padding:0 16px;font:800 clamp(16px,4.6vw,24px)/1.2 var(--display);text-transform:uppercase;letter-spacing:.08em;color:#f3e8d0}
+.fate .exec-card{animation:none;position:relative;z-index:1}
+@keyframes fateIn{from{opacity:0}to{opacity:1}}
+.fate.boss{background:radial-gradient(circle at 50% 110%,#5aa0e0 0,#2b5d8a 45%,#0e2238 100%)}
+.fate.boss .rays{position:absolute;left:50%;bottom:-40%;width:180vmax;height:180vmax;transform:translateX(-50%);background:repeating-conic-gradient(rgba(255,255,255,.14) 0 6deg,transparent 6deg 14deg);border-radius:50%;animation:raysTurn 6s linear infinite}
+@keyframes raysTurn{to{transform:translateX(-50%) rotate(40deg)}}
+.fate.boss .birds{position:absolute;inset:0}
+.fate.boss .birds i{position:absolute;bottom:-10%;left:calc(8% + var(--n) * 13%);width:28px;height:14px;border-top:4px solid #f3e8d0;border-radius:50% 50% 0 0;animation:birdUp 2.2s calc(3.2s + var(--n) * .12s) ease-out both}
+.fate.boss .birds i:nth-child(1){--n:0}.fate.boss .birds i:nth-child(2){--n:1}.fate.boss .birds i:nth-child(3){--n:2}.fate.boss .birds i:nth-child(4){--n:3}.fate.boss .birds i:nth-child(5){--n:4}.fate.boss .birds i:nth-child(6){--n:5}.fate.boss .birds i:nth-child(7){--n:6}
+@keyframes birdUp{from{transform:translateY(0) scale(.6);opacity:0}20%{opacity:1}to{transform:translateY(-110vh) scale(1.2);opacity:0}}
+.fate.on{background:rgba(8,6,4,.94)}
+.fate.on .sweep{position:absolute;top:44%;left:0;width:100%;height:120px;background:#f3e8d0;transform:translateX(-101%) skewX(-12deg);animation:sweep 1.6s 3.3s cubic-bezier(.6,0,.3,1) both;opacity:.1}
+@keyframes sweep{0%{transform:translateX(-101%) skewX(-12deg)}100%{transform:translateX(101%) skewX(-12deg)}}
+@media (prefers-reduced-motion:reduce){.flash.go .exec,.flash.go .crack{animation:none}.fate{animation:none;opacity:1;inset:auto 0 6% 0;background:none!important}.fate.boss .rays,.fate.boss .birds,.fate.on .sweep{display:none}}
+
+/* D64: the investigation on the whole screen: the envelope opens, a hand pulls out the name, the magnifier passes over it */
+.power-effect.investigate{top:0;bottom:0;left:0;right:0;padding:0;align-items:center;background:#0b0907;z-index:66}
+.inv-scene{position:relative;width:min(86vw,340px);height:320px;display:grid;place-items:end center}
+.inv-scene .envelope{position:relative;width:100%;height:190px}
+.inv-scene .env-body{position:absolute;inset:40px 0 0;background:#e9d9b4;border:4px solid #15110e;z-index:2;box-shadow:8px 8px 0 #000}
+.inv-scene .env-flap{position:absolute;left:0;right:0;top:40px;height:80px;background:#d8c49a;border:4px solid #15110e;clip-path:polygon(0 0,100% 0,50% 100%);z-index:3;transform-origin:top}
+.inv-scene .slip{position:absolute;left:8%;right:8%;top:56px;z-index:1;background:#fbf4e3;color:#15110e;border:4px solid #15110e;padding:14px 10px 18px;text-align:center}
+.inv-scene .slip small{display:block;font:800 12px/1 var(--display);text-transform:uppercase;letter-spacing:.12em;color:#8a2b1a}
+.inv-scene .slip b{display:block;margin-top:6px;font:900 clamp(24px,8vw,34px)/1.1 var(--display);overflow-wrap:anywhere}
+.inv-scene .hand{position:absolute;width:76px;left:50%;top:-52px;transform:translateX(-50%) rotate(180deg);z-index:2}
+.inv-scene .lens{position:absolute;width:150px;left:-40px;top:0;z-index:4;opacity:0}
+.power-effect.investigate.go{animation:invScene 3.4s ease both}
+.power-effect.investigate.go .envelope{animation:envIn .35s ease-out both}
+.power-effect.investigate.go .env-flap{animation:flapOpen .35s .45s ease-in both}
+.power-effect.investigate.go .slip{animation:slipUp .7s .85s cubic-bezier(.2,1.1,.4,1) both}
+.power-effect.investigate.go .lens{animation:lensPass 1.1s 1.6s ease-in-out both}
+@keyframes invScene{0%{opacity:0}6%,82%{opacity:1}100%{opacity:0}}
+@keyframes envIn{from{transform:translateY(40px) scale(.9);opacity:0}to{transform:none;opacity:1}}
+@keyframes flapOpen{to{transform:rotateX(180deg);opacity:0}}
+@keyframes slipUp{from{transform:translateY(0)}to{transform:translateY(-150px)}}
+@keyframes lensPass{0%{opacity:0;transform:translate(0,0)}15%{opacity:1}85%{opacity:1;transform:translate(min(56vw,220px),-10px)}100%{opacity:0;transform:translate(min(60vw,240px),-10px)}}
+@media (prefers-reduced-motion:reduce){.power-effect.investigate.go,.power-effect.investigate.go .envelope,.power-effect.investigate.go .env-flap,.power-effect.investigate.go .lens{animation:none}.power-effect.investigate.go .slip{animation:none;transform:translateY(-150px)}.inv-scene .env-flap,.inv-scene .lens{display:none}}
+
+/* D65: asking an app player for its vote */
+.plea{margin-top:12px;border-top:2px dashed var(--line);padding-top:10px}
+.plea>b{display:block;font:800 12px/1 var(--display);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
+.plea-who{display:flex;flex-wrap:wrap;gap:6px}
+.plea-who button{min-height:40px;padding:6px 10px;border:2px solid var(--line);background:var(--surface);color:var(--fg);font:700 14px/1 var(--font)}
+.plea-who button.on{background:var(--fg);color:var(--surface)}
+.plea-go{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.plea-go .btn{min-height:44px;font-size:14px}
+.plea small{display:block;margin-top:6px;opacity:.8}
+
+/* D66: the "talk to the table" panel */
+.talk .tsec{margin-top:12px;padding-top:10px;border-top:2px dashed var(--line)}
+.talk .tsec>b{display:block;font:800 13px/1 var(--display);text-transform:uppercase;letter-spacing:.08em}
+.talk .tsec>small{display:block;margin:4px 0 8px;font-size:13px;opacity:.8}
+.talk .sub{display:block;margin:8px 0 4px;font-weight:700;font-size:13px}
+.talk .tbtn{display:block;width:100%;min-height:44px;margin:6px 0;padding:8px 12px;text-align:left;border:2px solid var(--line);background:var(--surface);color:var(--fg);box-shadow:3px 3px 0 var(--line);font:700 15px/1.2 var(--font)}
+.talk .tbtn:active:not(:disabled){transform:translate(2px,2px);box-shadow:1px 1px 0 var(--line)}
+.talk .tbtn:disabled{opacity:.5}
+.talk .chips{display:flex;flex-wrap:wrap;gap:6px}
+.talk .chips button{min-height:40px;padding:6px 10px;border:2px solid var(--line);background:var(--surface);color:var(--fg);font:700 14px/1 var(--font)}
+.talk .chips button.on{background:var(--fg);color:var(--surface)}
+
+/* D67: asking the app player who presides, right in its turn */
+.asknow{margin-top:12px;padding-top:10px;border-top:2px dashed var(--line)}
+.asknow>b{display:block;font:800 13px/1.2 var(--display);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.asknow small{display:block;margin:8px 0 4px;font-weight:700}
+.asknow .tbtn{display:block;width:100%;min-height:44px;padding:8px 12px;text-align:left;border:2px solid var(--line);background:var(--surface);color:var(--fg);box-shadow:3px 3px 0 var(--line);font:700 15px/1.2 var(--font)}
+.asknow .chips{display:flex;flex-wrap:wrap;gap:6px}
+.asknow .chips button{min-height:40px;padding:6px 10px;border:2px solid var(--line);background:var(--surface);color:var(--fg);font:700 14px/1 var(--font)}
+.asknow-done{margin-top:10px;font-style:italic;opacity:.85}
+.talk .tbtn small{display:block;margin-top:4px;font:400 13px/1.35 var(--font);opacity:.85}
+.plea>small{display:block;margin:-2px 0 8px;font-size:13px;opacity:.85}
+
+/* D72: "I am liberal" sits in the bar at the bottom, on the left of the notebook */
+.dock-btn.lib{background:var(--lib);color:var(--on-party)}
+.dock-btn.lib:disabled{background:var(--surface);color:var(--muted);opacity:.7}
+
+/* D74: the investigation in one piece: envelope with the name, the card comes out and turns */
+.claim-fx{background:#0b0907;z-index:70;animation:invScene 3.6s ease both}
+.cf-card{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;color:#f3e8d0}
+.cf-card>small{font:800 13px/1 var(--display);text-transform:uppercase;letter-spacing:.1em}
+.cf-env{position:relative;width:min(80vw,300px);height:400px}
+.cf-body{position:absolute;left:0;right:0;bottom:0;height:150px;background:#e9d9b4;border:4px solid #15110e;z-index:3;display:grid;place-items:center;box-shadow:8px 8px 0 #000}
+.cf-body b{font:900 clamp(22px,7vw,30px)/1.1 var(--display);color:#15110e;padding:0 10px;overflow-wrap:anywhere}
+.cf-flap{position:absolute;left:0;right:0;bottom:90px;height:60px;background:#d8c49a;border:4px solid #15110e;clip-path:polygon(0 0,100% 0,50% 100%);z-index:4;transform-origin:top;animation:flapOpen .35s .3s ease-in both}
+.cf-flip{position:absolute;left:50%;bottom:10px;width:min(52vw,190px);aspect-ratio:3/4;margin-left:calc(min(52vw,190px) / -2);perspective:800px;z-index:2;animation:cfOut .7s .55s cubic-bezier(.2,1.1,.4,1) both}
+.cf-back,.cf-front{position:absolute;inset:0;border:4px solid #15110e;backface-visibility:hidden;box-shadow:6px 6px 0 #000}
+.cf-back{background:repeating-linear-gradient(45deg,#3a2f26 0 10px,#2b231c 10px 20px);animation:cfBack .5s 1.3s ease-in both}
+.cf-front{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;transform:rotateY(180deg);animation:cfFront .5s 1.3s ease-out both}
+.cf-front.L{background:var(--lib-bg);color:var(--lib)}.cf-front.F{background:var(--fas-bg);color:var(--fas)}.cf-front.q{background:#2b231c;color:#f3e8d0}
+.cf-front svg{width:78%;height:auto}
+.cf-front span{font:900 20px/1 var(--display);text-transform:uppercase;letter-spacing:.1em}.cf-front.q span{font-size:56px}
+.claim-fx.q .cf-back,.claim-fx.q .cf-front{animation:none}.claim-fx.q .cf-back{display:none}.claim-fx.q .cf-front{transform:none}
+.cf-card em{font-size:13px;opacity:.8;max-width:300px}
+@keyframes cfOut{from{transform:translateY(0)}to{transform:translateY(-125px)}}
+@keyframes cfBack{to{transform:rotateY(-180deg)}}
+@keyframes cfFront{to{transform:rotateY(0)}}
+
+/* D73: pointing at who to eliminate, each with its reason */
+.asknow .krow{display:flex;align-items:center;gap:8px;width:100%;margin:6px 0;padding:8px 10px;text-align:left;border:2px solid var(--line);background:var(--surface);color:var(--fg);box-shadow:3px 3px 0 var(--line);font:inherit;min-height:48px}
+.asknow .krow>span{flex:1}.asknow .krow b{display:block;font-size:15px}.asknow .krow small{display:block;margin:2px 0 0;font-weight:400;font-size:13px;opacity:.8}
+.asknow .pw,.proofs .pw,.sway .pw{font:800 11px/1 var(--font);font-style:normal;padding:2px 5px;border:1px solid}
+.pw.f{color:#2f7d4a}.pw.m{color:#9a6a00}.pw.w{color:#b33a22}
+.drawer.proofs .krow{display:flex;align-items:center;gap:8px;width:100%;margin:6px 0;padding:8px 10px;text-align:left;border:2px solid var(--line);background:var(--surface);color:var(--fg);box-shadow:3px 3px 0 var(--line);font:inherit;min-height:48px}
+.drawer.proofs .krow>span{flex:1}.drawer.proofs .krow b{display:block}.drawer.proofs .krow small{display:block;font-size:13px;opacity:.8}
+
+/* D73: turning a vote, over the open votes */
+.ballot.sway-on{pointer-events:auto}
+.ballot .b-seat.tap{cursor:pointer;outline:3px dashed #ffd678;outline-offset:3px;border-radius:6px}
+.ballot .b-seat.picked{outline-style:solid}
+.ballot .b-card.flipped{animation:flipVote .5s ease both}
+@keyframes flipVote{0%{transform:rotateY(0)}50%{transform:rotateY(90deg)}100%{transform:rotateY(0)}}
+.sway{position:absolute;left:0;right:0;bottom:0;max-height:52vh;overflow:auto;background:var(--bg);color:var(--fg);border-top:4px solid var(--line);padding:12px 16px calc(14px + env(safe-area-inset-bottom))}
+.sway>b{display:block;font:800 13px/1 var(--display);text-transform:uppercase;letter-spacing:.08em}
+.sway small{display:block;font-size:13px;opacity:.85;margin-top:4px}
+.sway-bar{height:6px;background:color-mix(in srgb,var(--line) 20%,transparent);margin:8px 0 2px;overflow:hidden}
+.sway-bar i{display:block;height:100%;background:var(--fas);animation:swayBar linear both}
+@keyframes swayBar{from{width:100%}to{width:0}}
+.sway .krow{display:flex;align-items:center;gap:8px;width:100%;margin:6px 0;padding:8px 10px;text-align:left;border:2px solid var(--line);background:var(--surface);color:var(--fg);box-shadow:3px 3px 0 var(--line);font:inherit;min-height:48px}
+.sway .krow>span{flex:1}.sway .krow b{display:block}.sway .krow small{margin:2px 0 0;opacity:.8}
+.sway-to{margin:10px 0 4px}.sway-res{margin:10px 0 0;font-weight:800}.sway-res.ok{color:#2f7d4a}.sway-res.no{color:#b33a22}
+.ballot.hold .b-stamp{display:none}   /* D73: the result waits for the window to turn a vote */
+
+/* D74: skipping the window to turn a vote */
+.sway-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sway-skip{min-height:40px;padding:6px 14px;border:2px solid var(--line);background:var(--surface);color:var(--fg);font:800 14px/1 var(--display);box-shadow:3px 3px 0 var(--line)}
+/* D74: the hidden leader eliminated: its card tears in half before the liberals' dawn */
+.flash:has(.tear-boss).go{animation:dark-hold 6.8s ease-out both}
+.tear-boss{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;opacity:0;animation:tbIn .3s 3.1s ease-out forwards,tbOut .4s 4.6s ease-in forwards}
+.tb-half{position:absolute;width:min(56vw,220px);aspect-ratio:3/4;background:var(--fas-bg);border:4px solid #15110e;display:grid;place-items:center}
+.tb-half svg{width:80%}
+.tb-half.l{clip-path:polygon(0 0,52% 0,46% 18%,55% 35%,44% 55%,54% 72%,47% 100%,0 100%);animation:tearL .6s 3.8s cubic-bezier(.3,.6,.4,1) forwards}
+.tb-half.r{clip-path:polygon(52% 0,100% 0,100% 100%,47% 100%,54% 72%,44% 55%,55% 35%,46% 18%);animation:tearR .6s 3.8s cubic-bezier(.3,.6,.4,1) forwards}
+@keyframes tbIn{to{opacity:1}}
+@keyframes tbOut{to{opacity:0}}
+@keyframes tearL{to{transform:translate(-60px,30px) rotate(-14deg)}}
+@keyframes tearR{to{transform:translate(60px,40px) rotate(12deg)}}
+.flash .fate.boss{animation-delay:4.9s}
+.fate.boss .birds i{animation-delay:calc(5s + var(--n) * .12s)}
+@media (prefers-reduced-motion:reduce){.tear-boss{display:none}}
+#players .names li{flex-wrap:wrap}
+#players .names li .who{flex:1 1 9em}   /* D76: a long mark or the meter never squeezes the name to one letter per line */
+/* D76: the notebook rows, even: the name on top, the two sides sharing the width, the buttons centred in each */
+.note-row .sides{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%;margin:0}
+.drawer .note-row .side{min-width:0;padding:6px 4px;align-items:center}
+.drawer .note-row .side>span{justify-content:center;gap:8px}
+.note-row .who{font-size:16px}
+.court .ev.spent{opacity:.5;text-decoration:line-through;cursor:default}   /* D77: a reason already used */
+
+/* D78: a seat whose side the person knows for sure, wherever its name shows */
+.kn{font-weight:800;white-space:nowrap}
+.kn.F{color:var(--fas)}.kn.L{color:var(--lib)}
+.kn-tag{font-style:normal;font:800 9px/1 var(--display);text-transform:uppercase;letter-spacing:.06em;margin-left:4px;padding:2px 4px;border:1.5px solid currentColor;border-radius:3px;vertical-align:2px}
+.ballot .kn,.flash .kn,.claim-fx .kn,.debate .kn{filter:brightness(1.4)}
+
+/* D79: a seat's record, cultist laws as president·chancellor */
+.kd{font-style:normal;font-size:.68em;font-weight:800;margin-left:4px;padding:0 3px;border:1px solid var(--fas, #c4381f);color:var(--fas, #c4381f);border-radius:3px;white-space:nowrap;vertical-align:middle}
+
+/* D81: combo accusation */
+.combo{border:2px solid var(--fas);padding:6px 8px;margin:8px 0;display:grid;gap:4px}.combo b{color:var(--fas);text-transform:uppercase;letter-spacing:.06em;font-size:.8em}.combo-bar{height:8px;border:1px solid var(--fg, currentColor);display:block}.combo-bar i{display:block;height:100%;background:var(--fas)}.combo small{font-size:.8em;opacity:.85}
+
+/* D82: defence combo */
+.darg-row{display:flex;gap:6px;align-items:stretch;margin:6px 0}.darg-row>button{margin:0}.darg-row>button[data-act=darg]{flex:1 1 auto;width:auto;min-width:0;overflow-wrap:anywhere}.dargs .dplus{flex:0 0 48px;width:48px;min-width:48px;padding:0;text-align:center;font-size:20px;font-weight:800}.dargs #dall{text-align:center}.darg-row.on .dplus{background:var(--lib);color:var(--on-party)}.darg-row.on>button[data-act=darg]{outline:2px solid var(--lib)}
+
+/* D84: player sheet, law line, court hints, debate force, verdict drop */
+.name-btn{all:unset;cursor:pointer;text-decoration:underline dotted;text-underline-offset:3px}
+.sheet h2{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sheet-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}.sheet-stats span{border:2px solid var(--line);padding:6px;text-align:center;font-size:12px}.sheet-stats b{display:block;font-size:22px}
+.sheet-list{list-style:none;padding:0;margin:4px 0 10px;display:grid;gap:4px}.sheet-list li{border-left:4px solid var(--line);padding:2px 8px;font-size:14px}.sheet-list li.F{border-color:var(--fas)}.sheet-list li.L{border-color:var(--lib)}
+.lawline{list-style:none;display:flex;gap:6px;overflow-x:auto;padding:4px 0;margin:8px 0}.lawline li{flex:0 0 auto;border:2px solid var(--line);border-top:6px solid var(--line);font-size:12px}.lawline li.F{border-top-color:var(--fas)}.lawline li.L{border-top-color:var(--lib)}
+.lawline li>*{padding:4px 6px;display:block}.lawline button{all:unset;cursor:pointer;display:block;padding:4px 6px}.lawline b{display:block}
+.ev-more>.more{margin:8px 0}
+.ev-counter{display:block;font-size:12px;font-style:normal;opacity:.75;margin-top:2px}
+.dforce{display:grid;gap:4px;margin:6px 0 10px}.dforce>span{display:grid;grid-template-columns:7em 1fr;align-items:center;gap:6px;font-size:12px}.dforce b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dforce i{height:8px;border:1px solid var(--line);background:linear-gradient(90deg,var(--c) var(--w),transparent var(--w))}.dforce .acc{--c:var(--fas)}.dforce .def{--c:var(--lib)}.dforce small{font-size:12px;opacity:.85}
+.dvotes li small{display:block;font-size:11px;opacity:.75}
+@media (prefers-reduced-motion:no-preference){.dvotes li{animation:vdrop .35s both;animation-delay:calc(var(--k) * .25s)}}
+@keyframes vdrop{from{opacity:0;transform:translateY(-12px) scale(.9)}to{opacity:1;transform:none}}
+/* D85: the investigation is shorter (2.4 s, then 1.4 s after the first); the name on the envelope reads dark on the paper */
+.claim-fx{animation-duration:2.4s}
+.claim-fx .cf-flap{animation-delay:.15s}.claim-fx .cf-flip{animation-duration:.5s;animation-delay:.3s}.claim-fx .cf-back,.claim-fx .cf-front{animation-duration:.4s;animation-delay:.8s}
+.claim-fx.quick{animation-duration:1.4s}.claim-fx.quick .cf-flap{animation-duration:.01s;animation-delay:0s}.claim-fx.quick .cf-flip{animation-duration:.25s;animation-delay:0s}.claim-fx.quick .cf-back,.claim-fx.quick .cf-front{animation-duration:.25s;animation-delay:.3s}
+.claim-fx .cf-body .kn{filter:none}.cf-body .kn.F{color:#9e2414}.cf-body .kn.L{color:#1d4a74}.cf-body .kn-tag{font-size:11px}
+.claim-fx .cf-card>small .kn,.claim-fx .cf-card>small{color:#f3e8d0}
+/* D85: names with a tag never spill out of a button or a row on a phone */
+.pick .btn{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:2px 6px;min-width:0}
+.pick .kn,.names .kn,.seats .kn{white-space:normal}.kn-tag{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:middle}
+.lawline{flex-wrap:wrap;overflow-x:visible}
+/* D86: the law seals are drawn (no emoji); poster rays behind the seal, the colour of the card */
+svg.glyph{width:70%;height:70%;display:block}
+.law .sym{background:repeating-conic-gradient(from 0deg,color-mix(in srgb,currentColor 18%,transparent) 0 8deg,transparent 8deg 18deg)}
+.law .sym svg.glyph{width:74%;height:74%;filter:drop-shadow(2px 2px 0 color-mix(in srgb,var(--shadow) 60%,transparent))}
+.slot svg.glyph{width:62%;height:62%;margin:auto}
+.decree-card svg.glyph{width:40px;height:40px}
+.law{--halo:var(--fas-bg)}.slot{--halo:var(--fas)}.decree-card{--halo:var(--surface)}
+svg.glyph .sk{stroke:var(--halo)}svg.glyph .teeth{stroke:var(--halo)}
+.flash.tap{pointer-events:auto;cursor:pointer}
+/* D88: the short notices sit above the dock, not on its buttons */
+body:has(.dock-gap) .toast{bottom:calc(var(--dock) + 8px + env(safe-area-inset-bottom))}
+.tut{border-color:var(--lib);background:color-mix(in srgb,var(--lib) 12%,var(--surface))}.tut p{margin:0;font-size:16px;line-height:1.45}
+/* D90: seat badges and log icons */
+.log li{display:flex;gap:6px;align-items:baseline}.li-ic{font-style:normal;flex:0 0 1.4em;text-align:center}
+/* D92: faces */
+.faces{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.faces figure{margin:0;text-align:center}.faces svg{width:100%;height:auto}.faces figcaption{font-size:11px;opacity:.85}
+/* D92: faces, three sizes and their states */
+.av{display:inline-block;flex:0 0 auto;border-radius:50%;overflow:hidden;vertical-align:middle;margin-right:6px;position:relative;line-height:0}
+.av svg.face{width:100%;height:100%;display:block}
+.av-s{width:24px;height:24px;margin-right:4px}.av-m{width:32px;height:32px}.av-l{width:48px;height:48px}.av-xl{width:64px;height:64px;margin:0 auto 6px;display:block}
+.av.pres{box-shadow:0 0 0 2px var(--bg),0 0 0 4px #d4ac0d}.av.chanc{box-shadow:0 0 0 2px var(--bg),0 0 0 4px #e8e1cf}
+.av.out{filter:grayscale(1) brightness(.6)}
+.b-seat .av{margin:0 auto 2px;display:block}
+.dsay>b{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.seat i.av{padding:0;background:none;border:0;font-size:0;letter-spacing:0}
+.sway-paused .sway-bar i{animation-play-state:paused;opacity:.4}
+.dargs button{touch-action:manipulation}
+/* D94: the d100 */
+.dice{display:flex;align-items:center;gap:10px;margin:8px 0 2px;padding:6px 10px;border:2px solid var(--line);background:color-mix(in srgb,var(--surface) 85%,var(--bg))}
+.dice .die{display:grid;place-items:center;width:44px;height:44px;flex:0 0 44px;font:900 18px/1 var(--display);border:3px solid var(--line);border-radius:10px;background:var(--bg);color:var(--fg);box-shadow:3px 3px 0 var(--shadow)}
+.dice-txt{display:grid;gap:2px}.dice-txt small{font-size:11px;opacity:.8}.dice-txt strong{font:900 14px/1 var(--display);text-transform:uppercase;letter-spacing:.06em}
+.dice.good strong{color:#2f9a55}.dice.bad strong{color:var(--fas)}.dice.crit strong{color:#d4ac0d}
+.dice.spin .die{animation:dieSpin .16s linear infinite}
+.dice.land.good .die{animation:dieWin .6s ease-out}.dice.land.crit .die{animation:dieCrit .9s ease-out;border-color:#d4ac0d;box-shadow:0 0 0 3px #d4ac0d,0 0 18px #d4ac0d}
+.dice.land.bad .die{animation:dieFail .45s ease-in-out}.dice.land.fumble .die{background:repeating-linear-gradient(135deg,var(--bg) 0 6px,color-mix(in srgb,var(--fas) 35%,var(--bg)) 6px 8px)}
+.dice.land.good{border-color:#2f9a55}.dice.land.bad{border-color:var(--fas)}
+@keyframes dieSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+@keyframes dieWin{0%{transform:scale(1.35)}60%{transform:scale(.95)}100%{transform:scale(1)}}
+@keyframes dieCrit{0%{transform:scale(1.6) rotate(-12deg)}50%{transform:scale(.9) rotate(6deg)}100%{transform:none}}
+@keyframes dieFail{0%,100%{transform:none}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+@media (prefers-reduced-motion:reduce){.dice .die{animation:none!important}}
+.sheet-skills{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0}.sheet-skills span{border:2px solid var(--line);padding:6px 2px;text-align:center;font-size:11px}.sheet-skills b{display:block;font-size:20px}
+
+/* D101: sanity on the sheet */
+.san{display:grid;gap:4px;margin:8px 0}.san b{font:800 14px/1 var(--display);letter-spacing:.08em}.san-bar{height:8px;border:2px solid var(--line);background:var(--surface)}.san-bar i{display:block;height:100%;background:var(--lib)}.san.low .san-bar i{background:var(--fas)}.san small{font-size:12px;color:var(--muted)}
+.past{list-style:none;margin:8px 0;padding:0;display:grid;gap:6px}.past li{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;padding:8px 10px;border:2px solid var(--line);background:var(--surface)}.past li small{grid-row:span 2;font-weight:700}.past li b{font-size:14px}.past li em{grid-column:2;font-style:normal;font-size:13px;color:var(--muted)}.past li.won{border-left:8px solid var(--lib)}.past li.lost{border-left:8px solid var(--fas)}.past-rate{margin:6px 0}.past-rate b{font:800 22px/1 var(--display)}
