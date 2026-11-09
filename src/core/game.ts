@@ -41,7 +41,10 @@ export const LEVELS: Level[] = ['facil', 'medio', 'dificil', 'extremo'];
  *  hidden side (Leader, Red Leader) is not among them: it is a role. */
 /* D117: the names of Secret Cultist, the world's list; the expansion's names arrive with the key (src/core/dlc.ts). */
 export const CULT_NAMES: string[] = ['Churchill', 'Roosevelt', 'Gandhi', 'Truman', 'Júlio César', 'Lincoln', 'Kennedy', 'Gengis Khan', 'Napoleão', 'Mandela', 'Cleópatra', 'Thatcher', 'Obama', 'Reagan'];
-export const BOT_NAMES: Record<Pack, string[]> = { classico: CULT_NAMES, vermelho: CULT_NAMES, culto: CULT_NAMES };
+/* D139: Secret Leônidas: Greeks of the 5th century BC, Athenians and Spartans mixed; the name says nothing of the role,
+   so Péricles may well be the Spartan. Leônidas is not among them: he is a role. */
+export const GREEK_NAMES: string[] = ['Péricles', 'Temístocles', 'Alcibíades', 'Címon', 'Nícias', 'Cléon', 'Sócrates', 'Aspásia', 'Sólon', 'Clístenes', 'Tucídides', 'Heródoto', 'Brásidas', 'Lisandro', 'Arquidamo', 'Pausânias', 'Gorgo', 'Demóstenes', 'Xenofonte', 'Aristides', 'Milcíades', 'Fídias', 'Sófocles', 'Ésquilo', 'Eurípides'];
+export const BOT_NAMES: Record<Pack, string[]> = { classico: CULT_NAMES, vermelho: CULT_NAMES, culto: CULT_NAMES, esparta: GREEK_NAMES };
 /** A name for one more player run by the app: one of the theme's names not yet at the table, at random (`rand`) or the
  *  first. */
 /** Where the names of the app players come from (D24): the whole world (BOT_NAMES), or one continent. In each list,
@@ -60,7 +63,7 @@ export const CULT_BY: Record<Region, string[]> = {
   oceania: CULT_NAMES,
   brasil: CULT_NAMES   // the expansion's region: its names arrive with the key (src/core/dlc.ts)
 };
-export const NAMES_BY: Record<Pack, Record<Region, string[]>> = { ...Object.fromEntries((['classico', 'vermelho'] as Pack[]).map(k => [k, Object.fromEntries(REGIONS.map(r => [r, CULT_NAMES]))])), culto: CULT_BY } as Record<Pack, Record<Region, string[]>>;
+export const NAMES_BY: Record<Pack, Record<Region, string[]>> = { esparta: Object.fromEntries(REGIONS.map(r => [r, GREEK_NAMES])) as Record<Region, string[]>, ...Object.fromEntries((['classico', 'vermelho'] as Pack[]).map(k => [k, Object.fromEntries(REGIONS.map(r => [r, CULT_NAMES]))])), culto: CULT_BY } as Record<Pack, Record<Region, string[]>>;
 export function botName(names: string[], rand?: () => number, pack: Pack = 'culto', region: Region = 'mundo'): string {
   const free = ((NAMES_BY[pack] || NAMES_BY.culto)[region] || BOT_NAMES[pack] || BOT_NAMES.culto).filter(b => !names.some(x => x.toLocaleLowerCase('pt-BR') === b.toLocaleLowerCase('pt-BR')));
   return free.length ? free[rand ? Math.floor(rand() * free.length) : 0] : `IA ${names.length + 1}`;

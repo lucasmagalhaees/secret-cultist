@@ -9,7 +9,7 @@ export type Theme = 'light' | 'dark';
 /** How fast the players run by the app act (D13). */
 export type Speed = 'lenta' | 'normal' | 'rapida';
 /** The theme of the game (D12): liberals against cultists (the original), or against reds. Same rules. */
-export type Pack = 'classico' | 'vermelho' | 'culto';
+export type Pack = 'classico' | 'vermelho' | 'culto' | 'esparta';
 /** Where the names of the app players come from (D24). */
 /** 'brasil' is the unlockable expansion (D27): only offered once the password was typed. */
 export type Region = 'mundo' | 'americas' | 'europa' | 'asia' | 'africa' | 'oceania' | 'brasil';

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""D138: the login. Nobody plays without it; the demo account (a pedestrian) sees only Secret Cultist; a driver gets the
+"""D138, D139: the login. The public page plays Secret Leônidas with no login; #painel asks for it, and a driver gets the
 expansion's key from Supabase and sees everything; "Sair" forgets both. Supabase is answered by invented samples (no
 network in tests): the token in tests/fixtures/source/auth_token_inventado.json, and the key from the DLC_KEY env."""
 import json, os, pathlib
@@ -51,32 +51,34 @@ with sync_playwright() as p:
     pg.on('pageerror', lambda e: errs.append(str(e)))
     cov.start(pg)
     pg.goto((ROOT / 'dist/index.html').as_uri()); pg.wait_for_function('window.__APP')
-    assert pg.locator('#login').count() == 1 and pg.locator('[data-act=quickgame]').count() == 0, 'no game before logging in'
-    assert pg.locator('#user .who').count() == 0
+    # D139: the public page plays Secret Leônidas, no login
+    assert pg.locator('#login').count() == 0 and pg.locator('[data-act=quickgame]').count() == 1 and pg.text_content('#boss') == 'Leônidas', pg.evaluate("JSON.stringify([!!document.getElementById('login'), document.querySelectorAll('[data-act=quickgame]').length, document.getElementById('boss').textContent, document.documentElement.dataset.pack])")
+    assert pg.locator('#pack [data-act=pack]').count() == 1 and pg.locator('[data-act=quickmode]').count() == 0, 'only Secret Leônidas'
+    pg.click('[data-act=quickgame]'); pg.wait_for_function('window.__APP.S.game')
+    g = pg.evaluate('window.__APP.S.game'); assert g['pack'] == 'esparta' and not g.get('sheets'), 'pure Leônidas: no sheets, no dice'
+    pg.wait_for_timeout(400); pg.screenshot(path=str(ROOT / 'tests/shots/leonidas-mesa.png'))
+    assert 'Arc.' in pg.text_content('#players') and 'Pres.' not in pg.text_content('#players'), 'the words of the time'
+    pg.evaluate('window.__APP.S.game = null'); cov.reload(pg); pg.wait_for_function('window.__APP')
+    # the dashboard: #painel asks for the login
+    pg.click('#painel'); pg.wait_for_selector('#login'); assert pg.locator('#user .who').count() == 0
     pg.click('[data-act=login]'); assert 'Preencha' in pg.inner_text('#loginerr')
-    pg.fill('#loginemail', 'motorista@exemplo.com'); pg.fill('#loginpass', 'errada'); pg.click('#logingo')
-    pg.wait_for_selector('#loginerr'); assert 'errados' in pg.inner_text('#loginerr'), pg.inner_text('#loginerr')
-    for pw, says in (('caiu', 'Sem conexão'), ('quebrou', 'respondeu 500'), ('estranho', 'não entende')):
+    pg.fill('#loginemail', 'motorista@exemplo.com')
+    for pw, says in (('caiu', 'Sem conexão'), ('quebrou', 'respondeu 500'), ('estranho', 'não entende'), ('errada', 'errados')):
         pg.fill('#loginpass', pw); pg.click('#logingo'); pg.wait_for_timeout(1500); assert says in (pg.text_content('#loginerr') or ''), (pw, pg.text_content('#loginerr'))
-    # the demo account: a pedestrian, only Secret Cultist
-    pg.click('[data-act=demo]'); pg.wait_for_selector('[data-act=quickgame]')
-    assert 'pedestrian' in pg.inner_text('#user').lower() and pg.evaluate('window.__APP.Core.dlcData()') is None
-    assert pg.locator('[data-act=region][data-v=brasil]').count() == 0 and not any('game_secrets' in c for c in calls), 'a pedestrian does not even ask for the key'
-    pg.screenshot(path=str(ROOT / 'tests/shots/auth-pedestrian.png'))
-    cov.reload(pg); pg.wait_for_function('window.__APP'); assert pg.locator('[data-act=quickgame]').count() == 1, 'the session stays on the device'
-    pg.click('#user [data-act=logout]'); pg.wait_for_selector('#login'); assert any('/auth/v1/logout' in c for c in calls)
+    pg.click('#back'); pg.wait_for_selector('[data-act=quickgame]')
+    pg.click('#painel'); pg.wait_for_selector('#login')
     # a driver: the key comes from Supabase and opens the expansion (when Supabase fails to give it, the game still opens)
     pg.fill('#loginemail', 'motorista@exemplo.com'); pg.fill('#loginpass', 'certa'); pg.click('#logingo'); pg.wait_for_selector('[data-act=quickgame]')
     assert pg.evaluate('window.__APP.Core.dlcData()') is None, 'no key, no expansion'
-    pg.click('#user [data-act=logout]'); pg.wait_for_selector('#login')
+    pg.click('#user [data-act=logout]'); pg.wait_for_selector('[data-act=quickgame]'); pg.click('#painel'); pg.wait_for_selector('#login')
     pg.fill('#loginemail', 'motorista@exemplo.com'); pg.fill('#loginpass', 'certa'); pg.click('#logingo'); pg.wait_for_selector('[data-act=quickgame]')
     pg.wait_for_function('window.__APP.Core.dlcData() !== null')
     assert 'driver' in pg.inner_text('#user').lower() and pg.locator('[data-act=region][data-v=brasil]').count() == 1 and pg.locator('#dlcon').count() == 1
     cov.reload(pg); pg.wait_for_function('window.__APP'); pg.wait_for_function('window.__APP.Core.dlcData() !== null')   # kept for offline, opened at start
     pg.screenshot(path=str(ROOT / 'tests/shots/auth-driver.png'))
-    pg.click('[data-act=logout]'); pg.wait_for_selector('#login')
+    pg.click('[data-act=logout]'); pg.wait_for_selector('#painel')
     assert pg.evaluate("localStorage.getItem('secretcultist.dlc.v1')") is None and pg.evaluate('window.__APP.Core.dlcData()') is None, 'leaving forgets the key'
     assert not errs, errs
     cov.stop(pg, 'auth')
     b.close()
-print('auth ok: login obrigatório, erro de senha, visitante pedestrian sem a expansão, driver com a chave do Supabase, sessão guardada, sair')
+print('auth ok: página pública com o Secret Leônidas, painel com login, erros de login, driver com a chave do Supabase, sessão guardada, sair')

@@ -10,13 +10,15 @@ import { openKept } from './app/auth';
 initEvents();
 // D102: in Secret Cultist, whatever the page shows says investigators, not liberals (one place for every screen)
 const speak = (n: Node): void => {
-  if (document.documentElement.dataset.pack !== 'culto') return;
+  const pk = document.documentElement.dataset.pack;
+  if (pk !== 'culto' && pk !== 'esparta') return;   // D139: and Secret Leônidas
   const w = document.createTreeWalker(n, NodeFilter.SHOW_TEXT);
-  for (let t = n.nodeType === Node.TEXT_NODE ? n : w.nextNode(); t; t = w.nextNode()) { if (t.parentElement?.closest('[data-keep]')) continue; const v = t.nodeValue || '', c = Core.cultSpeak(v); if (c !== v) t.nodeValue = c; }   // [data-keep]: another theme's own words
+  for (let t = n.nodeType === Node.TEXT_NODE ? n : w.nextNode(); t; t = w.nextNode()) { if (t.parentElement?.closest('[data-keep]')) continue; const v = t.nodeValue || '', c = Core.speakAs(pk, v); if (c !== v) t.nodeValue = c; }   // [data-keep]: another theme's own words
 };
 new MutationObserver(ms => ms.forEach(m => (m.type === 'characterData' ? speak(m.target) : m.addedNodes.forEach(speak)))).observe(document.body, { childList: true, subtree: true, characterData: true });
 window.__APP = { Core, ui, get S() { return S; } };
 render();
+window.addEventListener('hashchange', () => render());   // D139: #painel opens the login
 void openKept().then(open => { if (open) render(); });   // D138: a driver's expansion opens as soon as the key is read
 tick();                      // a saved game where it is an app player's turn goes on by itself
 initUpdates();
