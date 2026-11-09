@@ -12,7 +12,6 @@ SHEET = (ROOT / 'tests/fixtures/source/random-char_eastern-europe_2026-11-03.jso
 with sync_playwright() as p:
     b = p.chromium.launch()
     ctx = b.new_context(viewport={'width': 393, 'height': 852}, device_scale_factor=2, color_scheme='dark')
-    ctx.add_init_script("window.__AUTH = {email: 'teste@exemplo.com', role: 'pedestrian'}")   # D138: logged in, as the demo account
     ctx.add_init_script("new MutationObserver(() => { if (!window.__KEEP_STORY) document.getElementById('storyok')?.click(); if (!window.__KEEP_ROLL) document.getElementById('rollok')?.click(); }).observe(document, { childList: true, subtree: true })")   # D129, D130: the story and the rolls are closed at once, except where they are tested
     ctx.add_init_script('window.__SEED = 7')
     ctx.route('https://cthulhu-char-golang.vercel.app/**', lambda r: r.fulfill(status=200, content_type='application/json', body=SHEET, headers={'access-control-allow-origin': '*'}))

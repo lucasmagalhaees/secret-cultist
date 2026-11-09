@@ -6,8 +6,8 @@ import type { EndTab } from './state';
 import { animalOf, face, portrait, seal } from './art';
 import { $, esc, part, themed } from './format';
 import { thud } from './fx';
-import { S, dlcOn, packNow, ui } from './state';
-import { DEMO, session } from './auth';
+import { S, dlcOn, packNow, packsOpen, ui } from './state';
+import { session } from './auth';
 import { builtFrom, canUpdate } from './update';
 import { earned, kept, past } from './history';
 
@@ -36,8 +36,8 @@ export function render(): void {
   const diaryScroll = document.getElementById('diary')?.scrollTop ?? 0;
   const keep = document.getElementById('drawer')?.scrollTop ?? 0;   // repainting must not scroll the notebook back up
   const me = session();   // D138: nobody plays without logging in
-  part('user').innerHTML = me ? `<span class="who" id="whoami" title="${esc(me.email)}">${esc(me.email.split('@')[0])}<i class="role ${me.role}">${me.role}</i></span><button class="btn ghost small" data-act="logout" id="logout">Sair</button>` : '';
-  if (!me) { view.innerHTML = vLogin(); afterPaint(null); return; }
+  part('user').innerHTML = me ? `<span class="who" id="whoami" title="${esc(me.email)}">${esc(me.email.split('@')[0])}<i class="role ${me.role}">${me.role}</i></span><button class="btn ghost small" data-act="logout" id="logout">Sair</button>` : location.hash === '#painel' ? '<a class="btn ghost small" href="#" id="back">Voltar</a>' : '<a class="btn ghost small" href="#painel" id="painel">Painel</a>';
+  if (!me && location.hash === '#painel') { view.innerHTML = vLogin(); afterPaint(null); return; }   // D139: the public page plays Secret Leônidas; #painel is the login
   view.innerHTML = themed(g ? vGame(g) : ui.gallery ? vGallery() : vQuick() + vPack() + vTable() + vRules() + vHistory() + vSettings(), W as unknown as Record<string, string>);
   for (const id of expanded) { const detail = document.getElementById(id); if (detail instanceof HTMLDetailsElement) detail.open = true; }
   const dr = document.getElementById('drawer'); if (dr) dr.scrollTop = keep;
@@ -249,7 +249,8 @@ function vQuick(): string {
   // "Jogar agora" is the quick game (D35): 7 seats, you and 6 app players at the hard level, no assistance, theme and
   // continent drawn at random; the table below stays for setting up a game by hand
   if (S.game) return '';
-  return `<section class="card quick" id="quick">${dlcOn() ? `<div class="seg quick-mode" role="tablist" aria-label="Tema do jogo rápido">${([['culto', '🐙 Cthulhu'], ['mix', '🎲 Tema sorteado']] as const).map(([v, l]) => `<button role="tab" data-act="quickmode" data-v="${v}" aria-selected="${(ui.quickMode || 'culto') === v}" class="${(ui.quickMode || 'culto') === v ? 'on' : ''}">${l}</button>`).join('')}</div>` : ''}${!dlcOn() || (ui.quickMode || 'culto') === 'culto' ? cultSetup() : ''}<button class="btn block big" data-act="quickgame" id="quickgame">${ui.playMode === 'campanha' && (!dlcOn() || (ui.quickMode || 'culto') === 'culto') ? '▶ Começar a campanha' : '▶ Jogar agora'}</button><p class="hint">Partida rápida: 7 lugares, você e 6 IAs no difícil (o nível em Contra a IA vale para a mesa que você monta), sem assistência, ${dlcOn() ? 'tema e continente sorteados' : 'continente sorteado'}.</p><button class="btn ghost block" data-act="tutorial" id="tutorial">📘 Nunca jogou? Tutorial</button></section>`;
+  const qm = ui.quickMode || 'culto', modes = ([['culto', '🐙 Cthulhu'], ['esparta', '🏛 Leônidas'], ['mix', '🎲 Sorteado']] as const);
+  return `<section class="card quick" id="quick">${session() ? `<div class="seg quick-mode" role="tablist" aria-label="Tema do jogo rápido">${modes.map(([v, l]) => `<button role="tab" data-act="quickmode" data-v="${v}" aria-selected="${qm === v}" class="${qm === v ? 'on' : ''}">${l}</button>`).join('')}</div>` : ''}${session() && qm === 'culto' ? cultSetup() : ''}<button class="btn block big" data-act="quickgame" id="quickgame">${ui.playMode === 'campanha' && (!dlcOn() || (ui.quickMode || 'culto') === 'culto') ? '▶ Começar a campanha' : '▶ Jogar agora'}</button><p class="hint">Partida rápida: 7 lugares, você e 6 IAs no difícil (o nível em Contra a IA vale para a mesa que você monta), sem assistência, ${dlcOn() ? 'tema e continente sorteados' : 'continente sorteado'}.</p><button class="btn ghost block" data-act="tutorial" id="tutorial">📘 Nunca jogou? Tutorial</button></section>`;
 }
 /** Your game at a glance, at the top of the result (D34): won or lost, with what role, and how the notebook did. */
 function vYours(g: Game): string {
@@ -309,8 +310,8 @@ function vSolo(): string {
 function vPack(): string {
   const cur = packNow();
   const opt = (k: Pack): string => `<button class="${cur === k ? 'on' : ''}" data-act="pack" data-v="${k}" aria-pressed="${cur === k}"><span class="packart">${portrait('liberal', k, S.region)}${portrait('cultista', k, S.region)}${portrait('lider', k, S.region)}</span>${Core.WORDS[k].theme}</button>`;
-  return `<section class="card" id="pack"><span class="label">Tema do jogo</span><div class="packs" role="group" aria-label="Tema do jogo" data-keep>${Core.PACKS.filter(k => k === 'culto' || dlcOn()).map(opt).join('')}</div>
-    <p class="hint" id="packtext">${cur === 'culto' ? 'Investigadores contra um culto: os cultistas são o time escondido e o Sumo Sacerdote é o líder deles. As mesmas regras, e os dados valem mais: cada um tem uma ficha do Call of Cthulhu, e a Psicologia fareja mentiras, quem investiga rola para ser acreditado e quem elimina rola Intimidação.' : cur === 'vermelho' ? 'Os vermelhos são o time escondido e o Red Leader é o líder deles. Vota-se Da! ou Niet!. As regras são as mesmas; as IAs ganham nomes de liberais e vermelhos.' : 'O jogo original: os cultistas são o time escondido e o Leader é o líder deles.'}</p>
+  return `<section class="card" id="pack"><span class="label">Tema do jogo</span><div class="packs" role="group" aria-label="Tema do jogo" data-keep>${packsOpen().map(opt).join('')}</div>
+    <p class="hint" id="packtext">${cur === 'esparta' ? 'Atenas contra os espartanos infiltrados na Assembleia, como no golpe dos Quatrocentos (411 a.C.): os espartanos são o time escondido e Leônidas é o líder deles. As regras são as do original: arcontes, estrategos, ostracismo e o Oráculo de Delfos.' : cur === 'culto' ? 'Investigadores contra um culto: os cultistas são o time escondido e o Sumo Sacerdote é o líder deles. As mesmas regras, e os dados valem mais: cada um tem uma ficha do Call of Cthulhu, e a Psicologia fareja mentiras, quem investiga rola para ser acreditado e quem elimina rola Intimidação.' : cur === 'vermelho' ? 'Os vermelhos são o time escondido e o Red Leader é o líder deles. Vota-se Da! ou Niet!. As regras são as mesmas; as IAs ganham nomes de liberais e vermelhos.' : 'O jogo original: os cultistas são o time escondido e o Leader é o líder deles.'}</p>
     <p class="hint">Nomes da IA</p><div class="segm regions" role="group" aria-label="Nomes da IA">${Core.REGIONS.filter(r => r !== 'brasil').map(r => `<button class="${(S.region || 'mundo') === r ? 'on' : ''}" data-act="region" data-v="${r}" aria-pressed="${(S.region || 'mundo') === r}">${Core.REGION_NAMES[r]}</button>`).join('')}</div>
     ${dlcOn() ? `<button class="btn ghost block dlc-region${S.region === 'brasil' ? ' on' : ''}" data-act="region" data-v="brasil" aria-pressed="${S.region === 'brasil'}">Brasil · DLC</button>` : ''}
     <p class="hint" id="regiontext">Votos: <b>${Core.words(packNow(), S.region).ja}</b> / <b>${Core.words(packNow(), S.region).nein}</b>. Figuras conhecidas ${({ mundo: 'do mundo todo', americas: 'das Américas', europa: 'da Europa', asia: 'da Ásia', africa: 'da África', oceania: 'do mundo todo (da Oceania, só os bichos)', brasil: 'do Brasil (DLC)' } as const)[S.region || 'mundo']}, dos dois lados misturados. O nome é só apelido de jogo: o papel é sorteado, e quem tem nome de liberal pode ser o {boss}.</p><button class="more" data-act="gallery" id="gallerytoggle">Ver todos os desenhos ▸</button>
@@ -322,7 +323,7 @@ function vGallery(): string {
   const back = '<button class="btn ghost block" data-act="gallery" id="galleryback">Voltar</button>';
   const cell = (r: Role, k: Pack, reg: Region, label: string): string => `<figure>${portrait(r, k, reg)}<figcaption><b>${label}</b>${animalOf(r, k, reg)}</figcaption></figure>`;
   const block = (reg: Region): string => `<section class="card gallery" id="gallery-${reg}"><span class="label">${Core.REGION_NAMES[reg]}</span>
-    ${Core.PACKS.filter(k => k === 'culto' || dlcOn()).map(k => `<p class="hint">${Core.WORDS[k].theme}</p><div class="cast">${cell('liberal', k, reg, k === 'culto' ? 'Investigador' : 'Liberal')}${cell('cultista', k, reg, Core.WORDS[k].F)}${cell('lider', k, reg, Core.WORDS[k].boss)}</div>`).join('')}
+    ${packsOpen().map(k => `<p class="hint">${Core.WORDS[k].theme}</p><div class="cast">${cell('liberal', k, reg, k === 'culto' ? 'Investigador' : k === 'esparta' ? 'Ateniense' : 'Liberal')}${cell('cultista', k, reg, Core.WORDS[k].F)}${cell('lider', k, reg, Core.WORDS[k].boss)}</div>`).join('')}
     <p class="hint">Rostos da mesa</p><div class="faces">${[...new Set([...Core.NAMES_BY.classico[reg], ...Core.NAMES_BY.vermelho[reg]])].map(n => `<figure>${face(n, reg)}<figcaption>${esc(n)}</figcaption></figure>`).join('')}</div></section>`;   // D92
   return `<section class="card" id="gallery"><span class="label">Todos os desenhos</span><p class="hint">Cada continente com os bichos dos dois temas. O de cima é o do jogo original.</p>${back}</section>${Core.REGIONS.filter(r => r !== 'brasil' || dlcOn()).map(block).join('')}<section class="card">${back}</section>`;
 }
@@ -1329,12 +1330,12 @@ function tellStory(g: Game): void {
 
 /** D138: the login page; the demo account (a pedestrian) is shown on purpose, for whoever looks at the portfolio. */
 function vLogin(): string {
-  return `<section class="card login" id="login"><h1 class="login-title">Secret Cultist</h1><p class="hint">Entre para jogar. Investigadores contra cultistas, num celular só ou contra a IA.</p>
+  return `<section class="card login" id="login"><h1 class="login-title">Painel</h1><p class="hint">Entre para jogar os outros temas: o Secret Cultist e a expansão.</p>
     <div class="field"><label for="loginemail">E-mail</label><input id="loginemail" type="email" autocomplete="username" inputmode="email" autocapitalize="off" spellcheck="false" value="${esc(ui.loginEmail || '')}"></div>
     <div class="field"><label for="loginpass">Senha</label><input id="loginpass" type="password" autocomplete="current-password"></div>
     ${ui.loginErr ? `<p class="hint err" id="loginerr" role="alert">${esc(ui.loginErr)}</p>` : ''}
     <button class="btn primary block" data-act="login" id="logingo"${ui.loginBusy ? ' disabled' : ''}>${ui.loginBusy ? 'Entrando…' : 'Entrar'}</button>
-    <div class="demo" id="demo"><span class="label">Só para conhecer</span><p class="hint">Conta de visitante: <b>${esc(DEMO.email)}</b> · senha <b>${esc(DEMO.password)}</b></p><button class="btn block" data-act="demo" id="demogo"${ui.loginBusy ? ' disabled' : ''}>Entrar como visitante</button></div></section>`;
+    <p class="hint">Sem login, a página pública tem o Secret Leônidas.</p></section>`;
 }
 
 /** D122: the setup of a Secret Cultist game, right above "Jogar agora": one game or a campaign, your investigator's

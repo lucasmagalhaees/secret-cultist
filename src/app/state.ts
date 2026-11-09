@@ -1,5 +1,6 @@
 import { dlcLooks } from './art';
 import { Core } from '../core';
+import { session } from './auth';
 import type { AppState, Game, Speed, Theme, Pack } from '../core';
 
 /* ================= what is kept, and what is on screen =================
@@ -38,14 +39,17 @@ export const dlcOn = (): boolean => {
   if (d && !looked) { looked = true; dlcLooks(d); }   // D100: the expansion's faces, once it is open
   return !!d;
 };
-export const packNow = (): Pack => (dlcOn() ? S.pack || 'culto' : 'culto');
+/** D139: the themes this visitor may play: the public page has only Secret Leônidas; logged in, also Secret Cultist and,
+ *  with the expansion's key, the historical themes. */
+export const packsOpen = (): Pack[] => (session() ? (['esparta', 'culto', ...(dlcOn() ? ['classico', 'vermelho'] : [])] as Pack[]) : ['esparta']);
+export const packNow = (): Pack => { const open = packsOpen(), want = S.pack || (session() ? 'culto' : 'esparta'); return open.includes(want) ? want : open[0]; };
 export const saveS = (): boolean => LS.set('secretcultist.v1', S);
 export function setS(next: AppState): void { S = next; }
 
 /** What is on screen: nothing here is saved, so a reload always closes whatever secret was open.
  *  `open` is the secret screen being shown (see gateKey in render.ts); `pick` the card or player tapped and not yet
  *  confirmed; `name` the name being typed on the table screen. */
-export interface Ui { msg: string; name: string; open: string; pick: number | null; confirmEnd: boolean; help: boolean; undo: Game | null; busy: boolean; votes: Record<number, boolean>; think: number | null; more: boolean; rules: boolean; endTab: EndTab; allPlays: boolean; confirmClear: boolean; confirmWipe: boolean; gallery: boolean; diary: boolean; logFilter?: 'all' | 'talk' | 'gov'; court?: number | null; courtProof?: number[]; sheet?: number | null; evMore?: boolean; dpick?: string[]; dmore?: boolean; pastAll?: boolean; quickMode?: 'culto' | 'mix'; stereoOpen?: boolean; playMode?: 'avulsa' | 'campanha'; courtTone?: 'soft' | 'firm' | 'proof'; debate?: number | null; frozen?: number; pleaTo?: number | null; talk?: boolean; blocSel?: number[]; seed?: number; proof?: boolean; loginErr?: string; loginBusy?: boolean; loginEmail?: string }
+export interface Ui { msg: string; name: string; open: string; pick: number | null; confirmEnd: boolean; help: boolean; undo: Game | null; busy: boolean; votes: Record<number, boolean>; think: number | null; more: boolean; rules: boolean; endTab: EndTab; allPlays: boolean; confirmClear: boolean; confirmWipe: boolean; gallery: boolean; diary: boolean; logFilter?: 'all' | 'talk' | 'gov'; court?: number | null; courtProof?: number[]; sheet?: number | null; evMore?: boolean; dpick?: string[]; dmore?: boolean; pastAll?: boolean; quickMode?: 'culto' | 'mix' | 'esparta'; stereoOpen?: boolean; playMode?: 'avulsa' | 'campanha'; courtTone?: 'soft' | 'firm' | 'proof'; debate?: number | null; frozen?: number; pleaTo?: number | null; talk?: boolean; blocSel?: number[]; seed?: number; proof?: boolean; loginErr?: string; loginBusy?: boolean; loginEmail?: string }
 /** The tabs at the end of a game (D18): the result, the whole game, the record. */
 export type EndTab = 'res' | 'jogo' | 'log';
 /** `help` is the explanation of the phase, open or not; `undo` the game as it was before the last public choice (a

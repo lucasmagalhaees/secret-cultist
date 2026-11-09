@@ -18,9 +18,12 @@ export interface Words {
   /** D115: the name on a law card of the hidden side (the hidden side's name when the theme says nothing). */
   lawF?: string;
 }
-export const PACKS: Pack[] = ['classico', 'vermelho', 'culto'];
+export const PACKS: Pack[] = ['classico', 'vermelho', 'culto', 'esparta'];
 export const WORDS: Record<Pack, Words> = {
   // D96: Secret Cultist: investigators against a cult, led in secret by its High Priest; the votes in the tongue of the book
+  // D139: Secret Leônidas, the public face: Athens against the Spartans hidden in its Assembly, led in secret by Leônidas;
+  // the votes in Greek
+  esparta: { f: 'espartano', fs: 'espartanos', F: 'Espartano', boss: 'Leônidas', ja: 'Naí!', nein: 'Oú!', libs: 'Aten', short: 'Espa', theme: 'Atenienses x Espartanos', law: 'Decreto de Atenas', lawF: 'Decreto de Esparta' },
   culto: { f: 'cultista', fs: 'cultistas', F: 'Cultista', boss: 'Sumo Sacerdote', ja: 'Aye!', nein: 'Nay!', libs: 'Invs', short: 'Cult', theme: 'Investigadores x Cultistas', law: 'Relíquia', lawF: 'Página' }
 } as Record<Pack, Words>;
 // D100: the words of the expansion's themes are not in the source: they arrive with the key (src/core/dlc.ts); until
@@ -35,11 +38,13 @@ export const VOTES: Partial<Record<Region, Partial<Record<Pack, [string, string]
   africa: { classico: ['Ndiyo!', 'Hapana!'], vermelho: ['Ndiyo!', 'Hapana!'], culto: ['Ndiyo!', 'Hapana!'] },
   oceania: { classico: ['Yes!', 'No!'], vermelho: ['Yes!', 'No!'], culto: ['Yes!', 'No!'] }
 };
+/** D139: Secret Leônidas votes in Greek, on every continent. */
+export const GREEK_VOTES: [string, string] = ['Naí!', 'Oú!'];
 /** D128: Secret Cultist votes in Latin, on every continent: the tongue of the rites. */
 export const CULT_VOTES: [string, string] = ['Ita!', 'Non!'];
 /** The words of a theme, with the votes of the continent; without one, Secret Cultist's (D100). */
 export const words = (pack?: Pack, region?: Region): Words => {
-  const p: Pack = pack && PACKS.includes(pack) ? pack : 'culto', v = p === 'culto' ? CULT_VOTES : region ? VOTES[region]?.[p] : undefined;
+  const p: Pack = pack && PACKS.includes(pack) ? pack : 'culto', v = p === 'culto' ? CULT_VOTES : p === 'esparta' ? GREEK_VOTES : region ? VOTES[region]?.[p] : undefined;
   return { law: 'Liberal', lawF: WORDS[p].F, ...WORDS[p], ...(v ? { ja: v[0], nein: v[1] } : {}) };
 };
 /* D102: Secret Cultist speaks of investigators, not liberals: the rules and the core keep 'liberal' inside, and what is
@@ -57,3 +62,21 @@ const CULT_SPEAK: [RegExp, string | ((...m: string[]) => string)][] = [
 ];
 /** A text as Secret Cultist says it (D102, D115). */
 export const cultSpeak = (s: string): string => CULT_SPEAK.reduce((t, [re, to]) => t.replace(re, to as (...m: string[]) => string), s);
+
+/* D139: Secret Leônidas speaks of Athenians and Spartans, of decrees, archons and strategoi. */
+const GREEK_SPEAK: [RegExp, string | ((...m: string[]) => string)][] = [
+  [/\b([Ll])eis liberais\b/g, (_, l) => `${l === 'L' ? 'D' : 'd'}ecretos de Atenas`], [/\b([Ll])ei liberal\b/g, (_, l) => `${l === 'L' ? 'D' : 'd'}ecreto de Atenas`],
+  [/\b([Ll])eis espartanos\b/g, (_, l) => `${l === 'L' ? 'D' : 'd'}ecretos de Esparta`], [/\b([Ll])ei espartano\b/g, (_, l) => `${l === 'L' ? 'D' : 'd'}ecreto de Esparta`],
+  [new RegExp(`\\b${N} libera(?:is|l)\\b`, 'g'), (_, n) => `${n} ${plural(n, 'decreto de Atenas', 'decretos de Atenas')}`],
+  [new RegExp(`\\b(tirou|recebeu|passou|tirei|recebi|passei|com|e|restam|sobram) ${N} espartanos?\\b`, 'g'), (_, w, n) => `${w} ${n} ${plural(n, 'decreto de Esparta', 'decretos de Esparta')}`],
+  [/\bliberais\b/g, 'atenienses'], [/\bLiberais\b/g, 'Atenienses'], [/\bLIBERAIS\b/g, 'ATENIENSES'],
+  [/\bliberal\b/g, 'ateniense'], [/\bLiberal\b/g, 'Ateniense'], [/\bLIBERAL\b/g, 'ATENIENSE'],
+  [/\bpresidentes\b/g, 'arcontes'], [/\bPresidentes\b/g, 'Arcontes'], [/\bpresidente\b/g, 'arconte'], [/\bPresidente\b/g, 'Arconte'], [/\bPRESIDENTE\b/g, 'ARCONTE'],
+  [/\bchanceleres\b/g, 'estrategos'], [/\bChanceleres\b/g, 'Estrategos'], [/\bchanceler\b/g, 'estratego'], [/\bChanceler\b/g, 'Estratego'], [/\bCHANCELER\b/g, 'ESTRATEGO'],
+  [/\bpresidência\b/g, 'arcontado'], [/\bPresidência\b/g, 'Arcontado'], [/\bPres\./g, 'Arc.'], [/\bChanc\./g, 'Estr.']
+];
+/** A text in the words of a theme (D102, D139): Secret Cultist's, Secret Leônidas's, or as it is. */
+export const speakAs = (pack: string | undefined, s: string): string => {
+  const list = pack === 'culto' ? CULT_SPEAK : pack === 'esparta' ? GREEK_SPEAK : null;
+  return list ? list.reduce((t, [re, to]) => t.replace(re, to as (...m: string[]) => string), s) : s;
+};

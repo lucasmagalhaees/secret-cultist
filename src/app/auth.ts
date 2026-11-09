@@ -8,8 +8,6 @@ import type { Json } from '../core/types';
 export const AUTH_URL = 'https://ydzqrfkcsrochzwegrig.supabase.co';
 /** The publishable key: public by design (Supabase's own name for it), given at build time. */
 export const AUTH_KEY: string = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
-/** The demo account, shown on the login page on purpose (D138): a pedestrian. */
-export const DEMO = { email: 'visitante@secretcultist.app', password: 'cthulhu-fhtagn-1928' };
 const SESSION = 'secretcultist.session.v1', DLC = 'secretcultist.dlc.v1';
 export const AUTH_WAIT = 10000;
 

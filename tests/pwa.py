@@ -52,15 +52,14 @@ def check(name, cond, detail=''):
 with sync_playwright() as p:
     browser = p.chromium.launch()
     ctx = browser.new_context(viewport=dict(width=393, height=852), locale='pt-BR', timezone_id='America/Sao_Paulo', service_workers='allow')
-    ctx.add_init_script("window.__AUTH = {email: 'teste@exemplo.com', role: 'pedestrian'}")   # D138: logged in, as the demo account
     ctx.add_init_script("try { localStorage.setItem('secretcultist.sheets.v1', JSON.stringify({ fails: 9, until: 9e15, wait: 3600000 })) } catch (e) {}")   # D95: no call to the sheets API from this test
     ctx.route('**/*', lambda r: r.continue_() if r.request.url.startswith(BASE) else r.abort())      # the site is real; nothing else is reached
     pg = ctx.new_page(); errs = []
     pg.on('pageerror', lambda e: errs.append(str(e)))
     cov.start(pg)
     pg.goto(BASE + '/index.html'); pg.wait_for_function('window.__APP && window.__APP.S')
-    # D98: without the expansion's key, the public face is Secret Cultist: no Sumo Sacerdote, no Red Leader, no historical themes
-    check('the public face is Secret Cultist', pg.locator('.brand').inner_text().strip().lower() == 'secret cultist' and pg.locator('[data-act=pack]').count() <= 1 and not any(w in pg.locator('#view').inner_text() for w in ('Líder Vermelho', 'Liberais x')), pg.locator('.brand').inner_text())
+    # D98, D139: the public face is Secret Leônidas: no Red Leader, no historical themes
+    check('the public face is Secret Leônidas', pg.locator('.brand').inner_text().strip().lower() == 'secret leônidas' and pg.locator('[data-act=pack]').count() <= 1 and not any(w in pg.locator('#view').inner_text() for w in ('Líder Vermelho', 'Liberais x')), pg.locator('.brand').inner_text())
 
     # first visit: the worker installs, takes the page, and there is nothing to update from
     pg.wait_for_function('navigator.serviceWorker.controller !== null', timeout=15000)

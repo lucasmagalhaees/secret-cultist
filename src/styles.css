@@ -1229,3 +1229,9 @@ body:has(.dock-gap) .toast{bottom:calc(var(--dock) + 8px + env(safe-area-inset-b
 .login .err{color:#e05a4f}
 .login .demo{border-top:1px dashed currentColor;padding-top:12px;margin-top:4px;display:grid;gap:8px}
 .top .wrap{flex-wrap:wrap;row-gap:4px}
+
+/* D139: Secret Leônidas looks like a black-figure vase: terracotta and black, a meander under the header */
+:root[data-pack="esparta"]{--bg:#e6b689;--surface:#f2d3ad;--accent:#7a2a12;--accent-bg:#b4512a;--grain:rgba(90,40,10,.07)}
+:root[data-pack="esparta"] .top{border-bottom:0;background-image:repeating-linear-gradient(90deg,#b4512a 0 6px,transparent 6px 12px);background-size:100% 4px;background-repeat:no-repeat;background-position:bottom;background-color:var(--ink)}
+@media (prefers-color-scheme:dark){:root[data-pack="esparta"]:not([data-theme="light"]){--bg:#17100b;--surface:#2a1a10;--accent:#e98a55;--accent-bg:#b4512a}}
+:root[data-pack="esparta"][data-theme="dark"]{--bg:#17100b;--surface:#2a1a10;--accent:#e98a55;--accent-bg:#b4512a}
