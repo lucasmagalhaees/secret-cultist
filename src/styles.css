@@ -372,12 +372,14 @@ small.ai{font:800 10px/1 var(--display);letter-spacing:.1em;padding:3px 5px;bord
 
 /* ---------- the theme of the game (D12) ---------- */
 .packs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.packs button:last-child:nth-child(odd){grid-column:1/-1}   /* an odd theme out takes the whole row */
 .packs button{display:grid;justify-items:center;gap:6px;padding:10px 6px;border:2px solid var(--line);background:var(--surface);color:var(--fg);font:800 13px/1.15 var(--display);letter-spacing:.04em;text-transform:uppercase;min-height:44px}
 .packs button.on{background:var(--fg);color:var(--surface)}
 .packart{display:flex;justify-content:center}
 .packart svg{width:46px;height:46px;margin:0 -3px}
 [data-look="deco"] .packs button{border-width:1px;border-color:var(--gold)}
 .role-card b{font-size:clamp(28px,9.5vw,42px);overflow-wrap:anywhere}
+.role-card b.long{font-size:clamp(22px,7.4vw,36px);letter-spacing:.03em;overflow-wrap:normal;word-break:keep-all}   /* a long role name stays one word */
 #solo .segm.roles{display:grid;grid-template-columns:1fr 1fr}
 #solo .segm.roles button+button{border-left:0}
 #solo .segm.roles button:nth-child(2n){border-left:2px solid var(--line)}
@@ -498,7 +500,7 @@ body:has(.dock-gap) .toast{bottom:calc(6px + env(safe-area-inset-bottom));z-inde
 .heard li.yes::before{content:"✓ ";color:var(--lib)}
 .heard li.no::before{content:"✗ ";color:var(--fas)}
 .heard li.meh::before{content:"? ";color:var(--muted)}
-.dlc{margin-top:10px}.dlc summary{cursor:pointer;color:var(--muted);font-size:14px;min-height:40px;display:flex;align-items:center}
+.dlc{margin-top:10px}.dlc summary{cursor:pointer;color:inherit;font:800 13px/1 var(--display);letter-spacing:.08em;text-transform:uppercase;text-decoration:underline;text-underline-offset:4px;min-height:40px;display:flex;align-items:center}
 .drawer .notes-segm button{min-width:44px}
 /* the notebook scored at the end (D28) */
 .big-score{font-size:20px;margin:6px 0}.big-score b{font-size:32px}
@@ -613,8 +615,9 @@ button:focus-visible,summary:focus-visible,textarea:focus-visible{outline:3px so
 /* A persistent short cue replaces fast dialogue toasts; the transcript has its own public panel. */
 body:has(.dock){--dock:68px}
 body:has(.speech-peek){--dock:116px}
-.dock{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:minmax(44px,1fr);gap:6px}
-.speech-peek{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;min-height:32px;text-align:left;padding:0 4px;font:700 13px/1.2 var(--font)}
+.dock{display:flex;flex-wrap:wrap;align-content:stretch;gap:6px}
+.dock>.dock-btn{flex:1 1 0;min-height:44px;white-space:normal;line-height:1.1;letter-spacing:.04em;font-size:12px;padding:0 6px;display:flex;align-items:center;justify-content:center;gap:6px;text-align:center}   /* every button on one row; a long label goes to two lines, never cut */
+.speech-peek{flex:1 0 100%;display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;min-height:32px;text-align:left;padding:0 4px;font:700 13px/1.2 var(--font)}
 .speech-peek span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .speech-peek small{flex:none;color:var(--muted);font-size:11px}
 .diary{width:min(420px,94vw);z-index:45}
@@ -626,7 +629,6 @@ body:has(.speech-peek){--dock:116px}
 .diary-lines p{font-size:16px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0 0}
 @media (min-width:1400px){.diary:not(.open){visibility:hidden;transform:translateX(105%)}}
 
-.dock:not(:has(.notes)) .dock-btn{grid-column:1/-1}
 
 .reputation-cue{display:block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;font-size:11px}
 .reputation-cue.up{color:var(--lib)}.reputation-cue.down{color:var(--neg)}
@@ -830,7 +832,7 @@ body:has(.speech-peek){--dock:116px}
 .ribbon span{font:700 18px/1.2 var(--display)}
 @keyframes ribbon{0%{transform:translateX(-110%) rotate(-6deg)}30%,70%{transform:translateX(0) rotate(-6deg)}100%{transform:translateX(110%) rotate(-6deg)}}
 .seat.pres-sash{position:relative;overflow:hidden;isolation:isolate}
-.seat.pres-sash::before{content:"";position:absolute;z-index:-1;inset:-20% auto -20% 38%;width:14%;background:var(--fas);transform:skewX(-28deg);opacity:.85;pointer-events:none;border-inline:1.5px solid #15110e}
+.seat.pres-sash::before{content:"";position:absolute;z-index:-1;inset:-20% auto -20% 38%;width:14%;background:#d9a520;transform:skewX(-28deg);opacity:.85;pointer-events:none;border-inline:1.5px solid #15110e}
 .seat.pres-sash.sash::before{background:#d9a520}
 .seat.pres-sash.in::before{animation:sashIn .5s cubic-bezier(.2,.8,.3,1) both}
 @keyframes sashIn{0%{translate:-260% 0;opacity:0}100%{translate:0;opacity:.85}}
@@ -1169,3 +1171,48 @@ body:has(.dock-gap) .toast{bottom:calc(var(--dock) + 8px + env(safe-area-inset-b
 /* D101: sanity on the sheet */
 .san{display:grid;gap:4px;margin:8px 0}.san b{font:800 14px/1 var(--display);letter-spacing:.08em}.san-bar{height:8px;border:2px solid var(--line);background:var(--surface)}.san-bar i{display:block;height:100%;background:var(--lib)}.san.low .san-bar i{background:var(--fas)}.san small{font-size:12px;color:var(--muted)}
 .past{list-style:none;margin:8px 0;padding:0;display:grid;gap:6px}.past li{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;padding:8px 10px;border:2px solid var(--line);background:var(--surface)}.past li small{grid-row:span 2;font-weight:700}.past li b{font-size:14px}.past li em{grid-column:2;font-style:normal;font-size:13px;color:var(--muted)}.past li.won{border-left:8px solid var(--lib)}.past li.lost{border-left:8px solid var(--fas)}.past-rate{margin:6px 0}.past-rate b{font:800 22px/1 var(--display)}
+.my-skills{list-style:none;margin:6px 0;padding:0;display:grid;gap:6px}.my-skills li{display:grid;grid-template-columns:48px 1fr;gap:10px;align-items:center;padding:8px 10px;border:2px solid var(--line);background:var(--surface)}.my-skills li b{font:800 24px/1 var(--display);text-align:center}.my-skills li span{display:grid;gap:2px}.my-skills li small{font-size:13px;color:var(--muted)}.my-skills li.best{border-color:var(--gold,#c9a227);box-shadow:3px 3px 0 var(--gold,#c9a227)}
+.big-roll{position:fixed;inset:0;z-index:80;cursor:pointer;display:grid;place-items:center;background:rgba(5,5,10,.72);backdrop-filter:blur(2px)}
+.br-card{width:min(330px,86vw);padding:20px 18px;text-align:center;border:3px solid #c9a227;background:#15121c;color:#f3ead2;box-shadow:0 0 40px rgba(201,162,39,.35);display:grid;gap:8px}
+.br-card small{letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:#c9a227}.br-skill{font:800 26px/1.1 var(--display)}.br-skill span{color:#c9a227}.br-need{font-size:14px;opacity:.8}
+.br-tens{font-size:13px}.br-tens i{display:inline-block;margin:0 4px;padding:2px 8px;border:2px solid #555;font-style:normal;opacity:.5}.br-tens i.kept{border-color:#c9a227;opacity:1}
+.br-die{margin:6px auto;width:120px;height:120px;display:grid;place-items:center;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);background:linear-gradient(160deg,#3b2f5c,#1d1730);animation:brspin .9s cubic-bezier(.2,.8,.3,1)}
+.br-num{font:800 54px/1 var(--display);color:#fff}.br-res{font:800 24px/1 var(--display);opacity:0;transform:scale(.6);transition:all .25s}.land .br-res{opacity:1;transform:none}
+.big-roll.good.land .br-die{background:linear-gradient(160deg,#2f7a45,#173d22)}.big-roll.crit.land .br-die{background:linear-gradient(160deg,#e7c14a,#8a6a12)}.big-roll.bad.land .br-die{background:linear-gradient(160deg,#8f2a2a,#3d1111);animation:brshake .35s}
+.good .br-res{color:#7fd38f}.crit .br-res{color:#ffd75e}.bad .br-res{color:#ff7b7b}.br-sub{font-size:14px;opacity:.85;margin:0}
+@keyframes brspin{from{transform:rotate(-540deg) scale(.4)}to{transform:none}}@keyframes brshake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@media (prefers-reduced-motion: reduce){.br-die{animation:none}.br-res{transition:none}}
+.quick-mode{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-bottom:10px;border:2px solid var(--line)}.quick-mode button{min-height:44px;font:700 15px/1 var(--display);background:var(--surface);color:var(--fg);border:0}.quick-mode button.on{background:var(--fg);color:var(--bg)}
+.br-luck{font-weight:700;color:#7fd38f}
+.item-card{display:grid;grid-template-columns:44px 1fr;gap:10px;align-items:center;margin:8px 0;padding:8px 10px;border:2px solid var(--line);background:var(--surface)}.item-icon{font-size:30px;text-align:center}.item-card span{display:grid;gap:2px}.item-card small{font-size:13px;color:var(--muted)}
+.mad-note{margin:6px 0;padding:8px 10px;border:2px dashed var(--fas);font-weight:700}
+.stereo{margin:10px 0}.stereo-cur{display:grid;gap:4px;text-align:left}.stereo-cur small,.stereo-list small{display:block;font:500 12px/1.3 var(--font);color:var(--muted);text-transform:none;letter-spacing:0}
+.stereo-list{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.stereo-list button{display:grid;gap:3px;text-align:left;padding:8px;border:2px solid var(--line);background:var(--surface);color:var(--fg);font:700 14px/1.15 var(--display)}.stereo-list button.on{border-color:var(--fg);box-shadow:3px 3px 0 var(--fg)}.stereo-list button:first-child{grid-column:1/-1}
+.narrator{position:fixed;inset:0;z-index:95;pointer-events:auto;display:flex;flex-direction:column;justify-content:center;gap:20px;padding:calc(env(safe-area-inset-top) + 24px) 20px calc(env(safe-area-inset-bottom) + 24px);background:#0d0b08;color:#efe4c8;overflow-y:auto;animation:narIn .5s ease both}
+.nar-page{max-width:560px;width:100%;margin:0 auto;display:grid;gap:16px}.nar-page p{margin:0;font:italic 500 18px/1.55 Georgia,'Times New Roman',serif}.nar-page p:first-child::first-letter{font-size:2.4em;float:left;line-height:.9;margin:4px 8px 0 0;color:#c9a227}
+.nar-page .nar-doc{background:#efe4c8;color:#2a2117;border:1px solid #8a6a3a;padding:12px 14px;font:400 15px/1.5 'Courier New',monospace;transform:rotate(-.6deg)}
+.narrator #storyok{max-width:560px;width:100%;margin:0 auto}
+.nar-card{max-width:560px;display:grid;grid-template-columns:auto 1fr;gap:4px 10px;padding:14px 16px;background:#14110d;color:#efe4c8;border:2px solid #c9a227;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.nar-card p{margin:0;font:italic 500 16px/1.45 Georgia,'Times New Roman',serif}.nar-icon{font-size:22px;grid-row:span 2}.nar-card small{font-size:11px;opacity:.55;letter-spacing:.1em;text-transform:uppercase}
+@keyframes narIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.narrator{animation:none}}
+.sheet-extra{list-style:none;margin:6px 0;padding:0;display:grid;gap:4px;font-size:14px}.narrator.doc .nar-card{background:#efe4c8;color:#2a2117;border-color:#8a6a3a}.narrator.doc .nar-card p{font-family:'Courier New',monospace;font-style:normal;font-size:15px}
+.cult-setup{display:grid;gap:12px;margin-bottom:12px}.cult-setup .label{display:block;margin-bottom:6px}.cult-setup .stereo,.cult-setup .horror{margin:0}
+.horror .quick-mode{grid-template-columns:repeat(3,1fr)}
+.stereo-cur{text-align:left;padding:10px 12px}
+
+/* D130: a roll told as a scene: why, what it takes, the die, what it means, and Seguir */
+.big-roll{pointer-events:auto;background:rgba(8,6,4,.92);overflow-y:auto;padding:calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 16px)}
+.big-roll .br-card{max-width:440px;width:100%}
+.br-title{display:block;letter-spacing:.12em;text-transform:uppercase}
+.br-why{margin:8px 0 12px;font:italic 500 16px/1.45 Georgia,'Times New Roman',serif;text-align:left}
+.br-test{display:grid;gap:4px;justify-items:center}.br-need{font-size:15px}
+.br-notes{margin:6px 0 0;padding:0;list-style:none;font-size:13px;opacity:.8;text-align:left}.br-notes li::before{content:'· '}
+.big-roll .br-after{opacity:0;transition:opacity .3s}.big-roll.land .br-after{opacity:1}
+.br-after .btn{margin-top:14px}
+
+/* D131: your role, always on top when playing alone */
+.chip.me{font-size:11px;white-space:nowrap;max-width:46vw;overflow:hidden;text-overflow:ellipsis}
+
+/* D134: the chronicle, a line of the narrator under the seats */
+.chron{margin:8px 0;padding:8px 12px;border-left:3px solid #c9a227;font:italic 500 15px/1.45 Georgia,'Times New Roman',serif;opacity:.92}

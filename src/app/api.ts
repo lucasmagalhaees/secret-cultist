@@ -10,6 +10,9 @@ export const SOURCE = '';
 export const SHEETS = 'https://cthulhu-char-golang.vercel.app/char-generator/random-char';
 /** D99: the health check of the sheets API: answers without building a sheet. */
 export const HEALTH = 'https://cthulhu-char-golang.vercel.app/char-generator/health';
+/** D137: the lore API (lore-enhancer): a line of the narrator for the last move; optional, never waited for. */
+export const LORE = 'https://lore-enhancer.vercel.app/lore';
+export const LORE_WAIT = 4000;
 /** D99: how many sheets of each region are kept on the device, to play Secret Cultist while the API is down. */
 export const POOL_MAX = 10;
 /** D108: the API sleeps when idle and takes about 10 s to wake (a Java container starting cold): every call waits this long. */
@@ -39,7 +42,7 @@ let breakerMem: Breaker | null = null;   // read on first use: nothing runs whil
 const getB = (): Breaker => (breakerMem ??= readB());
 /** The feature toggle of the sheets: on while the API answers, off while the breaker is open. */
 export const sheetsOn = (): boolean => Core.breakerAllows(getB(), Date.now());
-const askSheet = async (name: string, g: Game): Promise<Sheet | null> => { const r = sheetRegion(name, g.region); return Core.normSheet(await getJSON(`${SHEETS}${r ? `?nativeLanguageRegion=${r}` : ''}`, COLD)); };
+const askSheet = async (name: string, g: Game, stereo?: string): Promise<Sheet | null> => { const r = sheetRegion(name, g.region), q = [r ? `nativeLanguageRegion=${r}` : '', stereo ? `stereotype=${stereo}` : ''].filter(Boolean).join('&'); return Core.normSheet(await getJSON(`${SHEETS}${q ? `?${q}` : ''}`, COLD)); };
 /** D99: is the API up? The health check first; a server without it (older deploy) is asked for one sheet instead. */
 export async function healthy(): Promise<boolean> {
   try { const j = await getJSON(HEALTH, COLD); if (j && j.status === 'UP') return true; } catch { /* no health route: try a sheet */ }
@@ -79,19 +82,37 @@ export async function warmSheets(region: Region | undefined, now = Date.now()): 
 /** D94, D95: one sheet for each seat. The first call is a probe: if it fails (or the breaker is open) no other goes out
  *  and the game plays without sheets, as before. If it answers, the others are asked at once; what fails then is left
  *  without a sheet, and the whole table goes without (half a table rolling would be unfair). */
-export async function loadSheets(g: Game, rand: () => number): Promise<Record<number, Sheet> | null> {
+/** D116: the stereotype asked for a seat: the person's pick (with one person at the table), else none. */
+const people = (g: Game): number[] => g.players.map((p, i) => (p.ai ? -1 : i)).filter(i => i >= 0);
+export async function loadSheets(g: Game, rand: () => number, stereo?: string): Promise<Record<number, Sheet> | null> {
+  const me = people(g).length === 1 ? people(g)[0] : -1, st = (i: number): string | undefined => (i === me ? stereo : undefined);
   const live = await (async (): Promise<Record<number, Sheet> | null> => {
     if (!sheetsOn()) return null;
     let first: Sheet | null = null;
-    try { first = await askSheet(g.players[0].name, g); } catch { first = null; }
+    try { first = await askSheet(g.players[0].name, g, st(0)); } catch { first = null; }
     if (!first) { breakerMem = Core.breakerFail(getB(), Date.now()); keepB(breakerMem); return null; }
     breakerMem = Core.breakerOk(); keepB(breakerMem);
-    const rest = await Promise.all(g.players.slice(1).map(p => askSheet(p.name, g).catch(() => null)));
+    const rest = await Promise.all(g.players.slice(1).map((p, k) => askSheet(p.name, g, st(k + 1)).catch(() => null)));
     if (rest.some(s => !s)) return null;
     const out: Record<number, Sheet> = { 0: first };
     rest.forEach((s, k) => { out[k + 1] = s as Sheet; });
     return out;
   })();
-  if (live) { g.players.forEach((p, i) => addToPool(sheetRegion(p.name, g.region), [live[i]])); return live; }   // D99: the fresh ones go to the pool
+  if (live) { g.players.forEach((p, i) => { if (!st(i)) addToPool(sheetRegion(p.name, g.region), [live[i]]); }); return live; }   // a picked stereotype is not a random sheet: it stays out of the pool   // D99: the fresh ones go to the pool
   return fromPool(g, rand);
+}
+
+/* D137: the lore API, with its own breaker: after a few failures the chronicle of the code tells alone for a while. */
+const LORE_KEY = 'secretcultist.lore.v1';
+let loreB: Breaker | null = null;
+const getLB = (): Breaker => (loreB ??= (() => { try { return Core.readBreaker(JSON.parse(localStorage.getItem(LORE_KEY) || 'null')); } catch { return Core.readBreaker(null); } })());
+const keepLB = (b: Breaker): void => { loreB = b; try { localStorage.setItem(LORE_KEY, JSON.stringify(b)); } catch { /* storage may be off */ } };
+export async function askLore(q: { at: number; moment: string; god: string; names: Record<string, string> }): Promise<string | null> {
+  if (!Core.breakerAllows(getLB(), Date.now())) return null;
+  const p = new URLSearchParams({ campaign: 'secret-cultist', moment: q.moment, god: q.god, seed: String(q.at), ...q.names });
+  try {
+    const r = Core.normLore(await getJSON(`${LORE}?${p}`, LORE_WAIT));
+    keepLB(Core.breakerOk());
+    return r ? r.text : null;
+  } catch { keepLB(Core.breakerFail(getLB(), Date.now())); return null; }
 }

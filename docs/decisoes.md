@@ -818,3 +818,140 @@ A regra continua sem sorte; o dado só mexe no que é dito e em como a mesa rece
 - **Decisão:** com a expansão liberada, "Jogo rápido de Cthulhu" monta a partida rápida sempre no Secret Cultist (sem a expansão, "Jogar agora" já é só ele). Os logs da Vercel mostram a API subindo do zero a cada pedido (o container Java leva uns 10 s para acordar), e o app desistia em 4 a 6 s, abrindo o disjuntor: toda chamada às fichas agora espera `COLD` (20 s).
 
 - **Depois (2026-11-07):** a API foi reescrita em Go (`cthulhu-char-golang`, mesmas rotas e mesmo JSON) e acorda em milissegundos; o jogo passou a chamar `https://cthulhu-char-golang.vercel.app`. O `COLD` de 20 s fica como margem.
+
+## D109. Sua ficha, dado de bônus e a rolagem no meio da tela (2026-11-08)
+
+- **Pedido:** ver a própria ficha e para que serve cada atributo; usar mais a ficha; uma animação própria de rolagem, "tipo Baldur's Gate"; bônus somado ao teste quando houver.
+- **Decisão:** "Minha ficha" na barra de baixo (com uma pessoa só e fichas) abre a sua ficha com as perícias da mais forte para a mais fraca e o que cada uma rola no jogo (`SKILL_USE`); Intimidação entrou na lista (`SKILLS`). Um argumento forte (`STRONG_ARG`) rola com dado de bônus, como no Call of Cthulhu: duas dezenas, fica a menor (`roll(..., mod)`; o de penalidade fica a maior). A sua Psicologia também rola contra o que as IAs dizem à mesa e o resultado é só seu (o evento `psy` com a rolagem). As suas rolagens aparecem grandes no meio da tela: a perícia e o alvo, as duas dezenas do bônus, o dado girando e o resultado; não seguram o toque.
+
+## D110. Jogo rápido com abas (2026-11-08)
+
+- **Pedido:** os dois botões de jogo rápido faziam quase a mesma coisa; uma aba para escolher.
+- **Decisão:** com a expansão, abas "Cthulhu" e "Tema sorteado" acima de um só "▶ Jogar agora" (começa em Cthulhu; "Jogar de novo" segue a aba). Sem a expansão não há aba: é sempre Cthulhu.
+
+## D111. Testes mais fáceis, o papel numa linha e a barra de baixo sem corte (2026-11-08)
+
+- **Pedido:** "os testes tão mt rígidos"; o nome do papel quebrava ("INVESTIGAD / OR"); na barra de baixo um botão ficava cortado e outro truncado.
+- **Decisão:** toda rolagem ganha `EASE` (20) a mais sobre o valor da ficha, até `EASE_CAP` (95): uma ficha nova tem perícias de 10 a 30, e conversa na mesa não é teste difícil. A rolagem grande mostra o valor da ficha e o bônus da mesa. O nome longo do papel diminui e fica numa palavra só. Os botões da barra ficam todos numa linha, e o rótulo longo vai para duas linhas em vez de cortar.
+
+## D112. Investigadores por continente e a rolagem que espera (2026-11-08)
+
+- **Pedido:** nomes por continente no Secret Cultist; a rolagem de Psicologia passava na frente da carta da investigação.
+- **Decisão:** cada continente tem 12 investigadores inventados, com nomes dos anos 1920 de lá (`CULT_BY`); o mundo fica com os personagens dos contos antigos, e o Brasil (região da expansão) tem os seus. A rolagem grande só aparece quando nada que a mesa está olhando (o envelope da investigação, outra animação) está na tela, esperando até 6 s.
+
+## D113. O teste depende do contexto (2026-11-08)
+
+- **Pedido:** "os testes precisam de bônus ou penalidades de acordo com o contexto, ou então muda o tipo do sucesso".
+- **Decisão:** as duas coisas, como no Call of Cthulhu. Argumento forte (`STRONG_ARG`) rola com dado de bônus; argumento fraco (`WEAK_ARG`) é teste difícil: só passa tirando até a metade do valor, e o sucesso simples conta como falha. Quem está abalado (SAN baixa, D101) rola com dado de penalidade em vez de perder 25% do valor; bônus e penalidade juntos se anulam. A rolagem grande diz qual é o teste e quanto precisa tirar.
+
+## D114. A ficha toda no jogo (2026-11-08)
+
+- **Pedido:** "tudo que puder usar da ficha, use"; ao matar, Armas de fogo ou Briga, com Destreza ou Constituição no corpo a corpo.
+- **Decisão:** a característica por trás da perícia, quando alta (`SUPPORT_AT`), dá dado de bônus (`SUPPORT`: Aparência no Charme, Inteligência na Psicologia, Educação na Persuasão…). Sorte, uma vez por partida, compra uma falha de até `LUCK_MAX` (nunca um desastre). Quem conta o que investigou rola Encontrar (passou, a Persuasão ganha bônus); quem ouve rola Escutar (passou, a Psicologia ganha bônus). Na sua vez de votar num chanceler na zona de perigo, o seu Ocultismo pode sentir o Sumo Sacerdote (só uma pista, só sua, e só se passar). Quem elimina rola a mais alta entre Armas de fogo e Briga (`attack`); no corpo a corpo, Destreza e Constituição contra as do alvo dão bônus ou penalidade. O tiro nunca erra: falhar deixa a morte feia, e a mesa perde mais sanidade (`SAN_LOSS.ugly`).
+
+## D115. Relíquias, páginas do Necronomicon, itens, armadilhas e loucura (2026-11-08)
+
+- **Pedido:** as leis liberais são pedaços da Lança de Longinus (relíquias) e as cultistas, páginas do Necronomicon; cada um tem um item, e dá para roubar; armadilhas sorteadas em momentos-chave, com testes próprios; na loucura, o voto muda. As rolagens em destaque são só as que envolvem a pessoa; as outras, discretas.
+- **Decisão:** o tema chama as leis de relíquia e página do Necronomicon, com símbolos próprios (ponta de lança rachada e livro aberto). Cada investigador recebe um item ao chegar a ficha (`dealItems`, com mais chance para o que a ficha faz bem): revólver, faca, bastão, soco-inglês, lanterna, maleta médica, livro proibido (custa sanidade a cada uso), chave do carro, corda ou amuleto. O item dá dado de bônus nas perícias dele e decide a arma ao eliminar (bastão e soco-inglês sempre deixam a morte feia). Roubar: uma vez por partida, Prestidigitação contra o Encontrar do outro; dando certo, os itens trocam de mão; dando errado, a mesa vê. As IAs tentam de vez em quando, atrás de uma arma. Armadilhas (`TRAPS`) saem a cada caos, na 2ª e na 4ª página do Necronomicon e na 3ª relíquia, sem repetir: perseguição (Dirigir), porão alagado (Nadar ou Escalar), desabamento (Esquiva ou Escalar), visão do além (Poder), sussurros (Biblioteca ou Ocultismo), cão de Tindalos (Furtividade) e ferido no ritual (o melhor em Primeiros socorros ou Medicina cuida pela mesa). Quem falha perde sanidade. Sanidade zero é loucura: o voto sai no escuro (`mad`). Nada disso muda quem morre, que lei passa ou quem vence. Só as suas rolagens aparecem grandes; as das IAs viram uma linha no diário.
+
+## D116. Escolher o estereótipo do seu investigador (2026-11-08)
+
+- **Pedido:** escolher o estereótipo com que se joga a partida.
+- **Decisão:** no tema Secret Cultist, a tela inicial tem "Seu investigador": sorteado (padrão) ou um dos 20 estereótipos da API (`STEREOTYPES`, com o nome em português e no que cada um é bom no jogo), guardado no aparelho (`S.stereo`). Com uma pessoa só na mesa, só a ficha dela é pedida com o estereótipo; as IAs continuam sorteadas. A ficha escolhida não entra no estoque do aparelho (não é uma ficha sorteada). Com a API fora, a ficha sai do estoque, sem o estereótipo.
+
+## D117. Nomes de estadistas, rolagem legível e carta que cabe (2026-11-08)
+
+- **Pedido:** "Necronomicon" vazava da carta; as rolagens passavam rápido demais para entender; os nomes inventados confundiam, melhor nomes de políticos como no modo normal.
+- **Decisão:** a carta diz só "Página" (e "Relíquia"); o tabuleiro continua "Páginas do Necronomicon". As rolagens grandes entram uma de cada vez, em fila, cada uma por 5 s com o dado girando por mais tempo, e um toque passa para a próxima. Os nomes das IAs no Secret Cultist voltam a ser figuras conhecidas de cada continente, os dois lados misturados, mas sem ditadores (esses ficam na expansão); os do Brasil, que é região da expansão, vêm com a senha.
+
+## D118. A história: cenários, deuses e o narrador (2026-11-08)
+
+- **Pedido:** um storytelling tipo RPG; vários cenários por continente, variando as divindades e mitos que cada Sumo Sacerdote cultua, cada um com um poder; narração enxuta (começo, mudanças de ato e fim); a crônica fica para depois.
+- **Decisão:** cada partida do Secret Cultist sorteia um cenário do continente (`SCENES`, 3 ou 4 por continente; o mundo sorteia entre todos), com lugar, ano e motivo, e o deus que o culto serve (`GODS`). O dom do deus mexe só em rolagens e sanidade: Cthulhu (sonhos: quem não é do culto perde sanidade a cada ato), Nyarlathotep (Persuasão do Sumo Sacerdote com bônus), Hastur (investigadores ficam abalados com sanidade mais alta), Shub-Niggurath (armadilhas custam mais), Yog-Sothoth (Psicologia do Sumo Sacerdote com bônus), Dagon (o Sumo Sacerdote não cai em armadilha). O narrador fala no começo, no Ato II (3ª página, a zona de perigo), no Ato III (5ª, o veto) e no fim, com o epílogo de quem venceu; aparece no alto da tela, sem segurar o jogo, e fica no registro.
+
+## D119. Estados passageiros e armadilhas de cada deus (2026-11-08)
+
+- **Pedido:** estados temporários e armadilhas variadas pelo cenário.
+- **Decisão:** algumas armadilhas deixam quem falha ferido ou envenenado (`statesOf`): rola com dado de penalidade, e o envenenado perde 1 de sanidade por rodada. A cada votação, o melhor da mesa em Medicina ou Primeiros socorros cuida de alguém (`tend`; a maleta médica ajuda). Cada deus tem duas armadilhas próprias (`TRAPS[*].god`), que saem primeiro no cenário dele; entrou também "Veneno no chá" entre as gerais.
+
+## D120. Mais horror: manias, Mitos, documentos, passado, personagens, achados, conquistas e o peso do horror (2026-11-08)
+
+- **Pedido:** "pode fazer todos menos o 4" (todas as ideias de enriquecer, menos o som ambiente).
+- **Decisão:** tudo em rolagens, sanidade e palavras; nada muda quem morre, que lei passa ou quem vence.
+  - Quem enlouquece ganha uma mania (`maniaOf`): paranoia vota sempre Não, fanatismo sempre Sim, catatonia vota no escuro e não fala.
+  - Mitos de Cthulhu (`mythosOf`): cada página do Necronomicon que passa pela mão de alguém ensina `MYTHOS_PAGE` e custa 1 de sanidade; o Mitos baixa a sanidade máxima (99 menos ele) e, a partir de `MYTHOS_SEES`, dá bônus em Ocultismo.
+  - Um documento em cada ato (`DOCS`: recorte, carta, telegrama), no tom do deus.
+  - O passado de cada investigador (`PASTS`), pela melhor perícia: o primeiro teste dela tem dado de bônus.
+  - No Ato II chega um personagem do cenário (`NPCS`): cuida dos feridos e devolve `NPC_SAN` de sanidade a todos.
+  - Um sucesso extremo numa armadilha pode dar um achado raro (`RARES`): Sinal Ancião (anula a próxima perda numa armadilha), pó de Ibn-Ghazi (bônus em Encontrar e Escutar), faca de prata (bônus em Briga e Poder).
+  - Conquistas novas: Selou o deus, Mente sã, Mão leve, Achado raro.
+  - Peso do horror (`HORROR`, `S.horror`): Pulp (metade da perda, +30 de mesa), Clássico (o padrão) e Purista (perda 1,5×, +10 de mesa, sem Sorte).
+
+## D121. Campanha (2026-11-08)
+
+- **Pedido:** o modo campanha e o final com consequência.
+- **Decisão:** "Campanha" na tela inicial do Secret Cultist: três capítulos (`CHAPTERS`) no mesmo cenário e com a mesma mesa. A pessoa leva a ficha, a sanidade perdida, o item e o Mitos (`chapterAfter`). Se o culto vence um capítulo, o próximo começa com todos `CULT_WON` de sanidade a menos (`CULT_WON_CTHULHU` com Cthulhu). O narrador abre cada capítulo dizendo como foi o anterior, e o último fecha a campanha com o placar.
+
+## D122. A preparação do Secret Cultist junto do "Jogar agora" (2026-11-08)
+
+- **Pedido:** não achou onde escolher o estereótipo; o botão da campanha ficou solto.
+- **Decisão:** o que prepara uma partida do Secret Cultist sai do cartão "Tema do jogo" e fica no cartão de jogar, logo acima de "Jogar agora": o modo (partida avulsa ou campanha de 3 capítulos, em abas), o seu investigador (sorteado ou um estereótipo) e o peso do horror. Com a campanha marcada, o botão diz "Começar a campanha".
+
+## D123. Mais seis deuses (2026-11-08)
+
+Pedido: "Poderia ter mais deuses". Entram Azathoth, Tsathoggua, Ithaqua, Cthugha, Mãe Hydra e Glaaki, cada um com dois cenários (12 novos, dois por continente), dois documentos, um personagem do Ato II e duas armadilhas próprias. Os dons mexem só em dado e sanidade, nunca na regra: Azathoth (90+ é desastre para quem não é do culto), Tsathoggua (o Sumo Sacerdote não fica ferido nem envenenado), Ithaqua (falha em armadilha também fere), Cthugha (eliminação feia custa o dobro de sanidade), Hydra (Intimidação do Sumo Sacerdote com bônus) e Glaaki (Charme do Sumo Sacerdote com bônus).
+
+## D124. Deuses antigos da Bíblia e da Babilônia (2026-11-08)
+
+Pedido: "Faltou baal, mamon, moloque" e "Deuses babilônicos tbm". Entram Baal, Mamon e Moloque, e da Babilônia Tiamat, Pazuzu e Ereshkigal, com cenas (Wall Street, a City, Malta, Babilônia, Nínive, Ur, Baalbek, Cartago, Cairo, Mar de Coral, Coober Pedy, a Bolsa do Rio e um engenho no Recôncavo), documentos, personagem e duas armadilhas cada. Dons, só em dado e sanidade: Baal (Lábia do Sumo Sacerdote com bônus), Mamon (Persuasão do culto com bônus), Moloque (cada página custa 2 de sanidade a mais), Tiamat (01 a 05 do culto é crítico), Pazuzu (falha em armadilha envenena) e Ereshkigal (cada eliminação custa 4 a mais).
+
+## D125. Marduque, Asmodeu e Astarote (2026-11-08)
+
+Pedido: "E marduque? Azmodeus? Astaroth?". Cada um com cenas (Esagila, Alexandria, Paris, Loudun, Salem, o carnaval do Rio), documentos, personagem e duas armadilhas. Dons: dado de bônus para o culto inteiro em Encontrar (Marduque), Charme (Asmodeu) e Ocultismo (Astarote).
+
+## D126. Poderes dos investigadores (2026-11-08)
+
+Pedido: contrabalançar os deuses, com "uma mistura de 2 com 3". Profissão: o investigador rola com dado de bônus sempre na melhor perícia da ficha (o cultista só no primeiro teste), e quem é médico ou enfermeiro não rola pior ferido ou envenenado. Fé ou razão, uma vez por partida: rezar devolve 5 de sanidade a todos os investigadores; estudar dá dado de bônus em Ocultismo e Poder até o fim. A pessoa escolhe na própria ficha; a IA escolhe a partir do Ato II (reza quando está abalada). Equilíbrio ainda a medir com o `ai_bench`.
+
+## D127. Rolagem em destaque só quando muda algo para a pessoa (2026-11-08)
+
+Pedido: "N era p ter rolagem animada se n me envolve". A Psicologia e o Ocultismo automáticos da pessoa só aparecem grandes quando ela leu ou sentiu algo; quando falham, ficam só no diário. O título da rolagem mostrava a marcação HTML do nome; agora usa o nome puro.
+
+## D128. Votos em latim e dados dos outros sem girar (2026-11-08)
+
+Pedido: "A rolagem animada só pode existir se me envolver senão trava o jogo" e "o idioma das cartas de cthulhu pode ser sempre em latim ou grego". Só os dados da pessoa giram; os das IAs no debate já aparecem caídos. O Secret Cultist vota Ita!/Non! em latim, em qualquer continente (`CULT_VOTES`); os temas da expansão seguem com a língua do continente (D29).
+
+## D129. A história ocupa a tela toda (2026-11-08)
+
+Pedido: "A história inicial fica flutuando na tela devia pegar a tela toda com um botão de seguir embaixo". O narrador agora abre uma página sobre a tela inteira, com as falas e os documentos juntos, e o botão "Seguir" embaixo. O jogo e as IAs esperam até o toque.
+
+## D130. A rolagem conta o que está acontecendo (2026-11-08)
+
+Pedido: "eu não entendo o que está acontecendo, principalmente quando a rolagem ocorre... É muito rápido". Cada rolagem da pessoa vira uma cena: por que se rola (o que o outro disse, a armadilha, o debate), o que precisa tirar e por quê (bônus, penalidade, abalado, ficha + mesa, em palavras), o dado girando mais devagar, o resultado e o que ele quer dizer. Fica na tela até "Seguir", uma por vez, todas as da jogada (antes só a última), e as IAs esperam.
+
+## D131. Papel sempre à vista e faixa de presidente dourada (2026-11-08)
+
+Pedido: "a faixa vermelha de presidente confunde com quem é cultista" e "preciso ter o meu papel sempre claro". A faixa do presidente na mesa passa a ser dourada (o vermelho é do culto). Jogando sozinho, o alto da tela mostra "Você: <papel>" desde que a pessoa viu o próprio papel.
+
+## D132. Rolagem grande só do que a pessoa fez ou sofreu (2026-11-08)
+
+Pedido: "Tem que aparecer na tela destacada as rolagens que me envolvem... deixa o jogo muito travado". Aparece grande, com "Seguir", só o que a pessoa fez ou o que fizeram com ela: o argumento dela no debate, virar um voto, roubar ou ser roubada, eliminar. As rolagens automáticas (armadilha, ler quem fala, sentir algo) viram um aviso curto que não segura o jogo, e ficam no diário.
+
+## D133. Ocultismo e Psicologia com limite (2026-11-08)
+
+Pedido: "O cara não pode ficar rolando o ocultismo como quem bebe água... toda eleição... tava tendo rolagem de ocultismo, e muitos estavam passando". Causa: o Ocultismo da pessoa rolava em toda votação com 3 páginas ou mais, num teste comum com +20 da mesa (e bônus de Mitos, de estudo e da profissão), e dizia se o chanceler era o Sumo Sacerdote, que é a vitória do culto. Agora: no máximo `SENSE_MAX` (2) vezes por partida, como teste difícil (metade do valor), e só para quem é investigador (o culto já sabe). A Psicologia que lê quem fala vale no máximo `READ_MAX` (3) leituras certas por lugar, para a pessoa e para cada IA.
+
+## D134. A crônica (2026-11-08)
+
+Pedido: "o storytelling precisa melhorar bastante"; a pessoa escolheu: a história não liga com o jogo, os textos são fracos e o investigador não tem história, e quer "narração curta a cada lance". Cada lance que a mesa viu (lei, rejeição, caos, veto, investigação, eleição especial, eliminação) ganha uma ou duas frases do narrador, com o presságio e o sussurro do deus da cena, numa faixa sob a mesa, sem parar o jogo. Nunca conta papel, mão ou o que a investigação mostrou. Quem joga sozinho ganha um motivo para estar ali (8 enredos), que vira no Ato II e tem um final para cada lado. Uma API só de lore não entra agora: o texto é fixo, mora no código e funciona sem rede.
+
+## D135. Lore fora do código: plano registrado (2026-11-08)
+
+Conversa sobre tirar a lore do código. Decidido por agora: a lore continua no código (funciona sem rede). Para depois, a ideia preferida é um microsserviço Python com Supabase e pgvector, ingestão por endpoint, e um modelo pequeno local (Ollama) para escrever texto novo a partir dos trechos achados; no jogo, sempre opcional, com disjuntor e a crônica do código como reserva. Detalhes, fontes que podem e que não podem ser ingeridas, e os próximos passos em [docs/lore-api.md](lore-api.md).
+
+## D136. Lore por etiquetas, sem modelo (2026-11-09)
+
+Pedido: rodar o Ollama no Vercel não dá (função sem servidor, sem GPU, limite de tamanho), e o Lucas achou que não vale manter um servidor ligado. Escolhida a opção 1: API Python com busca por etiquetas e pela busca de texto do Postgres, frases montadas por moldes, sem modelo e sem vetor no começo (a coluna fica pronta). Detalhes em [docs/lore-api.md](lore-api.md).
+## D137. A crônica pergunta à API de lore (2026-11-09)
+
+Pedido: "integre isso com o secret cultist". Depois de cada lance com narração (lei, rejeição, caos, veto, investigação, eleição especial, eliminação), o app pede ao lore-enhancer a frase daquele momento, com o deus da cena e os nomes que a mesa viu. Se a resposta chega em até 4 s e nada mais aconteceu, ela substitui a linha da crônica do código; senão fica a do código. Disjuntor próprio, como o das fichas. A amostra real gravada é a primeira resposta da API em produção, colada pelo Lucas.

@@ -25,3 +25,11 @@ export function normSheet(j: Json): Sheet | null {
   const native = j.nativeLanguage && typeof j.nativeLanguage.detail === 'string' ? j.nativeLanguage.detail : '';
   return ['Persuade', 'Fast Talk', 'Charm', 'Psychology'].every(k => k in vals) ? { vals, native } : null;
 }
+
+/** D137: a line of the lore API (lore-enhancer): the text, or null when the answer is not one. */
+export function normLore(j: Json): { text: string; sources: string[] } | null {
+  if (!j || typeof j !== 'object' || typeof j.text !== 'string') return null;
+  const text = j.text.trim();
+  if (text.length < 3 || text.length > 600) return null;
+  return { text, sources: Array.isArray(j.sources) ? j.sources.filter((x: Json) => typeof x === 'string') : [] };
+}

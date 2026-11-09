@@ -2,8 +2,8 @@ import { Core } from '../core';
 import type { Ask, Game, Law, Level, NoteDetail, Pack, Region, Role, Theme } from '../core';
 import { $, valOf } from './format';
 import { buzz, later, reactions, sound } from './fx';
-import { loadSheets, warmSheets } from './api';
-import { tutTip, ballot, beat, blurField, bossWin, claimFx, freeze, swayOpen, swayReasonsShow, swayResult, swayClose, debateSheet, confetti, decree, clearFlash, flash, frozenFor, render, stamp, toast, powerEffect } from './render';
+import { askLore, loadSheets, warmSheets } from './api';
+import { tutTip, bigRoll, ballot, beat, blurField, bossWin, claimFx, freeze, swayOpen, swayReasonsShow, swayResult, swayClose, debateSheet, confetti, decree, clearFlash, flash, frozenFor, render, stamp, toast, powerEffect } from './render';
 import { exportGames, keep, shareResult, wipe } from './history';
 import { CLAIM_HOLD, S, dlcOn, packNow, SPEEDS, applyTheme, saveS, setS, ui } from './state';
 import { applyUpdate, checkNow } from './update';
@@ -28,13 +28,14 @@ let sheetsFor = '';
 function fetchSheets(g: Game): void {
   const key = g.players.map(p => p.name).join('|');
   sheetsFor = key;
-  loadSheets(g, rand).then(sh => {
+  loadSheets(g, rand, S.stereo).then(sh => {
     const cur = S.game;
     if (!cur || cur.sheets || cur.players.map(p => p.name).join('|') !== key) return;
     // D100: without sheets (the API down and none kept), Secret Cultist plays on without dice; it never turns into a
     // historical theme
     if (!sh) return;
-    setS({ ...S, game: { ...cur, sheets: sh } }); saveS(); render();
+    const me = cur.players.findIndex(p => !p.ai), carried = cur.campaign?.sheet && me >= 0 ? { [me]: cur.campaign.sheet } : {};   // D121: the person's sheet goes on
+    setS({ ...S, game: Core.dealItems({ ...cur, sheets: { ...sh, ...carried } }, rand) }); saveS(); render();   // D115: and one item each
   }).catch(() => {});
 }
 function play(ended: Game, msg?: string, undo: Game | null = null): void {
@@ -47,12 +48,14 @@ function play(ended: Game, msg?: string, undo: Game | null = null): void {
     const n2 = Core.botStep(ended, rand); if (!n2 || n2 === ended) break; ended = n2;
   }
   // the notebook goes with the game when it ends (D28): scored at the end, and kept in the export
+  ended = Core.chronicle(Core.aiFaith(Core.narrate(Core.tend(Core.springTrap(Core.sense(Core.giveStake(Core.setScene(ended, rand, S.horror as 'pulp' | 'classico' | 'purista' | undefined), rand)))))));   // D134: the chronicle   // D114: the person's Occult; D115: a trap at a key moment; D118: the story
   const next = ended.phase === 'over' && S.game?.phase !== 'over' ? { ...ended, ...(S.notes ? { notes: S.notes } : {}), ...(S.noteDetails ? { noteDetails: S.noteDetails } : {}) } : ended;
   const before = S.game, changed = next !== before;
   // an app player only spoke (a claim, a talk): the phase is the same, so what the person opened, picked or voted stays (D21)
   const spoke = !!before && changed && next.phase === before.phase && beat(next) === beat(before) && next.pres === before.pres && next.chanc === before.chanc;
   setS({ ...S, game: next }); saveS();
   if (next.pack === 'culto' && !next.sheets && next.phase !== 'over' && sheetsFor !== next.players.map(p => p.name).join('|')) fetchSheets(next);   // D94
+  if (changed) { const q = Core.loreAsk(next); if (q) void askLore(q).then(t => { if (t && S.game) { const g2 = Core.retell(S.game, q.at, t); if (g2 !== S.game) { setS({ ...S, game: g2 }); saveS(); render(); } } }); }   // D137: the lore API, when it answers in time
   if (changed && !spoke) { ui.open = ''; ui.pick = null; ui.confirmEnd = false; ui.undo = undo; ui.votes = {}; }
   render();
   if (before && changed) {
@@ -104,6 +107,7 @@ export function tick(): void {
   clearTimeout(botTimer);
   const g = S.game, t = g ? Core.botTurn(g) : null;
   if (!g || !t || (ui.debate !== null && ui.debate !== undefined)) return;   // the game waits while a debate is on (D57)
+  if (document.querySelector('.narrator, .big-roll')) { botTimer = setTimeout(tick, 300); return; }   // D129: the app players wait for the reader of the story and of a roll (D130)
   if (frozenFor() > 0) { botTimer = setTimeout(tick, frozenFor() + 50); return; }   // and while an animation plays (D63)
   if (tutTip(g)) return;   // D89: and while a tutorial tip waits to be read
   botTimer = setTimeout(() => {
@@ -250,12 +254,12 @@ function tutorial(): void {
   const next = { ...S }; delete next.notes; delete next.noteDetails; setS(next); saveS();
   ui.msg = ''; ui.help = false; ui.diary = false; ui.endTab = 'res'; play({ ...r.game, tut: [] }, 'Tutorial: siga as dicas.');
 }
-function quickGame(prev?: Game | null, only?: Pack): void {
+function quickGame(prev?: Game | null, only?: Pack, campaign?: NonNullable<Game['campaign']>): void {
   const me = S.names.find((_, i) => !S.ai?.[i]) || 'Você';
   const regions = Core.REGIONS.filter(r => r !== 'brasil' || S.dlc), region = Core.freshPick(regions, prev?.region || (prev ? 'mundo' : undefined), rand);
   const lastRole = prev ? prev.players.find(p => !p.ai)?.role : undefined;
   const pack = only || (dlcOn() ? Core.PACKS[Math.floor(rand() * Core.PACKS.length)] : 'culto');   // D98; D108: or only Secret Cultist
-  let names = [me];
+  let names = campaign?.names?.length ? [...campaign.names] : [me];   // D121: a campaign keeps its table
   while (names.length < 7) names = [...names, Core.botName(names, rand, pack, region)];
   // the table set up by hand stays as it was: the quick game is built apart from it
   clearFlash();
@@ -264,7 +268,7 @@ function quickGame(prev?: Game | null, only?: Pack): void {
   for (let k = 0; lastRole && r.ok && r.game.players[0].role === lastRole && k < 4 && rand() >= Core.REPEAT_KEEP; k++) r = Core.newGame(names, rand, { ai: names.map((_, i) => i > 0), level: 'dificil', pack, region });
   if (!r.ok) return;
   const next = { ...S }; delete next.notes; delete next.noteDetails; delete next.assist; setS(next); saveS();
-  ui.msg = ''; ui.help = false; ui.diary = false; ui.endTab = 'res'; play(r.game, 'Partida rápida. Veja seu papel em segredo.');
+  ui.msg = ''; ui.help = false; ui.diary = false; ui.endTab = 'res'; play(campaign ? { ...r.game, campaign, ...(prev?.region ? { region: prev.region } : {}) } : r.game, campaign ? `Capítulo ${campaign.ch} de ${Core.CHAPTERS}. Veja seu papel em segredo.` : 'Partida rápida. Veja seu papel em segredo.');
 }
 function start(): void {
   if (S.names.length && flags().every(Boolean)) { ui.msg = 'Precisa de pelo menos uma pessoa na mesa.'; render(); return; }
@@ -344,13 +348,20 @@ export function initEvents(): void {
     else if (a === 'speed') { const next = { ...S }; if (d.v === 'lenta' || d.v === 'rapida') next.speed = d.v; else delete next.speed; setS(next); saveS(); render(); }
     else if (a === 'assist') { const next = { ...S }; if (d.v === 'on') next.assist = true; else delete next.assist; setS(next); saveS(); render(); }
     else if (a === 'start') start();
-    else if (a === 'quickgame') quickGame();
-    else if (a === 'quickcult') quickGame(null, 'culto');   // D108
+    else if (a === 'quickgame') { const cult = !(dlcOn() && ui.quickMode === 'mix'); if (cult && ui.playMode === 'campanha') quickGame(null, 'culto', { ch: 1, scene: '', wins: { L: 0, F: 0 } }); else quickGame(null, cult ? 'culto' : undefined); }   // D108, D110, D122   // D108, D110: the tab picks the theme
+    else if (a === 'quickmode') { ui.quickMode = d.v === 'mix' ? 'mix' : 'culto'; render(); }
     else if (a === 'tutorial') tutorial();
     else if (a === 'tutok' && g && g.tut) { const k = d.v || ''; setS({ ...S, game: { ...g, tut: [...g.tut, k] } }); saveS(); render(); tick(); }   // D89
-    else if (a === 'nextgame') quickGame(S.game);
+    else if (a === 'nextgame') quickGame(S.game, dlcOn() && ui.quickMode === 'mix' ? undefined : 'culto');
     else if (a === 'gallery') { ui.gallery = !ui.gallery; render(); scrollTo(0, 0); }   // every drawing (D25)
     else if (a === 'exportgames') void exportGames();
+    else if (a === 'faith' && S.game) { const me = S.game.players.findIndex(p => !p.ai); if (me >= 0 && Core.canFaith(S.game, me)) { ui.sheet = null; play(Core.faith(S.game, me, d.k === 'reza' ? 'reza' : 'estudo')); } }   // D126
+    else if (a === 'steal' && S.game) { const g = S.game, me = g.players.findIndex(p => !p.ai), i = Number(d.i); if (Core.canSteal(g, me, i)) { ui.sheet = null; play(Core.steal(g, me, i, rand)); } }   // D115
+    else if (a === 'stereo') { setS({ ...S, stereo: d.v && Core.STEREOTYPES[d.v] ? d.v : undefined }); saveS(); ui.stereoOpen = false; render(); }   // D116
+    else if (a === 'horror') { setS({ ...S, horror: d.v === 'pulp' || d.v === 'purista' ? d.v : undefined }); saveS(); render(); }   // D120
+    else if (a === 'playmode') { ui.playMode = d.v === 'campanha' ? 'campanha' : 'avulsa'; render(); }   // D122
+    else if (a === 'nextch' && g) { const c = Core.chapterAfter(g); if (c) quickGame(g, 'culto', c); }
+    else if (a === 'stereoopen') { ui.stereoOpen = !ui.stereoOpen; render(); }
     else if (a === 'pastall') { ui.pastAll = true; render(); }   // D104
     else if (a === 'share' && g) { const w = Core.words(g.pack, g.region); void shareResult(g, g.players.findIndex(p => !p.ai), { boss: w.boss, f: w.f, theme: w.theme }); }
     else if (a === 'wipe') { if (ui.confirmWipe) { ui.confirmWipe = false; wipe(); } else ui.confirmWipe = true; render(); }
@@ -383,7 +394,7 @@ export function initEvents(): void {
     else if (a === 'tpick') { const me = g.players.findIndex(p => !p.ai); ui.talk = false; play(Core.askTable(g, me, 'pick', me), 'Pedido feito a quem presidir.'); }
     else if (a === 'swayskip' && swaying) swayEnd();
     else if (a === 'swayto' && swaying && !swaying.done) { const s = swaying; s.to = i; const me = s.g.players.findIndex(p => !p.ai); swayReasonsShow(s.g, i, Core.swayReasons(s.g, me, i, s.cast)); clearTimeout(s.timer); s.timer = undefined; }   // D93: once a vote is picked the clock stops: the person chooses the reason at ease
-    else if (a === 'swaysay' && swaying && !swaying.done && swaying.to !== null) { const s = swaying, me = s.g.players.findIndex(p => !p.ai), r = Core.sway(s.g, me, s.to as number, s.cast, d.v || '', rand); s.cast = r.cast; s.said = r.said; s.done = true; swayResult(s.g, s.to as number, r.flipped, r.roll); clearTimeout(s.timer); s.timer = setTimeout(swayEnd, 1600); }
+    else if (a === 'swaysay' && swaying && !swaying.done && swaying.to !== null) { const s = swaying, me = s.g.players.findIndex(p => !p.ai), r = Core.sway(s.g, me, s.to as number, s.cast, d.v || '', rand); s.cast = r.cast; s.said = r.said; s.done = true; swayResult(s.g, s.to as number, r.flipped, r.roll); if (r.roll) bigRoll(r.roll, `Virar o voto de ${s.g.players[s.to as number].name}`, r.flipped ? 'Mudou o voto.' : 'Manteve o voto.');   /* D109 */ clearTimeout(s.timer); s.timer = setTimeout(swayEnd, r.roll ? 2800 : 1600); }
     else if (a === 'tkill') { const me = g.players.findIndex(p => !p.ai); play(Core.askTable(g, me, 'kill', i), `Você sugeriu eliminar ${g.players[i].name}.`); }
     else if (a === 'tavoid' || a === 'tinv') { const me = g.players.findIndex(p => !p.ai); ui.talk = false; play(Core.askTable(g, me, a === 'tavoid' ? 'avoid' : 'inv', i), 'Pedido feito à mesa.'); }
     else if (a === 'twhy') { const me = g.players.findIndex(p => !p.ai); ui.talk = false; play(Core.askWhy(g, me, i)); ui.diary = true; render(); }

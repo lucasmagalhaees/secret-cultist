@@ -75,4 +75,4 @@ Para rodar: `npm install` e `npm run dev`. Para testar tudo: `scripts/verify.sh`
 
 ## Créditos
 
-Adaptação de [Secret Hitler](https://www.secrethitler.com), de Goat, Wolf, & Cabbage, licenciado em [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Este app herda a licença: uso não comercial, com crédito, e adaptações sob a mesma licença. Os personagens dos nomes vêm dos contos de horror antigos.
+Adaptação de [Secret Hitler](https://www.secrethitler.com), de Goat, Wolf, & Cabbage, licenciado em [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/). Este app herda a licença: uso não comercial, com crédito, e adaptações sob a mesma licença.

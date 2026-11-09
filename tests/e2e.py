@@ -23,6 +23,7 @@ with sync_playwright() as p:
     # A short run with motion on, at the end, checks the animations themselves.
     ctx = b.new_context(viewport=dict(width=393, height=852), device_scale_factor=2, color_scheme=THEME, locale='pt-BR', timezone_id='America/Sao_Paulo', has_touch=True, is_mobile=True, reduced_motion='reduce')
     ctx.route('**/*', lambda r: r.abort() if r.request.url.startswith('http') else r.continue_())
+    ctx.add_init_script("new MutationObserver(() => { if (!window.__KEEP_STORY) document.getElementById('storyok')?.click(); if (!window.__KEEP_ROLL) document.getElementById('rollok')?.click(); }).observe(document, { childList: true, subtree: true })")   # D129, D130: the story and the rolls are closed at once, except where they are tested
     ctx.add_init_script('window.__SEED = 7')   # D68: the same game every run, here and in CI
     ctx.add_init_script('window.__DLC = true')   # D98: these tests play the historical themes too
     pg = ctx.new_page(); errs = []
@@ -41,7 +42,7 @@ with sync_playwright() as p:
     pg.click = _safe_click
     pg.on('pageerror', lambda e: errs.append(str(e)))
     # D95: the sheets API is unreachable here (no network): its failed calls are the breaker's business, not a script error
-    pg.on('console', lambda m: errs.append(m.text) if m.type == 'error' and 'cthulhu-char-golang' not in (m.location or {}).get('url', '') else None)
+    pg.on('console', lambda m: errs.append(m.text) if m.type == 'error' and not any(h in (m.location or {}).get('url', '') for h in ('cthulhu-char-golang', 'lore-enhancer')) else None)
     cov.start(pg)
     pg.goto((ROOT / 'dist' / 'index.html').as_uri()); pg.wait_for_function('window.__APP && window.__APP.S')
     txt = lambda sel: pg.text_content(sel).replace('\xa0', ' ')      # the words in the page; CSS may show them in capitals
@@ -158,9 +159,9 @@ with sync_playwright() as p:
         hand('p', law); pg.click('[data-act=pdiscard]'); assert G()['phase'] == 'chancellor'
         g0 = G(); hand('c', law); pg.click('[data-act=cdiscard]')
         assert pg.locator('#board .slot.new').count() == (0 if G()['phase'] == 'over' else 1), 'the new law stamps onto the board'
-        made = 'liberal' if G()['laws']['L'] > g0['laws']['L'] else 'cultista'
+        made = 'relíquia' if G()['laws']['L'] > g0['laws']['L'] else 'página do Necronomicon'   # D115: the laws of Secret Cultist
         who = f"{g0['players'][g0['pres']]['name']} e {g0['players'][g0['chanc']]['name']}"
-        assert pg.locator('#decree:not([hidden])').count() == 1 and who in txt('#decree') and f'lei {made}' in txt('#decree'), ('who approved the law, over the screen', txt('#decree'))
+        assert pg.locator('#decree:not([hidden])').count() == 1 and who in txt('#decree') and made.lower() in txt('#decree').lower(), ('who approved the law, over the screen', txt('#decree'))
         if G()['phase'] != 'over': assert not over_phase('#decree .decree-card'), 'the law that passed shows over the strip at the top, not over the phase'
 
     # three governments rejected: the top law goes in by itself
@@ -176,10 +177,10 @@ with sync_playwright() as p:
     nominate(5); votes(False)
     stack('LFFLFFLL')
     nominate(6); votes(False)
-    g = G(); assert g['laws'] == {'L': 1, 'F': 0} and g['tracker'] == 0 and g['pres'] == 6 and 'Lei do Sinal aprovada' in txt('#toast'), g['log'][-3:]
+    g = G(); assert g['laws'] == {'L': 1, 'F': 0} and g['tracker'] == 0 and g['pres'] == 6 and 'Relíquia aprovada' in txt('#toast'), g['log'][-3:]
     # a government: 3 laws, 2, one enacted
     stack('FFLFFLFFL'); govern(0, 'F')
-    assert G()['laws']['F'] == 1 and G()['pres'] == 0 and 'Lei cultista aprovada' in txt('#toast')
+    assert G()['laws']['F'] == 1 and G()['pres'] == 0 and 'Página do Necronomicon aprovada' in txt('#toast')
     # term limits: the last government cannot come back as chancellor
     assert pg.locator('#phase [data-act=nominate][data-i="0"]').count() == 0 and pg.locator('#phase [data-act=nominate][data-i="6"]').count() == 0 and 'último governo' in txt('#phase')
     assert overflow() == 0; shot(f's3-mesa-de-jogo-{THEME}.png')
@@ -292,7 +293,7 @@ with sync_playwright() as p:
     pg.evaluate(f'localStorage.setItem("{KEY}", JSON.stringify(window.__APP.S))'); cov.reload(pg); wait()
     stack('FFLFFL'); govern(4, 'F'); assert G()['phase'] == 'peek'
     pg.click('[data-act=open]'); top = G()['deck'][:3]
-    assert [('L' if 'SINAL' in t.upper() else 'F') for t in pg.locator('#peek .law').all_inner_texts()] == top
+    assert [('L' if 'RELÍQUIA' in t.upper() else 'F') for t in pg.locator('#peek .law').all_inner_texts()] == top
     pg.click('[data-act=endpower]'); assert G()['pres'] == 4
 
     # ---------- against the app (D10): one person and the app's players ----------
@@ -358,7 +359,7 @@ with sync_playwright() as p:
     pg.evaluate("(() => { const A = window.__APP, g = A.S.game, me = g.players.findIndex(p => !p.ai), p = g.players.findIndex((x, i) => x.ai && x.alive && i !== me); A.ui.think = 600000; g.pres = p; g.chanc = null; g.phase = 'nominate'; g.hist.push({ k: 'gov', pres: p, chanc: me, law: 'L', pc: 1, cc: 0 }); })()")
     pg.click('[data-act=help]'); pg.click('[data-act=help]')
     assert pg.locator('#asknow').count() == 1 and pg.locator('.dock #diarytoggle').count() == 0, 'the request box in the app player\'s turn; the dock keeps two buttons'
-    pg.click('#asknow #askpick'); assert 'me indica' in G()['log'][-1] and pg.locator('#asknow #askpick').count() == 0
+    pg.click('#asknow #askpick'); assert any('me indica' in l for l in G()['log'][-3:]) and pg.locator('#asknow #askpick').count() == 0
     pg.evaluate(f'(() => {{ window.__APP.S.game = JSON.parse({kept67!r}); window.__APP.ui.think = {json.dumps(think67)}; }})()'); pg.click('[data-act=help]'); pg.click('[data-act=help]')
     if not pg.locator('#notes').is_visible(): pg.click('#notestoggle')
     pg.locator(f'#notes [data-act=court][data-i="{first}"]').click(); assert pg.locator('#court').is_visible() and overflow() == 0, 'the court opens'
@@ -440,7 +441,7 @@ with sync_playwright() as p:
                 if sel == '[data-act=myvote]':
                     if 'plea' not in seen and pg.locator('#plea [data-act=pleato]').count():   # D65: ask an app player for its vote
                         seen.add('plea'); pg.locator('#plea [data-act=pleato]').first.click(); pg.locator('#plea [data-act=plea][data-v="1"]').click()
-                        assert 'vota' in G()['log'][-1] and G()['hist'][-1]['k'] == 'plea'
+                        assert any('vota' in l for l in G()['log'][-3:]) and G()['hist'][-1]['k'] == 'plea'
                     seen.add('vote')
                     assert pg.locator('#phase [data-act=myvote]').count() == 2
                     assert min(vote_contrast()) >= 4.5, 'the human vote is readable at the point of interaction'
@@ -453,11 +454,11 @@ with sync_playwright() as p:
     assert g['phase'] == 'over' and g['winner'] in ('L', 'F'), g['log'][-5:]
     laws = sum(1 for e in g['hist'] if e['k'] in ('gov', 'chaos'))
     pg.click('#tab-jogo')
-    assert pg.locator('#ata .timeline li.gov').count() == laws and 'Aye!:' in txt('#ata') and pg.locator('#ata .tally li').count() > 0, 'the minutes: every law, and who voted Ja! for it'
+    assert pg.locator('#ata .timeline li.gov').count() == laws and 'Ita!:' in txt('#ata') and pg.locator('#ata .tally li').count() > 0, 'the minutes: every law, and who voted Ja! for it'
     assert pg.evaluate("getComputedStyle(document.querySelector('#ata .timeline')).listStyleType") == 'none', 'the minutes number the laws once (1ª, 2ª), not twice'
     pg.click('#ata [data-act=assist]'); assert pg.locator('#ata').count() == 0; pg.click('#tab-log'); pg.click('#showata'); pg.click('#tab-jogo'); assert pg.locator('#ata').count() == 1
     assert pg.locator('#summary').count() == 1; pg.click('#tab-res')
-    assert {'vote', 'decree', 'coach', 'seats', 'said'} <= seen and 'Votos. Aye!' in log and ('disse que tirou' in log or 'disse que recebeu' in log), (seen, g['log'][-8:])
+    assert {'vote', 'decree', 'coach', 'seats', 'said'} <= seen and 'Votos. Ita!' in log and ('disse que tirou' in log or 'disse que recebeu' in log), (seen, g['log'][-8:])
     spoken = [e for e in g['hist'] if e['k'] == 'talk' and e['say'] != 'quiet' and g['players'][e['by']].get('ai')]
     assert spoken and any(g['players'][e['by']]['name'] + ': \"' in log for e in spoken), 'NPC statements are recorded with a speaker; wording varies with context'
     assert pg.locator('#thoughts li').count() >= 1 and '→' in txt('#thoughts') and pg.locator('#thoughts svg.spark').count() >= 1, 'at the end, what the app players thought of the person'
@@ -496,7 +497,7 @@ with sync_playwright() as p:
     pg.click('#voter-0 [data-act=myvote][data-v="1"]'); assert pg.locator('[data-act=countvotes]').is_disabled()
     pg.click('#voter-1 [data-act=myvote][data-v="0"]'); pg.click('[data-act=countvotes]')
     v = [e for e in G()['hist'] if e['k'] == 'vote'][-1]
-    assert 0 in v['ja'] and 1 not in v['ja'] and 'Votos. Aye!: Ana' in '\n'.join(G()['log']), v
+    assert 0 in v['ja'] and 1 not in v['ja'] and 'Votos. Ita!: Ana' in '\n'.join(G()['log']), v
     pg.evaluate("(() => { const g = window.__APP.S.game; g.players[0].alive = false; g.players[1].alive = false; window.__APP.ui.think = 0; })()")
     if pg.locator('[data-act=undo]').count(): pg.click('[data-act=undo]')                   # taking the count back and playing it through again
     else: pg.click('[data-act=help]')
@@ -544,6 +545,8 @@ with sync_playwright() as p:
             pg.click(f'[data-act=region][data-v={r}]'); assert pg.locator('#pack .packart svg').count() == 9 and overflow() == 0, (pack, r)
     pg.click('[data-act=region][data-v=mundo]'); assert pg.evaluate('window.__APP.S.region') is None
     RW, CW = pg.evaluate('window.__APP.Core.WORDS.vermelho'), pg.evaluate('window.__APP.Core.WORDS.classico')
+    assert pg.locator('#pack .packs button').last.bounding_box()['width'] > 1.8 * pg.locator('#pack .packs button').first.bounding_box()['width'], 'the odd theme out takes the whole row'
+    assert CW['theme'] in txt('#pack'), 'the other themes keep their own words on the Cthulhu screen'
     assert RW['theme'] in txt('#pack') and RW['fs'] in txt('#rules') and RW['boss'] in txt('#rules') and CW['f'] not in (txt('#table') + txt('#solo') + txt('#rules')).lower()
     for x in list(range(pg.locator('#names li').count())):
         if pg.locator('#names li').nth(0).locator('small.ai').count() == 0: pg.locator('#names li').nth(0).locator('[data-act=rmname]').click()
@@ -575,7 +578,9 @@ with sync_playwright() as p:
     assert f"lei {RW['f']}" in txt('#decree').lower() or 'lei liberal' in txt('#decree').lower()
     assert overflow() == 0; shot(f's7-vermelhos-{THEME}.png')
     pg.click('[data-act=end]'); pg.click('[data-act=end]'); pg.click('[data-act=pack][data-v=classico]'); assert txt('#boss') == pg.evaluate('window.__APP.Core.WORDS.classico.boss'), (txt('#boss'), pg.evaluate('[window.__APP.S.pack, !!window.__APP.S.game]'))
-    pg.click('[data-act=quickcult]'); assert G()['pack'] == 'culto' and len(G()['players']) == 7, 'the quick game of Cthulhu (D108)'
+    assert pg.locator('[data-act=quickmode][data-v=culto][aria-selected=true]').count() == 1, 'the quick game starts on Cthulhu (D110)'
+    pg.click('[data-act=quickmode][data-v=mix]'); assert pg.locator('[data-act=quickmode][data-v=mix][aria-selected=true]').count() == 1
+    pg.click('[data-act=quickmode][data-v=culto]'); pg.click('#quickgame'); assert G()['pack'] == 'culto' and len(G()['players']) == 7, 'the quick game of Cthulhu (D108, D110)'
 
     cov.stop(pg, f'e2e-{THEME}')
     assert not errs, errs
@@ -584,6 +589,7 @@ with sync_playwright() as p:
     mctx = b.new_context(viewport=dict(width=393, height=852), color_scheme=THEME, locale='pt-BR', reduced_motion='no-preference')
     mctx.route('**/*', lambda r: r.abort() if r.request.url.startswith('http') else r.continue_())
     mctx.add_init_script('window.__SEED = 7')
+    mctx.add_init_script("new MutationObserver(() => { if (!window.__KEEP_STORY) document.getElementById('storyok')?.click(); if (!window.__KEEP_ROLL) document.getElementById('rollok')?.click(); }).observe(document, { childList: true, subtree: true })")   # D129, D130: the story and the rolls are closed at once, except where they are tested
     mctx.add_init_script('window.__DLC = true')   # D98: these tests play the historical themes too
     mp = mctx.new_page(); merrs = []
     # D63: while an animation plays, taps wait; a scripted click waits for it to end first

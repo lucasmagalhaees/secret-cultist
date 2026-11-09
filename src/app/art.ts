@@ -469,9 +469,10 @@ export const portrait = (r: Role, pack: Pack = 'culto', region: Region = 'mundo'
 /** The seal of a party on law cards and on the board: a symbol, not a character (the scales and the theme's mark). */
 // D86: drawn, not emoji: the phone's emoji (a glossy skull, a coloured scale) clashed with the poster
 const SEALS: Record<'L' | 'F' | 'C' | 'K' | 'E', string> = {
-  // D96: the cult: an eye in a tentacled circle; the investigators: the elder sign (a star with an eye of flame)
-  K: '<circle cx="32" cy="30" r="15" fill="currentColor" stroke-width="2.5"/><ellipse class="sk" cx="32" cy="30" rx="9" ry="5" fill="var(--halo)" stroke="none"/><circle cx="32" cy="30" r="3" fill="currentColor" stroke="none"/><path d="M20 42c-4 6-10 8-12 14M28 45c-1 6-4 10-6 15M36 45c1 6 4 10 6 15M44 42c4 6 10 8 12 14" stroke-width="4" stroke-linecap="round"/>',
-  E: '<path d="M32 6l6 18h19l-15 11 6 18-16-11-16 11 6-18L7 24h19z" fill="none" stroke-width="3" stroke-linejoin="round"/><path d="M32 18c5 6 5 12 0 18-5-6-5-12 0-18z" fill="currentColor" stroke-width="1.5"/>',
+  // D115: the cult's law is a page of the Necronomicon (an open book with an eye); the investigators' a relic, a piece of
+  // the Spear of Longinus (a cracked spearhead)
+  K: '<path d="M10 14c8-3 15-2 22 3v38c-7-5-14-6-22-3z" fill="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M54 14c-8-3-15-2-22 3v38c7-5 14-6 22-3z" fill="currentColor" stroke-width="2.5" stroke-linejoin="round"/><circle cx="21" cy="32" r="5" stroke="var(--halo)" stroke-width="2"/><circle cx="21" cy="32" r="1.8" fill="var(--halo)" stroke="none"/><path d="M38 24h10M38 30h10M38 36h7M38 42h9" stroke="var(--halo)" stroke-width="1.6"/>',
+  E: '<path d="M32 4 42 26 36 31v19h-8V31l-6-5z" fill="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M38 17l-5 5 4 4-3 3" stroke="var(--halo)" stroke-width="2"/><path d="M23 50h18M26 56h12" stroke-width="3" stroke-linecap="round"/>',
   L: '<path d="M32 9v40M18 15h28" stroke-width="4"/><circle cx="32" cy="10" r="3.5" fill="currentColor" stroke="none"/><path d="M18 15 10 33M18 15l8 18M46 15l-8 18M46 15l8 18" stroke-width="2.2"/><path d="M8 33h20c0 6-4.5 9-10 9s-10-3-10-9zM36 33h20c0 6-4.5 9-10 9s-10-3-10-9z" fill="currentColor" stroke-width="2"/><path d="M22 55h20l-3-6H25z" fill="currentColor" stroke-width="2"/>',
   F: '<path class="sk" fill="currentColor" stroke-width="3" d="M38 8c11 0 19 6 21 16-8-3-14-3-21 0z"/><path d="M22 12h20v40H22z" fill="currentColor" stroke-width="2.5"/><path d="M27 12v40M32 12v40M37 12v40" stroke="var(--halo)" stroke-width="1.8"/><path class="sk" d="M19 20h26M19 44h26" stroke-width="7" stroke-linecap="round"/><path d="M19 20h26M19 44h26" stroke-width="4.5" stroke-linecap="round"/><path d="M29 6h6v6h-6z" fill="currentColor" stroke-width="2"/><path d="M26 52h12l3 7H23z" fill="currentColor" stroke-width="2"/>',
   C: '<path fill="currentColor" stroke-width="1.5" d="M15.4 41A21 21 0 1 1 52.6 41L48.4 35A14 14 0 1 0 24 34z"/><path d="M18 39 9 52" stroke-width="6" stroke-linecap="round"/><path class="sk" d="M51 53 23 25" stroke-width="6.5" stroke-linecap="round"/><path d="M51 53 23 25" stroke-width="5" stroke-linecap="round"/><g transform="rotate(-45 21 23)"><rect class="sk" x="9" y="18" width="24" height="10" fill="currentColor" stroke-width="2.5"/></g>'
@@ -487,7 +488,7 @@ export const seal = (p: Law, pack: Pack = 'culto'): string => `<svg class="glyph
  *  cleric's turban). */
 // D100: who they are comes with the expansion's key (src/core/dlc.ts); Secret Cultist's names are none of them
 export const RUSSIAN = new Set<string>(), ARAB = new Set<string>(), CLERIC = new Set<string>();
-const FEMALE = new Set<string>(['Asenath Waite', 'Keziah Mason', 'Lavinia Whateley']);
+const FEMALE = new Set<string>(['Cleópatra', 'Thatcher', 'Merkel', 'Rainha Vitória', 'Rainha Elizabeth', 'Nefertiti', 'Indira Gandhi']);
 const SKINS: Record<string, string[]> = {
   europa: ['#f3cfb0', '#ecc19c', '#e0ad86'], africa: ['#8a5634', '#6e4126', '#a8693f', '#5a3420'], americas: ['#c68a5d', '#d9a27a', '#a8693f', '#f0c8a6', '#7a4a2a'],
   asia: ['#ecc79f', '#e3b88b', '#c99566'], oceania: ['#e9be98', '#9c6440', '#c68a5d'], brasil: ['#f0c8a6', '#c68a5d', '#8a5634', '#a8693f'], mundo: ['#f0c8a6', '#c68a5d', '#8a5634', '#e3b88b']

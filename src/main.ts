@@ -11,7 +11,7 @@ initEvents();
 const speak = (n: Node): void => {
   if (document.documentElement.dataset.pack !== 'culto') return;
   const w = document.createTreeWalker(n, NodeFilter.SHOW_TEXT);
-  for (let t = n.nodeType === Node.TEXT_NODE ? n : w.nextNode(); t; t = w.nextNode()) { const v = t.nodeValue || '', c = Core.cultSpeak(v); if (c !== v) t.nodeValue = c; }
+  for (let t = n.nodeType === Node.TEXT_NODE ? n : w.nextNode(); t; t = w.nextNode()) { if (t.parentElement?.closest('[data-keep]')) continue; const v = t.nodeValue || '', c = Core.cultSpeak(v); if (c !== v) t.nodeValue = c; }   // [data-keep]: another theme's own words
 };
 new MutationObserver(ms => ms.forEach(m => (m.type === 'characterData' ? speak(m.target) : m.addedNodes.forEach(speak)))).observe(document.body, { childList: true, subtree: true, characterData: true });
 window.__APP = { Core, ui, get S() { return S; } };
