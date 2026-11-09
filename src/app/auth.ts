@@ -5,7 +5,8 @@
 import { Core } from '../core';
 import type { Json } from '../core/types';
 
-export const AUTH_URL = 'https://ydzqrfkcsrochzwegrig.supabase.co';
+/** The game's own Supabase project (the lore-enhancer's; the free plan had no room for another), given at build time like the key. */
+export const AUTH_URL: string = (import.meta.env.VITE_SUPABASE_URL || 'https://supabase.invalid').replace(/\/$/, '');
 /** The publishable key: public by design (Supabase's own name for it), given at build time. */
 export const AUTH_KEY: string = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
 const SESSION = 'secretcultist.session.v1', DLC = 'secretcultist.dlc.v1';

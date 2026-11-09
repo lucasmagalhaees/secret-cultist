@@ -46,14 +46,14 @@ def supabase(r):
 with sync_playwright() as p:
     b = p.chromium.launch()
     ctx = b.new_context(viewport={'width': 393, 'height': 852}, color_scheme='dark')
-    ctx.route('https://ydzqrfkcsrochzwegrig.supabase.co/**', supabase)
+    ctx.route('https://supabase.invalid/**', supabase)   # D139: the build without VITE_SUPABASE_URL
     pg = ctx.new_page(); errs = []
     pg.on('pageerror', lambda e: errs.append(str(e)))
     cov.start(pg)
     pg.goto((ROOT / 'dist/index.html').as_uri()); pg.wait_for_function('window.__APP')
     # D139: the public page plays Secret Leônidas, no login
     assert pg.locator('#login').count() == 0 and pg.locator('[data-act=quickgame]').count() == 1 and pg.text_content('#boss') == 'Leônidas', pg.evaluate("JSON.stringify([!!document.getElementById('login'), document.querySelectorAll('[data-act=quickgame]').length, document.getElementById('boss').textContent, document.documentElement.dataset.pack])")
-    assert pg.locator('#pack [data-act=pack]').count() == 1 and pg.locator('[data-act=quickmode]').count() == 0, 'only Secret Leônidas'
+    assert pg.locator('#pack [data-act=pack]').count() == 1 and pg.locator('[data-act=quickmode]').count() == 0 and pg.locator('#pack [data-act=region]').count() == 0, 'only Secret Leônidas, no continents'
     pg.click('[data-act=quickgame]'); pg.wait_for_function('window.__APP.S.game')
     g = pg.evaluate('window.__APP.S.game'); assert g['pack'] == 'esparta' and not g.get('sheets'), 'pure Leônidas: no sheets, no dice'
     pg.wait_for_timeout(400); pg.screenshot(path=str(ROOT / 'tests/shots/leonidas-mesa.png'))
