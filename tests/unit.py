@@ -5,7 +5,7 @@ ones in Node, against the core alone.
 Usage: python3 tests/unit.py   (needs: pip install -r tests/requirements.txt && playwright install chromium)
 Loads the page with the network blocked and exercises window.__APP.Core directly. Exits non-zero on any failure.
 """
-import pathlib, sys
+import json, os, pathlib, sys
 from playwright.sync_api import sync_playwright
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import cov
@@ -14,7 +14,8 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 
 # the cases live in one file, shared with the Node runner; here they run against window.__APP.Core of the built page
 CASES = (ROOT / 'tests' / 'unit.cases.mjs').read_text(encoding='utf-8').replace('export default function cases(', 'function cases(')
-JS = '() => {\n' + CASES + '\nreturn cases(window.__APP.Core);\n}'
+KEY = os.environ.get('DLC_KEY') or sys.exit('DLC_KEY não definida')
+JS = 'async () => {\n' + CASES + '\nconst C = window.__APP.Core, pre = { lockedRed: C.words(\'vermelho\').boss, wrong: await C.openDlc(\'errada\'), before: C.dlcData() };\npre.dlc = await C.openDlc(' + json.dumps(KEY) + ');\nreturn cases(C, pre);\n}'
 
 with sync_playwright() as p:
     browser = p.chromium.launch()

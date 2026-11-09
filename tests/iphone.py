@@ -1,6 +1,7 @@
 """Mobile regressions for notebook icons, focused text, public diary and natural end highlights.
 Run after npm run build: python3 tests/iphone.py [webkit|chromium]. Default WebKit uses the Safari engine.
 """
+import json, os
 import functools, http.server, pathlib, sys, threading
 from playwright.sync_api import sync_playwright
 import cov
@@ -18,7 +19,7 @@ try:
         context = browser.new_context(viewport={'width': 393, 'height': 852}, device_scale_factor=3, is_mobile=True, has_touch=True, reduced_motion='reduce', color_scheme='dark')
         context.add_init_script("new MutationObserver(() => { if (!window.__KEEP_STORY) document.getElementById('storyok')?.click(); if (!window.__KEEP_ROLL) document.getElementById('rollok')?.click(); }).observe(document, { childList: true, subtree: true })")   # D129, D130: the story and the rolls are closed at once, except where they are tested
         context.add_init_script('window.__SEED = 7')   # D68
-        context.add_init_script('window.__DLC = true')   # D98: these tests play the historical themes too
+        context.add_init_script("window.__AUTH = {email: 'teste@exemplo.com', role: 'driver'}; window.__DLC = " + json.dumps(os.environ['DLC_KEY']))   # D98, D138: logged in as a driver, with the expansion's key
         context.add_init_script("try { localStorage.setItem('secretcultist.sheets.v1', JSON.stringify({ fails: 9, until: 9e15, wait: 3600000 })) } catch (e) {}")   # D95: the sheets API is off here (breaker open): the game as before the sheets
         page = context.new_page(); errors = []
         page.on('pageerror', lambda e: errors.append(str(e)))

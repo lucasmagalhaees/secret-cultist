@@ -955,3 +955,10 @@ Pedido: rodar o Ollama no Vercel não dá (função sem servidor, sem GPU, limit
 ## D137. A crônica pergunta à API de lore (2026-11-09)
 
 Pedido: "integre isso com o secret cultist". Depois de cada lance com narração (lei, rejeição, caos, veto, investigação, eleição especial, eliminação), o app pede ao lore-enhancer a frase daquele momento, com o deus da cena e os nomes que a mesa viu. Se a resposta chega em até 4 s e nada mais aconteceu, ela substitui a linha da crônica do código; senão fica a do código. Disjuntor próprio, como o das fichas. A amostra real gravada é a primeira resposta da API em produção, colada pelo Lucas.
+
+## D138. Login, papéis e a chave da expansão fora do código (2026-11-09)
+
+- **Pedido:** botão de sair, autenticação pelo Supabase, página de login, navbar; o público geral só com o Secret Cultist; papéis: `pedestrian` vê só o Secret Cultist, `driver` vê tudo; um usuário de cada, o pedestrian de demonstração para o portfólio. Escolhas do Lucas: login obrigatório, só login de driver abre a expansão (a senha sai), e a conta de visitante aparece na tela de login.
+- **Decisão:** Supabase Auth do projeto do lore-enhancer (não precisa de banco novo; o plano grátis tem poucos projetos). O papel vem de `app_metadata.role`, que só o dono do projeto muda. A chave da expansão sai do código: o conteúdo é cifrado com AES-GCM, e a chave fica na tabela `game_secrets`, que só um `driver` lê (RLS). O papel na sessão só decide o que a tela mostra; o que segura de verdade é a chave. A XOR antiga com a chave no código saiu (com texto conhecido, ela se quebrava sem a chave).
+- **Ainda à vista:** a chave antiga e o conteúdo antigo continuam no histórico do repositório público (commit `f217b23`). Apagar isso pede reescrever o histórico do `secret-cultist`.
+- **Não verificado:** o login contra o Supabase de verdade (os testes usam respostas inventadas no formato da documentação do Supabase Auth).

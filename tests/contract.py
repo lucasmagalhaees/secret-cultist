@@ -13,6 +13,7 @@ FIX = ROOT / 'tests' / 'fixtures' / 'source'
 # one entry per recorded file: the reader it goes through, and what must be true of what comes out (a JS expression of `r`)
 EXPECT = {
     'random-char_eastern-europe_2026-11-03.json': ('normSheet', "r && r.native === 'Russian' && r.vals['Persuade'] === 10 && r.vals['Fast Talk'] === 5 && r.vals['Charm'] === 15 && r.vals['Psychology'] === 10 && r.vals['Luck'] === 65"),
+    'auth_token_inventado.json': ('normSession', "r && r.role === 'driver' && r.email === 'motorista@exemplo.com' && r.exp === 1893456000000"),
     'lore_abertura_hastur_2026-11-09.json': ('normLore', "r && r.text.startsWith('Vocês chegam a um teatro') && r.sources.length === 1"),
     # 'entries_2026-01-01.json': ('normEntries', 'r.length > 0 && r.every(e => e.id && e.name && Number.isFinite(e.value))'),
 }

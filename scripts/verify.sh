@@ -24,6 +24,9 @@ if [ ! -x node_modules/.bin/vite ] || [ ! -x node_modules/.bin/tsc ]; then
 fi
 
 full=1; [ "${1:-}" = "--quick" ] && full=0
+# D138: the expansion's key is not in the repository; the tests need it (the CI has the secret DLC_KEY)
+if [ -z "${DLC_KEY:-}" ] && [ -f .dlc-key ]; then export DLC_KEY="$(cat .dlc-key)"; fi
+[ -n "${DLC_KEY:-}" ] || { echo "verify: falta DLC_KEY (a chave da expansão: secret do CI, ou o arquivo .dlc-key, fora do git)"; exit 1; }
 if [ "$full" -eq 1 ]; then
   rm -rf tests/.coverage
   export APP_COVERAGE=1          # the browser records which code each suite executes
@@ -60,6 +63,7 @@ if [ "$full" -eq 1 ]; then
   run e2e-dark  python3 tests/e2e.py dark
   run iphone    python3 tests/iphone.py chromium
   run social    python3 tests/social.py
+  run auth      python3 tests/auth.py
   run pwa       python3 tests/pwa.py
   run coverage  python3 tests/cov.py --min-functions 95 --min-chars 90
 fi

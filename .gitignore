@@ -21,3 +21,4 @@ dist/
 tests/.coverage/
 tests/.build/
 tests/.build-bench/
+.dlc-key

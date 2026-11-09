@@ -1,7 +1,7 @@
 // The cases of the pure core, in one file. Two runners use them: tests/unit.py, in the browser, against the page that
 // ships (window.__APP.Core), and tests/core.mjs, in Node, against src/core built by itself. Plain JavaScript on purpose:
 // many cases pass data on purpose that the compiler would refuse. A new rule of the core gets its case here first.
-export default function cases(Core) {
+export default function cases(Core, pre) {
   const fails = []; let n = 0;
   const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   const eq = (name, got, want) => { n++; if (!same(got, want)) fails.push(`${name}: got ${JSON.stringify(got)}, want ${JSON.stringify(want)}`); };
@@ -129,9 +129,10 @@ export default function cases(Core) {
   const BN = Core.BOT_NAMES.culto;
   eq('names for the app players: statesmen, at random among the free ones; Sumo Sacerdote is a role, not a name', [BN.length >= Core.MAX_PLAYERS - 1, BN.includes('Sumo Sacerdote'), BN.includes(Core.botName(['Churchill'], Core.seeded(4))), Core.botName(['Churchill'], () => 0), Core.botName(BN)], [true, false, true, 'Roosevelt', `IA ${BN.length + 1}`]);
   // D100: the expansion's data is scrambled until the key; a wrong key opens nothing
-  const lockedRed = Core.words('vermelho').boss;
-  eq('D100: the expansion is locked without the key', [Core.unlockDlc('errada'), Core.dlcData(), lockedRed], [null, null, 'Sumo Sacerdote']);
-  const DLC = Core.unlockDlc(Core.DLC_KEY), RW = DLC.words.vermelho, CW = DLC.words.classico;
+  // D138: the runners open it first (it is asynchronous): pre has what was before and what a wrong key gave
+  eq('D100, D138: the expansion is locked without the key; a wrong key opens nothing', [pre.wrong, pre.before, pre.lockedRed], [null, null, 'Sumo Sacerdote']);
+  const DLC = pre.dlc, RW = DLC.words.vermelho, CW = DLC.words.classico;
+  eq('D138: the login\'s answer and the expansion\'s key, read with care', [Core.normSession({ access_token: 'a', refresh_token: 'b', expires_at: 10, user: { email: 'x@y.z', app_metadata: { role: 'driver' } } }), Core.normSession({ access_token: 'a', refresh_token: 'b', user: { email: 'x@y.z', app_metadata: { role: 'admin' } } }).role, Core.normSession({ access_token: 'a' }), Core.normSession(null), Core.normSecret([{ value: 'k'.repeat(44) }]), Core.normSecret([{ value: 'curta' }]), Core.normSecret({})], [{ token: 'a', refresh: 'b', exp: 10000, email: 'x@y.z', role: 'driver' }, 'pedestrian', null, null, 'k'.repeat(44), null, null]);
   eq('D100: the key unscrambles the themes, names and faces', [!!DLC, RW.boss !== 'Sumo Sacerdote', Object.keys(DLC.looks).length > 20, Core.BOT_NAMES.vermelho === DLC.bot.vermelho], [true, true, true, true]);
   /* the red theme (D12): the same rules, other words */
   eq('themes: the words of each; an unknown theme is Secret Cultist', [Core.PACKS, Core.words().boss, Core.words('vermelho').boss, Core.words('vermelho').f, Core.words('vermelho').ja, Core.words('x').f], [['classico', 'vermelho', 'culto'], 'Sumo Sacerdote', RW.boss, RW.f, RW.ja, 'cultista']);
@@ -661,7 +662,7 @@ export default function cases(Core) {
   /* the names of the app players by continent (D24) */
   const lists = Core.PACKS.flatMap(p => Core.REGIONS.map(r => Core.NAMES_BY[p][r]));
   eq('names by continent: every theme and continent has enough different names for a full table', lists.every(l => new Set(l).size === l.length && l.length >= Core.MAX_PLAYERS - 1), true);
-  eq('Brazil expansion (D27): its own names, enough for a full table, kept unlocked when saved; nonsense dropped', [Core.REGIONS.includes('brasil'), new Set(Core.NAMES_BY.classico.brasil).size >= 9, new Set(Core.NAMES_BY.vermelho.brasil).size >= 9, Core.readState({ dlc: true }).dlc, 'dlc' in Core.readState({ dlc: 'x' }), Core.readState({ region: 'brasil' }).region, Core.DLC_KEY], [true, true, true, true, false, 'brasil', 'unlockresenha']);
+  eq('Brazil expansion (D27): its own names, enough for a full table, kept unlocked when saved; nonsense dropped', [Core.REGIONS.includes('brasil'), new Set(Core.NAMES_BY.classico.brasil).size >= 9, new Set(Core.NAMES_BY.vermelho.brasil).size >= 9, Core.readState({ dlc: true }).dlc, 'dlc' in Core.readState({ dlc: 'x' }), Core.readState({ region: 'brasil' }).region, 'DLC_KEY' in Core], [true, true, true, true, false, 'brasil', false]);
   eq('names by continent: the Brazil names only in the expansion\'s Brazil list', [lists.filter(l => l !== Core.NAMES_BY.vermelho.brasil && l !== Core.NAMES_BY.classico.brasil).some(l => Core.NAMES_BY.vermelho.brasil.filter(x => !Core.NAMES_BY.vermelho.americas.includes(x)).some(x => l.includes(x)) && l !== Core.NAMES_BY.culto.brasil)], [false]);
   const nm = Array.from({ length: 9 }).reduce((acc) => [...acc, Core.botName(acc, Core.seeded(acc.length + 1), 'vermelho', 'americas')], ['Lu']);
   eq('names by continent: a table filled from one continent takes names from its list only, never twice', [nm.slice(1).every(x => Core.NAMES_BY.vermelho.americas.includes(x)), new Set(nm).size], [true, 10]);

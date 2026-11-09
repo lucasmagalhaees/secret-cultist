@@ -48,7 +48,6 @@ export const BOT_NAMES: Record<Pack, string[]> = { classico: CULT_NAMES, vermelh
  *  the two sides of the theme mixed, well-known names only. The name says nothing of the role, which is dealt. */
 export const REGIONS: Region[] = ['mundo', 'americas', 'europa', 'asia', 'africa', 'oceania', 'brasil'];
 /** The password that unlocks the Brazil expansion (D27). Written in the page on purpose: a joke among friends, not a lock. */
-export const DLC_KEY = 'unlockresenha';
 export const REGION_NAMES: Record<Region, string> = { mundo: 'Mundo', americas: 'Américas', europa: 'Europa', asia: 'Ásia', africa: 'África', oceania: 'Oceania', brasil: 'Brasil' };
 /* D112, D117: in Secret Cultist the app's players are named after well-known statesmen of each continent, the two sides
    mixed (no dictators: those stay in the expansion); the name says nothing of the role. Brazil is the expansion's. */

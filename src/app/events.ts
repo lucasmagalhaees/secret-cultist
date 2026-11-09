@@ -6,6 +6,7 @@ import { askLore, loadSheets, warmSheets } from './api';
 import { tutTip, bigRoll, ballot, beat, blurField, bossWin, claimFx, freeze, swayOpen, swayReasonsShow, swayResult, swayClose, debateSheet, confetti, decree, clearFlash, flash, frozenFor, render, stamp, toast, powerEffect } from './render';
 import { exportGames, keep, shareResult, wipe } from './history';
 import { CLAIM_HOLD, S, dlcOn, packNow, SPEEDS, applyTheme, saveS, setS, ui } from './state';
+import { DEMO, login, logout, openKept } from './auth';
 import { applyUpdate, checkNow } from './update';
 
 /* ================= events =================
@@ -256,7 +257,7 @@ function tutorial(): void {
 }
 function quickGame(prev?: Game | null, only?: Pack, campaign?: NonNullable<Game['campaign']>): void {
   const me = S.names.find((_, i) => !S.ai?.[i]) || 'Você';
-  const regions = Core.REGIONS.filter(r => r !== 'brasil' || S.dlc), region = Core.freshPick(regions, prev?.region || (prev ? 'mundo' : undefined), rand);
+  const regions = Core.REGIONS.filter(r => r !== 'brasil' || dlcOn()), region = Core.freshPick(regions, prev?.region || (prev ? 'mundo' : undefined), rand);
   const lastRole = prev ? prev.players.find(p => !p.ai)?.role : undefined;
   const pack = only || (dlcOn() ? Core.PACKS[Math.floor(rand() * Core.PACKS.length)] : 'culto');   // D98; D108: or only Secret Cultist
   let names = campaign?.names?.length ? [...campaign.names] : [me];   // D121: a campaign keeps its table
@@ -339,7 +340,14 @@ export function initEvents(): void {
     else if (a === 'fill') addBots(Number(d.n));
     else if (a === 'level') { setS({ ...S, level: d.v as Level }); saveS(); render(); }
     else if (a === 'pack') setPack(d.v === 'classico' || d.v === 'vermelho' ? d.v : undefined);
-    else if (a === 'dlc') { if (valOf('#dlckey').trim().toLowerCase() === Core.DLC_KEY) { S.dlc = true; saveS(); render(); toast('DLC Brasil liberada: escolha "Brasil" nos nomes da IA.'); } else toast('Senha errada.'); }   // D27
+    else if (a === 'login' || a === 'demo') {   // D138
+      const email = a === 'demo' ? DEMO.email : valOf('#loginemail'), pw = a === 'demo' ? DEMO.password : valOf('#loginpass');
+      if (a === 'login') ui.loginEmail = email;   // kept on the page when it repaints with an error
+      if (!email.trim() || !pw) { ui.loginErr = 'Preencha o e-mail e a senha.'; render(); return; }
+      ui.loginBusy = true; ui.loginErr = ''; blurField(); render();
+      login(email, pw).then(() => openKept()).then(() => { ui.loginBusy = false; render(); }, (e: Error) => { ui.loginBusy = false; ui.loginErr = e.message; render(); });
+    }
+    else if (a === 'logout') void logout();
     else if (a === 'region') setPack(S.pack, (Core.REGIONS as string[]).includes(d.v || '') ? d.v as Region : 'mundo');   // the app seats take names of that continent (D24)
     else if (a === 'train') { const next = { ...S }; if (d.v) next.train = d.v as Role; else delete next.train; setS(next); saveS(); render(); }
     else if (a === 'rep') { const next = { ...S }; if (d.v === 'on') next.rep = true; else delete next.rep; setS(next); saveS(); render(); }

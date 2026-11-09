@@ -10,7 +10,7 @@ import json, pathlib, re, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 BASE = ROOT / 'tests' / 'guard_baseline.json'
-TESTS = ''.join((ROOT / 'tests' / f).read_text() for f in ('unit.cases.mjs', 'e2e.py', 'iphone.py', 'pwa.py', 'core.mjs', 'social.py'))
+TESTS = ''.join((ROOT / 'tests' / f).read_text() for f in ('unit.cases.mjs', 'e2e.py', 'iphone.py', 'pwa.py', 'core.mjs', 'social.py', 'auth.py'))
 
 index = (ROOT / 'src/core/index.ts').read_text()
 body = index[index.index('export const Core = {') :]
