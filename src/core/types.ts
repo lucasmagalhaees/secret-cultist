@@ -1,3 +1,4 @@
+import type { Roll } from './dice';
 /* The shapes of the data. Everything the app keeps, and everything the source sends once it has been read. */
 
 /** What comes from outside (the source, a saved state): not ours and not documented, so it is read field by field. */
@@ -61,9 +62,18 @@ export type Event =
   | { k: 'inv'; by: number; target: number; party: Party; said?: Party | '-' }
   | { k: 'peek'; by: number; saw?: Law[]; said?: number }
   | { k: 'special'; by: number; target: number }
-  | { k: 'exec'; by: number; target: number; role: Role; why?: string; intim?: RollLevel }
+  | { k: 'exec'; by: number; target: number; role: Role; why?: string; intim?: RollLevel; atk?: Roll }
   /** D96: an app player read what someone told the table (Psychology against Persuasion): only it knows the verdict. */
-  | { k: 'psy'; by: number; about: number; lie: boolean; sure: boolean }
+  | { k: 'psy'; by: number; about: number; lie?: boolean; sure?: boolean; roll?: Roll; vs?: Roll; read?: boolean }
+  /** D114: the person's Occult on a chancellor in the danger zone: only theirs. */
+  /** D115: someone tried to steal another's item (Sleight of Hand against Spot Hidden); a trap came out and the table rolled. */
+  | { k: 'steal'; by: number; from: number; ok: boolean; got: string; gave?: string; roll: Roll; vs: Roll }
+  | { k: 'trap'; id: string; healer?: number; rolls: { seat: number; roll: Roll; loss: number; state?: string; sign?: boolean }[] }
+  | { k: 'tend'; by: number; to: number; state: string; ok: boolean; round: number; roll: Roll }
+  | { k: 'npc'; god: string }
+  | { k: 'faith'; by: number; kind: 'reza' | 'estudo' }
+  | { k: 'find'; seat: number; id: string }
+  | { k: 'sense'; by: number; about: number; roll: Roll; boss?: boolean }
   /** D65: someone says its own side out loud; someone asks another for its vote on this government. */
   | { k: 'self'; by: number; proof?: string; power?: number; re?: [number, number][] }
   | { k: 'plea'; by: number; about: number; ja: boolean }
@@ -79,7 +89,7 @@ export type Event =
 /** `re`: how the players run by the app took it, when a person said it (D26): seat and answer (REACT). */
 export type Talk = { k: 'talk'; by: number; about: number; say: 'acc' | 'trust' | 'quiet'; stage?: 'campaign'; re?: [number, number][]; tone?: 'soft' | 'firm' | 'proof'; proof?: number; hit?: boolean; def?: Defense; ok?: boolean; deb?: DebLine[]; verdict?: [number, number][]; backfire?: boolean; proofs?: number[]; sharp?: number };
 /** A line of a debate (D57): who spoke, the argument it chose, what it said and how strong it was by the record. */
-export type DebLine = { who: number; id: string; text: string; power: number; roll?: { skill: string; label: string; val: number; d: number; level: 'crit' | 'extreme' | 'hard' | 'ok' | 'fail' | 'fumble' } };
+export type DebLine = { who: number; id: string; text: string; power: number; roll?: Roll };
 /** How the one accused answered (D40): the deck came like that, it was a chancellor test, the accuser lies, or silence. */
 export type Defense = 'deck' | 'test' | 'lie' | 'quiet' | 'debate';
 /** An elected government: the law it made (or a veto, with no law). `drew` are the 3 laws the president drew and `got`
@@ -131,6 +141,17 @@ export interface Game {
   trace?: Trace[];
   /** D94: the Call of Cthulhu sheet of each seat, from the source (by seat); a seat without one uses a local sheet. */
   sheets?: Record<number, Sheet>;
+  /** D115: the item each seat got at the start (stealing changes hands on the record). */
+  items?: Record<number, string>;
+  /** D118: the scene of the story (Secret Cultist): the place and the god the cult serves. */
+  scene?: string;
+  /** D134: how far the chronicle has told the record, and the person's own thread (an index of STAKES). */
+  chron?: number;
+  stake?: number;
+  /** D120: how heavy the horror is ('pulp', 'classico', 'purista'). */
+  horror?: string;
+  /** D121: the campaign this game is a chapter of. */
+  campaign?: { ch: number; scene: string; wins: { L: number; F: number }; prev?: 'L' | 'F'; sheet?: Sheet; lost?: number; mythos?: number; item?: string; names?: string[] };
   /** D89: a tutorial game: the tips the person already read (present, even empty, means tutorial). */
   tut?: string[];
   /** The notebook of the one person at the table (D12), as it was when the game ended (D28): seat → the party marked. */
@@ -146,7 +167,7 @@ export interface Game {
 }
 
 /** Everything saved on the device (`secretcultist.v1`): the names of the last table (and which of them the app plays, `ai`), the level of the app's players, the role chosen for training (`train`), whether the minutes show who approved each law (`assist`), the person's notes on the game in course (`notes`, seat → party) and whether their side panel is open (`notesOpen`), whether the live suspicion shows (`live`), whether the trainer gives tips (`coach`), how fast the app's players act (`speed`), the game in course, the theme, the style and whether sound and vibration are off. */
-export interface AppState { v: 1; names: string[]; game: Game | null; theme?: Theme; look?: Look; quiet?: true; ai?: boolean[]; level?: Level; train?: Role; assist?: true; gauge?: true; rep?: true; pack?: Pack; notes?: Record<string, Party>; noteDetails?: Record<string, NoteDetail>; notesOpen?: true; coach?: true; speed?: Speed; flip?: true; region?: Region; dlc?: true }
+export interface AppState { v: 1; names: string[]; game: Game | null; theme?: Theme; look?: Look; quiet?: true; ai?: boolean[]; level?: Level; train?: Role; assist?: true; gauge?: true; rep?: true; pack?: Pack; notes?: Record<string, Party>; noteDetails?: Record<string, NoteDetail>; notesOpen?: true; coach?: true; speed?: Speed; flip?: true; region?: Region; dlc?: true; stereo?: string; horror?: string }
 
 /** A finished game kept on the device for export (D23): when it ended (ms since 1970) and the whole game. */
 export interface Saved { at: number; game: Game }
@@ -175,8 +196,17 @@ export type Seen =
   | { k: 'inv'; by: number; target: number; party?: Party; said?: Party | '-' }
   | { k: 'peek'; by: number; saw?: Law[]; said?: number }
   | { k: 'special'; by: number; target: number }
-  | { k: 'exec'; by: number; target: number; why?: string; intim?: RollLevel }
-  | { k: 'psy'; by: number; about: number; lie?: boolean; sure?: boolean }
+  | { k: 'exec'; by: number; target: number; why?: string; intim?: RollLevel; atk?: Roll }
+  | { k: 'psy'; by: number; about: number; lie?: boolean; sure?: boolean; roll?: Roll; vs?: Roll; read?: boolean }
+  /** D114: the person's Occult on a chancellor in the danger zone: only theirs. */
+  /** D115: someone tried to steal another's item (Sleight of Hand against Spot Hidden); a trap came out and the table rolled. */
+  | { k: 'steal'; by: number; from: number; ok: boolean; got: string; gave?: string; roll: Roll; vs: Roll }
+  | { k: 'trap'; id: string; healer?: number; rolls: { seat: number; roll: Roll; loss: number; state?: string; sign?: boolean }[] }
+  | { k: 'tend'; by: number; to: number; state: string; ok: boolean; round: number; roll: Roll }
+  | { k: 'npc'; god: string }
+  | { k: 'faith'; by: number; kind: 'reza' | 'estudo' }
+  | { k: 'find'; seat: number; id: string }
+  | { k: 'sense'; by: number; about: number; roll: Roll; boss?: boolean }
   | { k: 'self'; by: number; proof?: string; power?: number; re?: [number, number][] }
   | { k: 'plea'; by: number; about: number; ja: boolean }
   /** D66: a request to whoever presides (pick me / do not pick someone / investigate someone), a question to an app

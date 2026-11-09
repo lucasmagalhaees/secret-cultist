@@ -39,9 +39,8 @@ export const LEVELS: Level[] = ['facil', 'medio', 'dificil', 'extremo'];
 /** Names for the players run by the app (D11, D12): well-known politicians of each theme, the two sides mixed. The name
  *  says nothing about the role: roles are dealt at random, so Churchill may well be the cultist. The leader of the
  *  hidden side (Leader, Red Leader) is not among them: it is a role. */
-/* D100: the names of Secret Cultist are characters of the old weird tales; the expansion's names arrive with the key
-   (src/core/dlc.ts). */
-export const CULT_NAMES: string[] = ['Randolph Carter', 'Herbert West', 'Henry Armitage', 'Wilbur Whateley', 'Asenath Waite', 'Keziah Mason', 'Charles Ward', 'Joseph Curwen', 'Richard Pickman', 'Erich Zann', 'Walter Gilman', 'Francis Thurston', 'Robert Olmstead', 'Nahum Gardner', 'Lavinia Whateley', 'Abdul Alhazred', 'Arthur Jermyn', 'Edward Pickman Derby'];
+/* D117: the names of Secret Cultist, the world's list; the expansion's names arrive with the key (src/core/dlc.ts). */
+export const CULT_NAMES: string[] = ['Churchill', 'Roosevelt', 'Gandhi', 'Truman', 'Júlio César', 'Lincoln', 'Kennedy', 'Gengis Khan', 'Napoleão', 'Mandela', 'Cleópatra', 'Thatcher', 'Obama', 'Reagan'];
 export const BOT_NAMES: Record<Pack, string[]> = { classico: CULT_NAMES, vermelho: CULT_NAMES, culto: CULT_NAMES };
 /** A name for one more player run by the app: one of the theme's names not yet at the table, at random (`rand`) or the
  *  first. */
@@ -51,7 +50,18 @@ export const REGIONS: Region[] = ['mundo', 'americas', 'europa', 'asia', 'africa
 /** The password that unlocks the Brazil expansion (D27). Written in the page on purpose: a joke among friends, not a lock. */
 export const DLC_KEY = 'unlockresenha';
 export const REGION_NAMES: Record<Region, string> = { mundo: 'Mundo', americas: 'Américas', europa: 'Europa', asia: 'Ásia', africa: 'África', oceania: 'Oceania', brasil: 'Brasil' };
-export const NAMES_BY: Record<Pack, Record<Region, string[]>> = Object.fromEntries((['classico', 'vermelho', 'culto'] as Pack[]).map(k => [k, Object.fromEntries(REGIONS.map(r => [r, CULT_NAMES]))])) as Record<Pack, Record<Region, string[]>>;
+/* D112, D117: in Secret Cultist the app's players are named after well-known statesmen of each continent, the two sides
+   mixed (no dictators: those stay in the expansion); the name says nothing of the role. Brazil is the expansion's. */
+export const CULT_BY: Record<Region, string[]> = {
+  mundo: CULT_NAMES,
+  americas: ['Roosevelt', 'Kennedy', 'Lincoln', 'Obama', 'Washington', 'JK', 'Getúlio', 'Perón', 'Trump', 'Nixon', 'Bush', 'Reagan', 'Allende', 'Evo Morales', 'Biden', 'Clinton'],
+  europa: ['Churchill', 'Napoleão', 'Merkel', 'Thatcher', 'Rainha Vitória', 'Macron', 'Rainha Elizabeth', 'Adenauer', 'Gorbachev', 'Júlio César', 'De Gaulle'],
+  asia: ['Gandhi', 'Nehru', 'Confúcio', 'Gengis Khan', 'Imperador Meiji', 'Tiglate-Pileser', 'Sun Yat-sen', 'Lee Kuan Yew', 'Indira Gandhi', 'Ciro'],
+  africa: ['Mandela', 'Nasser', 'Haile Selassie', 'Cleópatra', 'Ramsés', 'Tutancâmon', 'Aníbal', 'Nefertiti', 'Kofi Annan', 'Nkrumah', 'Kenyatta'],
+  oceania: CULT_NAMES,
+  brasil: CULT_NAMES   // the expansion's region: its names arrive with the key (src/core/dlc.ts)
+};
+export const NAMES_BY: Record<Pack, Record<Region, string[]>> = { ...Object.fromEntries((['classico', 'vermelho'] as Pack[]).map(k => [k, Object.fromEntries(REGIONS.map(r => [r, CULT_NAMES]))])), culto: CULT_BY } as Record<Pack, Record<Region, string[]>>;
 export function botName(names: string[], rand?: () => number, pack: Pack = 'culto', region: Region = 'mundo'): string {
   const free = ((NAMES_BY[pack] || NAMES_BY.culto)[region] || BOT_NAMES[pack] || BOT_NAMES.culto).filter(b => !names.some(x => x.toLocaleLowerCase('pt-BR') === b.toLocaleLowerCase('pt-BR')));
   return free.length ? free[rand ? Math.floor(rand() * free.length) : 0] : `IA ${names.length + 1}`;

@@ -6,7 +6,10 @@
    does more than its turn. It also takes the votes, one by one, where the app plays some of the seats, and what each
    player tells the table about its hand. */
 import { INV_CRED, backed, earlyGov, believe, claimRepeats, socialMemory, decideWhy, drawOdds, QUIET, REACT, temper } from './ai';
-import { cultDice, RANK, roll, ROLL_BONUS, ROLL_NAME, skillForArg, type Roll, type RollLevel } from './dice';
+import { mad, canSteal, steal, itemOf, ITEMS } from './items';
+import { maniaOf } from './horror';
+import { sanity, SAN_LOW } from './dice';
+import { attack, cultDice, RANK, roll, ROLL_BONUS, ROLL_NAME, skillForArg, STRONG_ARG, WEAK_ARG, type Roll, type RollLevel } from './dice';
 import { WIN, seeded, answerVeto, askVeto, canNominate, canTarget, canVeto, chancellorDiscard, DECK_F, DECK_L, endPower, execute, CULTISTS, LEADER_KNOWS_UPTO, LEADER_ZONE, investigate, knows, nominate, partyOf, presidentDiscard, revealNext, SMALL_TABLE, specialElect, TRACKER_MAX, vote } from './game';
 import { words } from './words';
 import type { Ask, DebLine, Defense, Event, Game, Gov, Law, Level, Party, Persona, Role, Seen, Talk, Trace, View } from './types';
@@ -63,26 +66,60 @@ function readLies(g: Game, seat: number, what: Ask, v: number): Game {
   else if ((e.k === 'gov' || e.k === 'veto') && what === 'pc' && e.drew) truth = e.drew.filter(x => x === 'F').length;
   else if ((e.k === 'gov' || e.k === 'veto') && what === 'cc' && e.got) truth = e.got.filter(x => x === 'F').length;
   else return g;
-  const lie: boolean = truth !== v, r = seeded(g.hist.length * 131 + seat * 7 + v), sp = roll(g, seat, 'Persuade', r);
+  const lie: boolean = truth !== v, r = seeded(g.hist.length * 131 + seat * 7 + v);
+  // D114: who tells what it investigated rolls Spot Hidden: a detail seen makes the story more believable (a bonus die)
+  const spot = e.k === 'inv' ? roll(g, seat, 'Spot Hidden', r) : undefined, sp = roll(g, seat, 'Persuade', r, spot && RANK[spot.level] >= RANK.ok ? 1 : 0);
+  // D114: a listener who hears the hesitation reads better (Listen, then Psychology with a bonus die)
+  const ear = (j: number): 0 | 1 => { const l = roll(g, j, 'Listen', r); return l && RANK[l.level] >= RANK.ok ? 1 : 0; };
   if (!sp) return g;
   const reads: Event[] = [];
-  for (const j of seats(g, j => j !== seat && g.players[j].alive && !!g.players[j].ai)) {
-    const ps = roll(g, j, 'Psychology', r);
+  for (const j of seats(g, j => j !== seat && g.players[j].alive && !!g.players[j].ai && readsBy(g, j) < READ_MAX)) {
+    const ps = roll(g, j, 'Psychology', r, ear(j));
     if (ps && RANK[ps.level] > RANK[sp.level] && ps.level !== 'fail' && ps.level !== 'fumble') reads.push({ k: 'psy', by: j, about: seat, lie, sure: RANK[ps.level] >= RANK.extreme });
   }
-  if (!reads.length) return g;
+  // D109: the one person at the table reads too, with the Psychology of their own sheet; what it shows is only theirs,
+  // and the table sees just that a roll was made
+  const people = g.players.map((p, j) => (p.ai ? -1 : j)).filter(j => j >= 0), me = people.length === 1 ? people[0] : -1;
+  const mine: Event[] = [];
+  if (me >= 0 && me !== seat && g.players[me].alive && readsBy(g, me) < READ_MAX) {
+    const ps = roll(g, me, 'Psychology', r, ear(me));
+    if (ps) {
+      const read = RANK[ps.level] > RANK[sp.level] && ps.level !== 'fail' && ps.level !== 'fumble';
+      mine.push({ k: 'psy', by: me, about: seat, roll: ps, vs: sp, read, ...(read ? { lie, sure: RANK[ps.level] >= RANK.extreme } : {}) });
+    }
+  }
+  if (!reads.length && !mine.length) return g;
   const caught = lie && !g.players[seat].ai && reads.some(x => x.k === 'psy' && x.lie);
-  return { ...g, hist: [...g.hist, ...reads], log: caught ? [...g.log, `🎲 Alguém na mesa franziu a testa com o que você disse.`] : g.log };
+  return { ...g, hist: [...g.hist, ...reads, ...mine], log: caught ? [...g.log, `🎲 Alguém na mesa franziu a testa com o que você disse.`] : g.log };
 }
 /** D96: in Secret Cultist the eliminator rolls Intimidation: the shot never misses (the rule); the roll says whether
  *  its reason convinced the table. Said aloud, and every app player takes it into account. */
 export function intimidate(g: Game): Game {
   const i = lastIndex(g, ['exec']), e = g.hist[i];
   if (!cultDice(g) || i < 0 || e.k !== 'exec' || e.intim) return g;
-  const r = roll(g, e.by, 'Intimidate', seeded(g.hist.length * 977 + e.target));
+  const rr = seeded(g.hist.length * 977 + e.target), atk = attack(g, e.by, e.target, rr), r = roll(g, e.by, 'Intimidate', rr);
+  if (!r) return g;
+  const ok = RANK[r.level] >= RANK.ok, clean = !atk || RANK[atk.level] >= RANK.ok, who = g.players[e.by].name, tgt = g.players[e.target].name;
+  // D114: how it was done, for the table to see (the target is gone either way)
+  const how = atk ? `${atk.skill === 'Firearms Handgun' ? '🔫' : '👊'} ${who} ${atk.skill === 'Firearms Handgun' ? 'atirou em' : 'partiu para cima de'} ${tgt} (${atk.label} ${atk.d}/${atk.val}${atk.mod === 1 ? ', com vantagem' : atk.mod === -1 ? ', em desvantagem' : ''}): ${clean ? 'foi rápido e limpo.' : 'foi feio, e a mesa toda sentiu (mais sanidade perdida).'}` : '';
+  return { ...g, hist: g.hist.map((x, j) => (j === i ? { ...e, intim: r.level, ...(atk ? { atk } : {}) } : x)), log: [...g.log, ...(how ? [how] : []), `🎲 ${g.players[e.by].name} rolou Intimidação (${r.d}/${r.val}): ${ROLL_NAME[r.level]}. ${ok ? 'A mesa engoliu a justificativa.' : 'Pegou mal na mesa.'}`] };
+}
+/** D114: the person's Occult when a chancellor in the danger zone is up for a vote: a success tells the truth about
+ *  the high priest (it is or it is not), a failure tells nothing. Once a nomination, only theirs. */
+/** D133: how often the senses work: the Occult sense a few times a game, and each seat reads a few lies a game. */
+export const SENSE_MAX = 2, READ_MAX = 3;
+const readsBy = (g: Game, j: number): number => g.hist.filter(e => e.k === 'psy' && e.by === j && (e.read || (e.roll === undefined && e.lie !== undefined))).length;
+export function sense(g: Game): Game {
+  if (!cultDice(g) || g.phase !== 'vote' || g.chanc === null || g.laws.F < LEADER_ZONE) return g;
+  const people = g.players.map((p, j) => (p.ai ? -1 : j)).filter(j => j >= 0), me = people.length === 1 ? people[0] : -1;
+  if (me < 0 || me === g.chanc || !g.players[me].alive || g.players[me].role !== 'liberal') return g;
+  if (g.hist.filter(e => e.k === 'sense' && e.by === me).length >= SENSE_MAX) return g;   // D133: a few times a game, not at every election
+  const at = lastIndex(g, ['gov', 'veto', 'rej', 'chaos']);
+  if (g.hist.some((e, k) => k > at && e.k === 'sense' && e.about === g.chanc)) return g;
+  const r = roll(g, me, 'Occult', seeded(g.hist.length * 613 + g.chanc), 0, true);   // D133: a hard test
   if (!r) return g;
   const ok = RANK[r.level] >= RANK.ok;
-  return { ...g, hist: g.hist.map((x, j) => (j === i ? { ...e, intim: r.level } : x)), log: [...g.log, `🎲 ${g.players[e.by].name} rolou Intimidação (${r.d}/${r.val}): ${ROLL_NAME[r.level]}. ${ok ? 'A mesa engoliu a justificativa.' : 'Pegou mal na mesa.'}`] };
+  return { ...g, hist: [...g.hist, { k: 'sense', by: me, about: g.chanc, roll: r, ...(ok ? { boss: g.players[g.chanc].role === 'lider' } : {}) }] };
 }
 function say0(g: Game, seat: number, what: Ask, v: number): Game {
   if (!claims(g, seat).includes(what) || !(Number.isInteger(v) && v >= -1 && v <= MAX_SAY[what])) return g;
@@ -131,7 +168,17 @@ export function talker(g: Game): number | null {
 /** The options of a player who may speak: suspect or trust any other seat still in the game, or keep quiet. */
 const talkOptions = (g: Game, me: number): number[] => [...g.players.flatMap((p, i) => (p.alive && i !== me ? [2 * i, 2 * i + 1] : [])), QUIET];
 /** Plays what it said: a line in the log, and the talk in the history. */
+/** D115: now and then an app player, at its turn to talk, tries to steal a weapon it does not have (once a game). */
 export function talk(g: Game, by: number, a: number): Game {
+  // D120: a catatonic seat says nothing
+  const n = talk0(g, by, mad(g, by) && maniaOf(g, by) === 'catatonia' && talkOptions(g, by).includes(QUIET) ? QUIET : a);
+  if (n === g || !isAi(g, by)) return n;
+  const r = seeded(g.hist.length * 271 + by);
+  if (r() > 0.2) return n;
+  const mine = itemOf(n, by), want = n.players.map((_, j) => j).filter(j => canSteal(n, by, j) && !!ITEMS[itemOf(n, j) as keyof typeof ITEMS]?.weapon && !(mine && ITEMS[mine].weapon));
+  return want.length ? steal(n, by, want[Math.floor(r() * want.length)], r) : n;
+}
+function talk0(g: Game, by: number, a: number): Game {
   if (talker(g) !== by || !talkOptions(g, by).includes(a)) return g;
   const quiet = a === QUIET, about = quiet ? -1 : a >> 1, kind: Talk['say'] = quiet ? 'quiet' : a % 2 ? 'trust' : 'acc';
   // the app players take the court too (D40): an accusation with a proof that holds is made as one; a cultist who has
@@ -882,6 +929,8 @@ export function tallyVotes(g: Game, votes: Record<number, boolean>, rand: () => 
   const order = alive.map((_, k) => alive[(Math.max(0, alive.findIndex(i => i > g.pres)) + k) % alive.length]).filter((x, k, xs) => xs.indexOf(x) === k);
   const cast: [number, boolean][] = [];
   for (const i of order.length === alive.length ? order : alive) {
+    // D115: a mad seat's vote goes out blind
+    if (mad(g, i)) { const m = maniaOf(g, i); cast.push([i, m === 'fanatismo' ? true : m === 'paranoia' ? false : seeded(g.hist.length * 389 + i)() < 0.5]); continue; }   // D120: the mania decides
     if (!isAi(g, i)) { cast.push([i, votes[i]]); continue; }
     const asked = g.hist.slice(sinceRound(g) + 1).flatMap(e => (e.k === 'plea' && e.about === i ? [[e.by, e.ja] as [number, boolean]] : []));
     // D66: a bloc member hears its leader's vote as a strong plea
@@ -913,6 +962,7 @@ function seenBy(e: Event, me: number): Seen {
     case 'peek': { const { saw, ...rest } = e; return e.by === me && saw ? { ...rest, saw } : rest; }
     case 'exec': return { k: 'exec', by: e.by, target: e.target, ...(e.why ? { why: e.why } : {}), ...(e.intim ? { intim: e.intim } : {}) };
     case 'psy': return e.by === me ? e : { k: 'psy', by: e.by, about: e.about };   // D96: a reading is only its reader's
+    case 'sense': return e.by === me ? e : { k: 'sense', by: e.by, about: e.about, roll: { ...e.roll, d: 0, level: 'fail' } };   // D114: only the sensing seat knows
     default: return e;
   }
 }
@@ -1022,7 +1072,12 @@ export const ACHIEVEMENTS: Record<string, [string, string]> = {
   perfect: ['Caderno perfeito', 'Acertar todas as anotações, com pelo menos 3'],
   contra: ['CONTRADIÇÃO!', 'Acusar com uma prova que bate'],
   hard: ['Mesa dura', 'Vencer contra a IA no difícil ou no extremo'],
-  ghost: ['Sem rastro', 'Vencer do lado escondido sem nenhuma prova que bata contra você']
+  ghost: ['Sem rastro', 'Vencer do lado escondido sem nenhuma prova que bata contra você'],
+  // D120: Secret Cultist's own
+  sealed: ['Selou o deus', 'Vencer como investigador no Secret Cultist'],
+  sane: ['Mente sã', 'Terminar uma partida do Secret Cultist sem ficar abalado'],
+  thief: ['Mão leve', 'Roubar um item sem ser pego'],
+  finder: ['Achado raro', 'Encontrar uma relíquia do velho mundo numa armadilha']
 };
 /** What the person in seat `me` earned in this finished game (D41). Only from what happened. */
 export function achievements(g: Game, me: number): string[] {
@@ -1036,6 +1091,11 @@ export function achievements(g: Game, me: number): string[] {
   if (g.hist.some(e => e.k === 'talk' && e.by === me && e.hit)) out.push('contra');
   if (won && (g.level === 'dificil' || g.level === 'extremo') && g.players.some(p => p.ai)) out.push('hard');
   if (won && role !== 'liberal' && !g.hist.some(e => e.k === 'talk' && e.about === me && e.hit)) out.push('ghost');
+  if (g.pack === 'culto' && won && role === 'liberal') out.push('sealed');
+  const san = sanity(g, me);
+  if (san !== undefined && san >= SAN_LOW) out.push('sane');
+  if (g.hist.some(e => e.k === 'steal' && e.by === me && e.ok)) out.push('thief');
+  if (g.hist.some(e => e.k === 'find' && e.seat === me)) out.push('finder');
   return out;
 }
 
@@ -1164,7 +1224,7 @@ export function debateSay(g: Game, at: number, id: string | string[], rand?: () 
   if (who < 0 || !picked.length || picked.length !== ids.length) return g;
   const arg = picked.length === 1 ? picked[0] : { id: picked.map(a => a.id).join('+'), label: '', text: picked.map(a => a.text).join(' '), power: stack(picked.map(a => a.power)) };
   // D94: what is said is rolled against the speaker's sheet (d100): the level of success adds to or takes from it
-  const best = picked.reduce((a, b) => (b.power > a.power ? b : a)), sk = rand ? skillForArg(best.id) : null, r = sk && rand ? roll(g, who, sk, rand) : undefined;
+  const best = picked.reduce((a, b) => (b.power > a.power ? b : a)), sk = rand ? skillForArg(best.id) : null, r = sk && rand ? roll(g, who, sk, rand, best.power >= STRONG_ARG ? 1 : 0, best.power <= WEAK_ARG) : undefined;   // D109, D113: the context sets the test: a strong argument rolls a bonus die, a weak one is a hard test (a shaken speaker rolls a penalty die, in roll)
   const power = r ? Math.max(0, Math.min(0.95, arg.power + ROLL_BONUS[r.level])) : arg.power;
   const t = g.hist[at] as Talk, line: DebLine = { who, id: arg.id, text: arg.text, power, ...(r ? { roll: r } : {}) };
   const hist = [...g.hist]; hist[at] = { ...t, deb: [...(t.deb || []), line] };

@@ -1,5 +1,7 @@
 import { Core } from '../core';
 import type { Ask, Event, Game, Gov, Law, Level, Pack, Party, Persona, Region, Role, Talk } from '../core';
+import type { Roll } from '../core/dice';
+import type { ItemKey, TrapKey } from '../core/index';
 import type { EndTab } from './state';
 import { animalOf, face, portrait, seal } from './art';
 import { $, esc, part, themed } from './format';
@@ -27,7 +29,8 @@ export function render(): void {
   document.documentElement.dataset.pack = P;
   document.documentElement.dataset.region = R;              // the cards wear the continent's colours (D29)
   part('boss').textContent = P === 'culto' ? 'Cultist' : W.boss;   // D96: "Secret Cultist"
-  part('score').innerHTML = g ? `<span class="chip L">${g.laws.L}/${Core.WIN.L}</span><span class="chip F">${g.laws.F}/${Core.WIN.F}</span>` : '';
+  const me0 = g ? soloSeat(g) : -1, seen = g && me0 >= 0 && (g.phase !== 'reveal' || (g.reveal ?? 0) > me0);   // D131: playing alone, your role always on top
+  part('score').innerHTML = g ? `${seen ? `<span class="chip me ${Core.partyOf(g.players[me0].role)}" id="myrole" title="O seu papel">Você: ${role(g.players[me0].role)}</span>` : ''}<span class="chip L">${g.laws.L}/${Core.WIN.L}</span><span class="chip F">${g.laws.F}/${Core.WIN.F}</span>` : '';
   const expanded = [...view.querySelectorAll<HTMLDetailsElement>('.note-detail[open]')].map(d => d.id);
   const diaryScroll = document.getElementById('diary')?.scrollTop ?? 0;
   const keep = document.getElementById('drawer')?.scrollTop ?? 0;   // repainting must not scroll the notebook back up
@@ -38,6 +41,8 @@ export function render(): void {
   const needle = view.querySelector<SVGGElement>('#gauge .needle');
   if (needle) { const to = Number(needle.dataset.to); requestAnimationFrame(() => { needle.style.transform = `rotate(${to}deg)`; }); gaugeAt = to; }
   const diary = document.getElementById('diary'); if (diary) diary.scrollTop = diaryScroll;
+  if (g) myRolls(g);   // D109: the person's own rolls, big on the screen
+  if (g) tellStory(g);   // D118: the narrator
   afterPaint(g);
 }
 
@@ -121,9 +126,9 @@ let lastDebate = '';
  *  shaking for a failure, cracked for a fumble. */
 type DiceRoll = { label: string; val: number; d: number; level: 'crit' | 'extreme' | 'hard' | 'ok' | 'fail' | 'fumble'; shaken?: boolean };
 const rolled = new Set<string>();
-function diceHtml(r: DiceRoll, key: string): string {
+function diceHtml(r: DiceRoll, key: string, mine = true): string {   // D128: only the person's own dice spin
   const good = r.level === 'crit' || r.level === 'extreme' || r.level === 'hard' || r.level === 'ok';
-  return `<div class="dice ${r.level} ${good ? 'good' : 'bad'}${rolled.has(key) ? ' done' : ''}" data-key="${key}" data-d="${r.d}" aria-label="${esc(r.label)} ${r.val}: tirou ${r.d}, ${Core.ROLL_NAME[r.level]}"><b class="die" aria-hidden="true">${rolled.has(key) ? String(r.d).padStart(2, '0') : '??'}</b><span class="dice-txt"><small>🎲 d100 · ${esc(r.label)} ${r.val}${r.shaken ? ' · abalado' : ''}</small><strong>${Core.ROLL_NAME[r.level]}</strong></span></div>`;
+  return `<div class="dice ${r.level} ${good ? 'good' : 'bad'}${rolled.has(key) || !mine ? ' done' : ''}" data-key="${key}" data-d="${r.d}" aria-label="${esc(r.label)} ${r.val}: tirou ${r.d}, ${Core.ROLL_NAME[r.level]}"><b class="die" aria-hidden="true">${rolled.has(key) || !mine ? String(r.d).padStart(2, '0') : '??'}</b><span class="dice-txt"><small>🎲 d100 · ${esc(r.label)} ${r.val}${r.shaken ? ' · abalado' : ''}</small><strong>${Core.ROLL_NAME[r.level]}</strong></span></div>`;
 }
 export function rollDice(root: ParentNode): void {
   const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -198,7 +203,7 @@ export const LEVEL: Record<Level, [string, string]> = {
   extremo: ['Extremo', 'Conta as cartas: sabe quantas leis de cada tipo ainda podem sair e calcula a chance de cada fala ser verdade. Nunca vê o papel de ninguém.']
 };
 const law = (l: Law, k?: number): string => {
-  const face = `<span class="sym">${seal(l, P)}</span><span>${l === 'L' ? '{law}' : '{F}'}</span>`;
+  const face = `<span class="sym">${seal(l, P)}</span><span>${l === 'L' ? '{law}' : '{lawF}'}</span>`;
   return k === undefined ? `<div class="law ${l}">${face}</div>`
     : `<button class="law ${l}${ui.pick === k ? ' on' : ''}" data-act="pick" data-k="${k}" aria-pressed="${ui.pick === k}">${face}</button>`;
 };
@@ -226,7 +231,7 @@ export function tutTip(g: Game | null): { key: string; text: string } | null {
     // D107: Secret Cultist's own tips: the sheet, the dice and sanity
     ['sheet', !!g.sheets && g.pack === 'culto' && g.phase === 'nominate', 'Cada um tem uma ficha de investigador do Call of Cthulhu. Toque num nome na lista de jogadores para ver a ficha: Persuasão, Lábia, Charme, Psicologia e a sanidade (SAN).'],
     ['dice', !!g.sheets && g.pack === 'culto' && g.hist.some(e => e.k === 'talk' && (e.deb || []).some(l => !!l.roll)), 'O que se diz no debate é rolado num d100 contra a perícia da ficha: quanto menor, melhor. Um sucesso deixa a fala mais forte; uma falha, mais fraca.'],
-    ['san', !!g.sheets && g.pack === 'culto' && (Core.sanity(g, me) ?? 99) < Core.SAN_LOW, 'Sua sanidade caiu: cada eliminação e cada lei {f} custam SAN. Abaixo do limite você fica abalado, e as perícias rolam mais baixo.'],
+    ['san', !!g.sheets && g.pack === 'culto' && (Core.sanity(g, me) ?? 99) < Core.SAN_LOW, 'Sua sanidade caiu: cada eliminação e cada lei {f} custam SAN. Abaixo do limite você fica abalado, e as perícias rolam com dado de penalidade.'],
     ['over', g.phase === 'over', 'Fim do tutorial! Agora você sabe o básico. Em "Jogar agora" a partida é de verdade, contra a IA no difícil.']
   ];
   const t = tips.find(([k, on]) => on && !seen.has(k));
@@ -240,7 +245,7 @@ function vQuick(): string {
   // "Jogar agora" is the quick game (D35): 7 seats, you and 6 app players at the hard level, no assistance, theme and
   // continent drawn at random; the table below stays for setting up a game by hand
   if (S.game) return '';
-  return `<section class="card quick" id="quick"><button class="btn block big" data-act="quickgame" id="quickgame">▶ Jogar agora</button>${dlcOn() ? '<button class="btn block" data-act="quickcult" id="quickcult">▶ Jogo rápido de Cthulhu</button>' : ''}<p class="hint">Partida rápida: 7 lugares, você e 6 IAs no difícil, sem assistência, tema e continente sorteados.</p><button class="btn ghost block" data-act="tutorial" id="tutorial">📘 Nunca jogou? Tutorial</button></section>`;
+  return `<section class="card quick" id="quick">${dlcOn() ? `<div class="seg quick-mode" role="tablist" aria-label="Tema do jogo rápido">${([['culto', '🐙 Cthulhu'], ['mix', '🎲 Tema sorteado']] as const).map(([v, l]) => `<button role="tab" data-act="quickmode" data-v="${v}" aria-selected="${(ui.quickMode || 'culto') === v}" class="${(ui.quickMode || 'culto') === v ? 'on' : ''}">${l}</button>`).join('')}</div>` : ''}${!dlcOn() || (ui.quickMode || 'culto') === 'culto' ? cultSetup() : ''}<button class="btn block big" data-act="quickgame" id="quickgame">${ui.playMode === 'campanha' && (!dlcOn() || (ui.quickMode || 'culto') === 'culto') ? '▶ Começar a campanha' : '▶ Jogar agora'}</button><p class="hint">Partida rápida: 7 lugares, você e 6 IAs no difícil (o nível em Contra a IA vale para a mesa que você monta), sem assistência, ${dlcOn() ? 'tema e continente sorteados' : 'continente sorteado'}.</p><button class="btn ghost block" data-act="tutorial" id="tutorial">📘 Nunca jogou? Tutorial</button></section>`;
 }
 /** Your game at a glance, at the top of the result (D34): won or lost, with what role, and how the notebook did. */
 function vYours(g: Game): string {
@@ -300,12 +305,12 @@ function vSolo(): string {
 function vPack(): string {
   const cur = packNow();
   const opt = (k: Pack): string => `<button class="${cur === k ? 'on' : ''}" data-act="pack" data-v="${k}" aria-pressed="${cur === k}"><span class="packart">${portrait('liberal', k, S.region)}${portrait('cultista', k, S.region)}${portrait('lider', k, S.region)}</span>${Core.WORDS[k].theme}</button>`;
-  return `<section class="card" id="pack"><span class="label">Tema do jogo</span><div class="packs" role="group" aria-label="Tema do jogo">${Core.PACKS.filter(k => k === 'culto' || dlcOn()).map(opt).join('')}</div>
+  return `<section class="card" id="pack"><span class="label">Tema do jogo</span><div class="packs" role="group" aria-label="Tema do jogo" data-keep>${Core.PACKS.filter(k => k === 'culto' || dlcOn()).map(opt).join('')}</div>
     <p class="hint" id="packtext">${cur === 'culto' ? 'Investigadores contra um culto: os cultistas são o time escondido e o Sumo Sacerdote é o líder deles. As mesmas regras, e os dados valem mais: cada um tem uma ficha do Call of Cthulhu, e a Psicologia fareja mentiras, quem investiga rola para ser acreditado e quem elimina rola Intimidação.' : cur === 'vermelho' ? 'Os vermelhos são o time escondido e o Red Leader é o líder deles. Vota-se Da! ou Niet!. As regras são as mesmas; as IAs ganham nomes de liberais e vermelhos.' : 'O jogo original: os cultistas são o time escondido e o Leader é o líder deles.'}</p>
     <p class="hint">Nomes da IA</p><div class="segm regions" role="group" aria-label="Nomes da IA">${Core.REGIONS.filter(r => r !== 'brasil').map(r => `<button class="${(S.region || 'mundo') === r ? 'on' : ''}" data-act="region" data-v="${r}" aria-pressed="${(S.region || 'mundo') === r}">${Core.REGION_NAMES[r]}</button>`).join('')}</div>
     ${S.dlc ? `<button class="btn ghost block dlc-region${S.region === 'brasil' ? ' on' : ''}" data-act="region" data-v="brasil" aria-pressed="${S.region === 'brasil'}">Brasil · DLC</button>` : ''}
     <p class="hint" id="regiontext">Votos: <b>${Core.words(packNow(), S.region).ja}</b> / <b>${Core.words(packNow(), S.region).nein}</b>. Figuras conhecidas ${({ mundo: 'do mundo todo', americas: 'das Américas', europa: 'da Europa', asia: 'da Ásia', africa: 'da África', oceania: 'do mundo todo (da Oceania, só os bichos)', brasil: 'do Brasil (DLC)' } as const)[S.region || 'mundo']}, dos dois lados misturados. O nome é só apelido de jogo: o papel é sorteado, e quem tem nome de liberal pode ser o {boss}.</p><button class="more" data-act="gallery" id="gallerytoggle">Ver todos os desenhos ▸</button>
-    ${S.dlc ? '<p class="hint" id="dlcon">DLC Brasil liberada.</p>' : `<details class="dlc" id="dlc"><summary>Tem uma senha?</summary><div class="row"><div class="field"><input id="dlckey" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="senha" aria-label="Senha da DLC"></div><button class="btn" data-act="dlc" id="dlcgo">Liberar</button></div></details>`}</section>`;
+    ${S.dlc ? '<p class="hint" id="dlcon">DLC Brasil liberada.</p>' : `<details class="dlc" id="dlc"><summary>🔑 Tem uma senha?</summary><div class="row"><div class="field"><input id="dlckey" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="senha" aria-label="Senha da DLC"></div><button class="btn" data-act="dlc" id="dlcgo">Liberar</button></div></details>`}</section>`;
 }
 /** Every drawing of the game (D25): each continent, each theme, the liberal, the member of the hidden side and its
  *  leader, with the animal's name. */
@@ -318,7 +323,7 @@ function vGallery(): string {
   return `<section class="card" id="gallery"><span class="label">Todos os desenhos</span><p class="hint">Cada continente com os bichos dos dois temas. O de cima é o do jogo original.</p>${back}</section>${Core.REGIONS.filter(r => r !== 'brasil' || S.dlc).map(block).join('')}<section class="card">${back}</section>`;
 }
 function vRules(): string {
-  const head = `<section class="card" id="rules"><span class="label">Como joga</span><p>Liberais contra {fs}, e o {boss} escondido entre os {fs}. Ganha quem aprovar ${Core.WIN.L} leis liberais ou ${Core.WIN.F} {fs} primeiro.</p><button class="more" data-act="rules" id="rulestoggle" aria-expanded="${ui.rules}" aria-controls="ruleslist">${ui.rules ? 'Esconder as regras ▴' : 'Ver as regras ▾'}</button>`;
+  const head = `<section class="card" id="rules"><span class="label">Como joga</span><p>Liberais contra {fs}, e o {boss} escondido entre os {fs}. Ganha quem aprovar ${Core.WIN.L} leis liberais ou ${Core.WIN.F} leis {fs} primeiro.</p><button class="more" data-act="rules" id="rulestoggle" aria-expanded="${ui.rules}" aria-controls="ruleslist">${ui.rules ? 'Esconder as regras ▴' : 'Ver as regras ▾'}</button>`;
   if (!ui.rules) return `${head}</section>`;
   return `${head}<ul class="rules" id="ruleslist">
     <li>Baralho de ${Core.DECK_F + Core.DECK_L} leis: ${Core.DECK_F} {fs} e ${Core.DECK_L} liberais. Os liberais vencem com ${Core.WIN.L} leis liberais; os {fs}, com ${Core.WIN.F} {fs}.</li>
@@ -354,7 +359,7 @@ function vGame(g: Game): string {
     const body = ui.endTab === 'jogo' ? vSummary(g) + vAta(g) : ui.endTab === 'log' ? vLog(g) : vYours(g) + vHighlights(g) + vThoughts(g) + vNotesScore(g) + vReview(g) + vPlayers(g) + vBoard(g);
     return vTut(g) + card + bar + body + vDock(g);
   }
-  return vUndo() + vStatus(g) + vSeats(g) + vMeters(g) + vSaid(g) + vHelp(g) + vTut(g) + card + vClaims(g) + vCoach(g) + vWatching(g) + vPlayers(g) + vBoard(g) + vAta(g) + vLog(g) + `<section class="card"><button class="btn ghost block" data-act="end">${ui.confirmEnd ? 'Toque de novo para encerrar o jogo' : 'Encerrar jogo'}</button></section>` + vDock(g);
+  return vUndo() + vStatus(g) + vSeats(g) + vMeters(g) + vChron(g) + vSaid(g) + vHelp(g) + vTut(g) + card + vClaims(g) + vCoach(g) + vWatching(g) + vPlayers(g) + vBoard(g) + vAta(g) + vLog(g) + `<section class="card"><button class="btn ghost block" data-act="end">${ui.confirmEnd ? 'Toque de novo para encerrar o jogo' : 'Encerrar jogo'}</button></section>` + vDock(g);
 }
 /** The headline of each phase, printed on the page that turns in (D46). */
 const HEAD: Record<string, string> = { reveal: 'Papéis', nominate: 'Nova rodada', vote: 'Votação', president: 'Sessão legislativa', chancellor: 'Sessão legislativa', veto: 'Veto', investigate: 'Poder', peek: 'Poder', special: 'Poder', execute: 'Poder', over: 'Fim de jogo', bot: 'Vez da IA' };
@@ -463,7 +468,13 @@ function vSummary(g: Game): string {
       case 'inv': return `<li class="inv">${n(e.by)} investigou ${n(e.target)}: era ${pl(e.party)}${e.said && e.said !== '-' ? `<small class="hands">disse ${e.said === 'L' ? 'liberal' : W.f}${e.said !== e.party ? ' — mentiu' : ''}</small>` : ''}</li>`;
       case 'peek': return `<li>${n(e.by)} espiou as próximas 3 leis${e.saw ? `<small class="hands">viu ${cards(e.saw)}${e.said !== undefined && e.said >= 0 ? ` (disse ${e.said}F)` : ''}</small>` : ''}</li>`;
       case 'special': return `<li>${n(e.by)} convocou eleição especial para ${n(e.target)}</li>`;
-      case 'psy': return '';   // D96: a reading is private
+      case 'psy': case 'sense': return '';   // D96, D114: a reading is private
+      case 'steal': return `<li>${n(e.by)} ${e.ok ? `pegou ${esc(Core.ITEMS[e.got as ItemKey]?.name || e.got)} de` : 'foi pego tentando roubar'} ${n(e.from)}</li>`;
+      case 'npc': return `<li>🕯️ ${esc(Core.NPCS[e.god as keyof typeof Core.NPCS]?.[0] || '')} chegou e cuidou da mesa</li>`;
+      case 'find': return `<li>${esc(Core.RARES[e.id as keyof typeof Core.RARES]?.[0] || '')} ${n(e.seat)} achou ${esc(Core.RARES[e.id as keyof typeof Core.RARES]?.[1] || '')}</li>`;
+      case 'tend': return `<li>🩹 ${n(e.by)} cuidou de ${n(e.to)}${e.ok ? '' : ' (sem sucesso)'}</li>`;
+      case 'trap': return `<li class="trap">🕯️ ${esc(Core.TRAPS[e.id as TrapKey]?.name || e.id)}: ${e.rolls.filter(x => x.loss > 0).length} perderam sanidade</li>`;
+      case 'faith': return `<li>${n(e.by)} ${e.kind === 'reza' ? 'rezou pela mesa' : 'estudou o inimigo'}</li>`;
       default: return `<li class="exec">${n(e.by)} eliminou ${n(e.target)} (${role(e.role)})</li>`;
     }
   };
@@ -506,7 +517,7 @@ function vPlayers(g: Game): string {
   return `<section class="card" id="players"><span class="label">Jogadores</span>${live ? `<p class="hint">A barra é quanto cada IA desconfia de você agora.</p>${vCrux(g, me, 'live')}` : ''}<ul class="names">${g.players.map((p, i) => {
     const tag = g.phase === 'over' ? `<span class="role ${Core.partyOf(p.role)}${unveil ? ' unveil' : ''}" style="--k:${order.indexOf(i)}">${role(p.role)}</span>` : i === g.pres ? '<span class="tag">Pres.</span>' : i === g.chanc ? '<span class="tag">Chanc.</span>' : '';
     const mark = kit && i !== kit.me ? notes[i] || '' : '';
-    return `<li class="${p.alive ? '' : 'dead'}${fresh.includes(p.name) ? ' struck' : ''}${mark ? ` ${mark}` : ''}"><span class="who">${av(g, i)}<button class="name-btn" data-act="sheet" data-i="${i}" aria-label="Ficha de ${esc(p.name)}">${name(g, i)}</button>${kd(g, i)}${p.ai ? ` ${AI_TAG}` : ''}${p.alive ? '' : ' <small>(eliminado)</small>'} ${tag}${g.phase === 'over' && p.persona ? ` <small class="persona" title="${PERSONA_W[p.persona][1]}">${PERSONA_W[p.persona][0]}</small>` : ''}</span>${meter(i)}${kit ? kit.cell(i, false) : ''}</li>`;
+    return `<li class="${p.alive ? '' : 'dead'}${fresh.includes(p.name) ? ' struck' : ''}${mark ? ` ${mark}` : ''}"><span class="who">${av(g, i)}<button class="name-btn" data-act="sheet" data-i="${i}" aria-label="Ficha de ${esc(p.name)}">${name(g, i)}</button>${p.ai ? AI_TAG : ''}${kit && i !== kit.me ? '' : kd(g, i)}${p.alive ? '' : ' <small>(eliminado)</small>'} ${tag}${g.phase === 'over' && p.persona ? ` <small class="persona" title="${PERSONA_W[p.persona][1]}">${PERSONA_W[p.persona][0]}</small>` : ''}</span>${meter(i)}${kit ? kit.cell(i, false) : ''}</li>`;
   }).join('')}</ul></section>`;
 }
 /** The live suspicion (D14), worked out once per state of the game: the same state paints many times. */
@@ -665,6 +676,11 @@ function noteKit(g: Game): { me: number; cell: (i: number, edit: boolean) => str
 }
 /** What the last government (or investigation) told the table, kept in view under the table until the next one
  *  (D21): a claim no longer flashes by in a note. */
+/** D134: the narrator's last line about the table's last move, under the seats, until the next one. */
+function vChron(g: Game): string {
+  let k = g.log.length - 1; while (k >= 0 && !g.log[k].startsWith('📖 ')) k--;
+  return k >= 0 && k >= g.log.length - 8 && g.phase !== 'over' ? `<p class="chron" id="chron">${esc(g.log[k].slice(3))}</p>` : '';
+}
 function vSaid(g: Game): string {
   if (g.phase === 'reveal') return '';
   const i = g.hist.map((e, j) => ((e.k === 'gov' || e.k === 'veto') && (e.pc !== undefined || e.cc !== undefined)) || (e.k === 'inv' && e.said !== undefined) ? j : -1).filter(j => j >= 0).pop();
@@ -751,6 +767,7 @@ function vDock(g: Game): string {
   const notice = socialNotice(g);
   const peek = last ? `<button class="speech-peek" id="speech-peek" data-act="diary" aria-label="Abrir Diário: ${esc(short)}"><span>${esc(short)}</span><small>${notice ? `<span class="reputation-cue ${notice.tone}">${esc(notice.title)}</span>` : ''}Diário ›</small></button>` : '';
   const btns = [
+    soloSeat(g) >= 0 && Core.sheetOf(g, soloSeat(g)) ? `<button class="dock-btn mysheet" data-act="sheet" data-i="${soloSeat(g)}" id="mysheet"><span aria-hidden="true">🎲</span> Minha ficha</button>` : '',
     kit ? `<button class="dock-btn notes${notes ? ' open' : ''}" data-act="notesopen" id="notestoggle" aria-expanded="${notes}" aria-controls="drawer"><span aria-hidden="true">${notes ? '✕' : '✎'}</span> Anotações${n ? ` · ${n}` : ''}</button>` : '',
 
   ];
@@ -821,8 +838,19 @@ function vSheet(g: Game): string {
   const row = (e: Gov): string => `<li class="${e.k === 'veto' ? 'rej' : e.law}">${e.pres === i ? 'Presidente' : 'Chanceler'} com ${nmj(e.pres === i ? e.chanc : e.pres)} · ${e.k === 'veto' ? 'veto' : e.law === 'L' ? 'lei liberal' : `lei ${W.f}`}</li>`;
   return `<div class="court-back" data-act="sheetclose"></div><section class="court sheet" id="sheet" role="dialog" aria-label="Ficha de ${esc(g.players[i].name)}"><span class="label">Ficha</span><h2>${nmj(i)}${kd(g, i)}</h2>
     <div class="sheet-stats"><span><b>${L.length}</b>leis liberais</span><span><b>${F.length}</b>leis {fs}</span><span><b>${jaF}</b>{ja} em governo {f}</span></div>
-    ${(() => { const san = Core.sanity(g, i), base = Core.sheetOf(g, i)?.vals.Sanity ?? 50; return san === undefined ? '' : `<div class="san${san < Core.SAN_LOW ? ' low' : ''}" id="san"><b>SAN ${san}</b><span class="san-bar"><i style="width:${Math.round(100 * san / Math.max(1, base))}%"></i></span><small>${san < Core.SAN_LOW ? 'Abalado: as perícias rolam a ' + Math.round(Core.SHAKEN * 100) + '%' : 'Cada eliminação e cada lei {f} custam sanidade'}</small></div>`; })()}
-    ${(() => { const sh = Core.sheetOf(g, i); if (!sh) return ''; return `<span class="label">Ficha de investigador</span><div class="sheet-skills">${Object.entries(Core.SKILLS).map(([k, l]) => `<span><b>${sh.vals[k] ?? '—'}</b>${l}</span>`).join('')}</div>${sh.native ? `<p class="hint">Língua materna: ${esc(sh.native)}</p>` : ''}`; })()}
+    ${(() => { const san = Core.sanity(g, i), base = Core.sheetOf(g, i)?.vals.Sanity ?? 50; const st = Core.statesOf(g, i), my = Core.mythosOf(g, i), madNow = Core.mad(g, i) ? Core.MANIAS[Core.maniaOf(g, i)] : null, sh0 = Core.sheetOf(g, i), past = sh0 ? Object.keys(Core.PASTS).reduce((a, k) => ((sh0.vals[k] ?? 0) > (sh0.vals[a] ?? 0) ? k : a), Object.keys(Core.PASTS)[0]) : '', rare = g.hist.find(e => e.k === 'find' && e.seat === i);
+      const extra = san === undefined ? '' : `<ul class="sheet-extra" id="sheetextra">${past ? `<li>📖 ${esc(Core.PASTS[past])} (${g.players[i].role === 'liberal' && (i === soloSeat(g) || g.phase === 'over') ? `bônus sempre em ${esc(Core.SKILLS[past] || past)}${Core.HEALERS.includes(past) ? '; ferido ou envenenado não atrapalha' : ''}` : `bônus no primeiro teste de ${esc(Core.SKILLS[past] || past)}`})</li>` : ''}${my ? `<li>🐙 Mitos de Cthulhu ${my}${my >= Core.MYTHOS_SEES ? ' (bônus em Ocultismo)' : ''}</li>` : ''}${rare && rare.k === 'find' ? `<li>${Core.RARES[rare.id as keyof typeof Core.RARES][0]} ${esc(Core.RARES[rare.id as keyof typeof Core.RARES][1])}: ${esc(Core.RARES[rare.id as keyof typeof Core.RARES][2])}</li>` : ''}${madNow ? `<li>🌀 ${esc(madNow[0])}: ${esc(madNow[1])}</li>` : ''}</ul>`;
+      return san === undefined ? '' : extra + `<div class="san${san < Core.SAN_LOW ? ' low' : ''}" id="san"><b>SAN ${san}${st.length ? ` · ${st.map(x => x === 'ferido' ? '🩸 Ferido' : '🤢 Envenenado').join(' · ')}` : ''}</b><span class="san-bar"><i style="width:${Math.round(100 * san / Math.max(1, base))}%"></i></span><small>${san < Core.SAN_LOW ? 'Abalado: as perícias rolam com dado de penalidade' : 'Cada eliminação e cada lei {f} custam sanidade'}</small></div>`; })()}
+    ${i === soloSeat(g) && Core.canFaith(g, i) ? `<div class="faith" id="faith"><p class="hint">Uma vez por partida: fé ou razão.</p><div class="row"><button class="btn" data-act="faith" data-k="reza" id="pray">🙏 Rezar (+${Core.FAITH_SAN} SAN para os investigadores)</button><button class="btn" data-act="faith" data-k="estudo" id="study">📚 Estudar (bônus em Ocultismo e Poder)</button></div></div>` : ''}
+    ${(() => { const it = Core.itemOf(g, i), me = soloSeat(g); if (!it) return ''; const I = Core.ITEMS[it];
+      // D115: the item each one carries (everyone sees it), and stealing it once a game
+      return `<div class="item-card" id="item"><span class="item-icon" aria-hidden="true">${I.icon}</span><span><b>${esc(I.name)}</b><small>${esc(I.use)}</small></span></div>${me >= 0 && me !== i && Core.canSteal(g, me, i) ? `<button class="btn block" data-act="steal" data-i="${i}" id="stealbtn">🫳 Tentar roubar (Prestidigitação contra o Encontrar dele, uma vez por partida)</button>` : ''}`; })()}
+    ${(() => { const sh = Core.sheetOf(g, i), me = soloSeat(g); if (!sh || i !== me) return '';
+      // D109: your own sheet says what each skill is rolled for, the strongest first
+      const ks = Object.keys(Core.SKILLS).filter(k => sh.vals[k] !== undefined).sort((a, b) => (sh.vals[b] ?? 0) - (sh.vals[a] ?? 0));
+      const sc = Core.sceneOf(g), gd = Core.godOf(g);
+      return `${sc && gd ? `<p class="hint" id="scene">📜 ${esc(sc.place)} · culto a <b>${esc(gd.name)}</b>: ${esc(gd.gift)}.</p>` : ''}${S.stereo && Core.STEREOTYPES[S.stereo] ? `<p class="hint">Estereótipo: <b>${esc(Core.STEREOTYPES[S.stereo].name)}</b></p>` : ''}<span class="label">Sua ficha: para que serve cada perícia</span><ol class="my-skills" id="myskills">${ks.map((k, n) => `<li class="${n === 0 ? 'best' : ''}"><b>${sh.vals[k]}</b><span><strong>${Core.SKILLS[k]}${n === 0 ? ' · sua mais forte' : ''}</strong><small>${Core.SKILL_USE[k]}</small></span></li>`).join('')}</ol><p class="hint">Rola d100 contra o valor da ficha mais ${Core.EASE} de mesa: tirar até esse número é sucesso; até a metade, difícil; até um quinto, extremo. Argumento forte ganha dado de bônus (duas dezenas, fica a menor); argumento fraco é teste difícil (até a metade); abalado, dado de penalidade.</p>`; })()}
+    ${(() => { const sh = Core.sheetOf(g, i); if (!sh || i === soloSeat(g)) return ''; return `<span class="label">Ficha de investigador</span><div class="sheet-skills">${Object.entries(Core.SKILLS).map(([k, l]) => `<span><b>${sh.vals[k] ?? '—'}</b>${l}</span>`).join('')}</div>${sh.native ? `<p class="hint">Língua materna: ${esc(sh.native)}</p>` : ''}`; })()}
     ${govs.length ? `<span class="label">Governos</span><ul class="sheet-list">${govs.map(row).join('')}</ul>` : '<p class="hint">Ainda não governou.</p>'}
     ${invs.length ? `<span class="label">Investigações</span><ul class="sheet-list">${invs.map(e => `<li>${e.by === i ? `Investigou ${nmj(e.target)}` : `Investigado por ${nmj(e.by)}`}: ${e.said === 'L' ? 'disse liberal' : e.said === 'F' ? `disse ${W.f}` : 'não disse'}</li>`).join('')}</ul>` : ''}
     ${accs.length ? `<span class="label">Acusações</span><ul class="sheet-list">${accs.map(t => `<li>${t.by === i ? `Acusou ${nmj(t.about)}` : `Acusado por ${nmj(t.by)}`}${verdict(t)}</li>`).join('')}</ul>` : ''}
@@ -947,7 +975,7 @@ function vPhase(g: Game): string {
         const info = me.role === 'cultista' ? `<div class="allies${flipping ? ' go' : ''}" id="allies">${row('H', '{boss}', names('lider'))}${row('F', 'Outros {fs}', names('cultista'))}</div>`
           : me.role === 'lider' ? (mates.length ? `<div class="allies" id="allies">${row('F', 'Seu {f}', names('cultista'))}</div><p class="hint">Ele sabe quem você é.</p>` : '<p>Você não sabe quem são os {fs}. Eles sabem quem você é.</p>') : '<p>Você não sabe quem é quem. Ache o {boss}.</p>';
         const trained = g.train && !me.ai ? `<p class="hint" id="trained">Treino: você escolheu ser ${role(g.train).toLowerCase()}.</p>` : '';
-        return `${turn(`<div class="role-card ${Core.partyOf(me.role)}${me.role === 'lider' ? ' H' : ''}" id="role">${portrait(me.role, P, R)}<small>Você é</small><b>${role(me.role)}</b></div>`)}${info}${trained}<button class="btn block" data-act="hiderole">Entendi, esconder</button>`;
+        return `${turn(`<div class="role-card ${Core.partyOf(me.role)}${me.role === 'lider' ? ' H' : ''}" id="role">${portrait(me.role, P, R)}<small>Você é</small><b class="${(P === 'culto' ? Core.cultSpeak(role(me.role)) : role(me.role)).length > 9 ? 'long' : ''}">${role(me.role)}</b></div>`)}${info}${trained}<button class="btn block" data-act="hiderole">Entendi, esconder</button>`;
       });
     case 'nominate':
       return `<section class="card" id="phase"><span class="label">Nova rodada</span><p class="big"><b>${pres}</b> é o presidente. Escolha o chanceler:</p>${pickList(g, i => Core.canNominate(g, i), 'nominate')}${g.lastChanc !== null ? '<p class="hint">O último governo eleito não pode voltar como chanceler.</p>' : ''}</section>`;
@@ -976,7 +1004,7 @@ function vPhase(g: Game): string {
       return `<section class="card" id="phase"><span class="label">Poder: eliminar</span><p class="big"><b>${pres}</b>, quem sai do jogo?</p>${pickList(g, i => Core.canTarget(g, i), 'pickp')}<button class="btn block danger" data-act="execute"${ui.pick === null ? ' disabled' : ''}>${ui.pick === null ? 'Escolha alguém' : `Eliminar ${name(g, ui.pick)}`}</button></section>`;
     default:
       return `<section class="card win ${g.winner}" id="phase"><span class="label">Fim de jogo</span><div class="cheer">${portrait(g.winner === 'L' ? 'liberal' : 'lider', P, R)}</div><p class="big"><b>${g.winner === 'L' ? 'Os liberais venceram!' : 'Os {fs} venceram!'}</b></p><p>${esc(g.why)}</p>
-        <button class="btn block" data-act="nextgame" id="nextgame">▶ Mais uma</button><button class="btn block" data-act="again">Jogar de novo com a mesma mesa</button><button class="btn ghost block" data-act="table">Voltar ao início</button></section>`;
+        ${(() => { const c = Core.chapterAfter(g); return c ? `<button class="btn block go" data-act="nextch" id="nextch">📖 Próximo capítulo (${c.ch} de ${Core.CHAPTERS}) · investigadores ${c.wins.L} × ${c.wins.F} culto</button>` : ''; })()}        <button class="btn block" data-act="nextgame" id="nextgame">▶ Mais uma</button><button class="btn block" data-act="again">Jogar de novo com a mesma mesa</button><button class="btn ghost block" data-act="table">Voltar ao início</button></section>`;
   }
 }
 
@@ -984,7 +1012,7 @@ function vPhase(g: Game): string {
 function vVoteAi(g: Game): string {
   const people = Core.humansAlive(g), one = people.length === 1;
   const row = (i: number): string => `<div class="voter"${one ? '' : ` id="voter-${i}"`}>${one ? '' : `<b>${name(g, i)}</b>`}<div class="pick"><button class="btn vote L${ui.votes[i] === true ? ' on' : ''}" data-act="myvote" data-i="${i}" data-v="1" aria-pressed="${ui.votes[i] === true}"><span class="vw">${ui.votes[i] === true ? '✓ ' : ''}{ja}</span></button><button class="btn vote F${ui.votes[i] === false ? ' on' : ''}" data-act="myvote" data-i="${i}" data-v="0" aria-pressed="${ui.votes[i] === false}">${ui.votes[i] === false ? '✓ ' : ''}{nein}</button></div></div>`;
-  return `<section class="card" id="phase"><span class="label">Votação</span><p class="big"><b>${name(g, g.pres)}</b> presidente + <b>${name(g, g.chanc as number)}</b> chanceler?</p><p class="hint">${one ? 'Seu voto' : 'Cada pessoa toca no próprio voto'}; as IAs votam junto. Mais {ja} que {nein} elege; empate rejeita.</p>${people.map(row).join('')}${one ? '' : `<button class="btn block" data-act="countvotes"${people.every(i => typeof ui.votes[i] === 'boolean') ? '' : ' disabled'}>Abrir os votos</button>`}${g.tracker ? `<p class="hint">Já ${g.tracker === 1 ? 'foi 1 governo rejeitado' : `foram ${g.tracker} governos rejeitados`} seguido${g.tracker === 1 ? '' : 's'}. No ${Core.TRACKER_MAX}º, a lei do topo entra sozinha.</p>` : ''}</section>`;
+  return `<section class="card" id="phase"><span class="label">Votação</span><p class="big"><b>${name(g, g.pres)}</b> presidente + <b>${name(g, g.chanc as number)}</b> chanceler?</p>${(() => { const me = soloSeat(g); return me >= 0 && Core.mad(g, me) ? '<p class="mad-note" id="madnote">🌀 Você enlouqueceu (sanidade zero): toque num voto, mas ele sai no escuro.</p>' : ''; })()}<p class="hint">${one ? 'Seu voto' : 'Cada pessoa toca no próprio voto'}; as IAs votam junto. Mais {ja} que {nein} elege; empate rejeita.</p>${people.map(row).join('')}${one ? '' : `<button class="btn block" data-act="countvotes"${people.every(i => typeof ui.votes[i] === 'boolean') ? '' : ' disabled'}>Abrir os votos</button>`}${g.tracker ? `<p class="hint">Já ${g.tracker === 1 ? 'foi 1 governo rejeitado' : `foram ${g.tracker} governos rejeitados`} seguido${g.tracker === 1 ? '' : 's'}. No ${Core.TRACKER_MAX}º, a lei do topo entra sozinha.</p>` : ''}</section>`;
 }
 
 /* ---------- settings ---------- */
@@ -1135,7 +1163,7 @@ export function debateSheet(g: Game, at: number): void {
   const who_ = (i: number): string => `${av(g, i, 'm')}${name(g, i)}${i === me ? ' (você)' : g.players[i].ai ? ` · ${PERSONA_W[g.players[i].persona || 'centrado'][0].toLowerCase()}` : ''}`;
   const proof = t.proof !== undefined ? Core.evidence({ ...g, hist: g.hist.slice(0, at) }, t.about, t.by).find(x => x.at === t.proof) : undefined;
   const say = (i: number, text: string, tag: string): string => `<div class="dsay ${i === t.by ? 'acc' : 'def'}"><b>${who_(i)} · ${tag}${stars(i)}</b><p>“${esc(text)}”</p></div>`;
-  const line = (k: number, tag: string): string => lines[k] ? say(lines[k].who, lines[k].text, tag).replace(/<\/div>$/, `${lines[k].roll ? diceHtml(lines[k].roll, `d${at}-${k}`) : ''}</div>`) : '';
+  const line = (k: number, tag: string): string => lines[k] ? say(lines[k].who, lines[k].text, tag).replace(/<\/div>$/, `${lines[k].roll ? diceHtml(lines[k].roll, `d${at}-${k}`, lines[k].who === me) : ''}</div>`) : '';
   const args = (): string => who === me ? `<div class="dargs"><b>${lines.length === 0 ? 'Sua defesa' : lines.length === 1 ? 'Sua réplica' : 'Sua tréplica'}</b>${(() => { const all = Core.debateArgs(g, at), dp = (ui.dpick || []).filter(x => all.some(a => a.id === x)), comb = (a: { id: string }): boolean => a.id !== 'quiet' && a.id !== 'drop';
     const pw = (p: number): string => `<i class="pw ${p >= 0.45 ? 'f' : p >= 0.25 ? 'm' : 'w'}">${p >= 0.45 ? 'forte' : p >= 0.25 ? 'média' : p > 0 ? 'fraca' : '—'}</i>`;
     const sum = Math.min(0.95, 1 - all.filter(a => dp.includes(a.id)).reduce((m, a) => m * (1 - a.power), 1));
@@ -1160,7 +1188,7 @@ export function debateSheet(g: Game, at: number): void {
   // D93: a repaint that changes nothing leaves the buttons in place: replacing them under a finger (iPhone) lost the tap,
   // so a single answer seemed not to work while a combo (several taps) did
   if (el.isConnected && lastDebate === html && el.childElementCount) return;
-  lastDebate = html; el.innerHTML = html; rollDice(el);
+  lastDebate = html; el.innerHTML = html; rollDice(el); if (S.game) myRolls(S.game);   // D109
   const pages = el.querySelector('.dpages') as HTMLElement, dots = [...el.querySelectorAll('.ddots i')];
   pages.scrollLeft = keep;
   const want = cur * pages.clientWidth;
@@ -1201,3 +1229,109 @@ export function swayResult(g: Game, to: number, flipped: boolean, roll?: DiceRol
   rollDice(box);
 }
 export function swayClose(): void { const el = document.getElementById('ballot'); if (el) { el.classList.add('out'); setTimeout(() => el.remove(), 450); } }
+
+const RANK_OK = (r: Roll): boolean => r.level !== 'fail' && r.level !== 'fumble';
+/** D109: the seat of the one person at a table with the app, or -1. */
+function soloSeat(g: Game): number {
+  const people = g.players.map((p, j) => (p.ai ? -1 : j)).filter(j => j >= 0);
+  return people.length === 1 ? people[0] : -1;
+}
+
+/* D109: the person's own rolls, big in the middle of the screen, like a tabletop RPG: the skill and the number to beat,
+   the bonus (or penalty) die with both tens, the die tumbling, and how it went. Each roll once; what was on the record
+   when the game was opened is not replayed. */
+let seenRolls: Set<string> | null = null, seenGame = '';
+/* D130: each roll of the person is told as a small scene: why it is rolled, what it takes, the die, and what it means;
+   it stays until "Seguir", one at a time, and the game waits for it. */
+type MyRoll = { key: string; r: Roll; title: string; why: string; sub: string; quiet?: boolean };
+function rollsOf(g: Game, me: number): MyRoll[] {
+  const out: MyRoll[] = [], nm = (i: number): string => g.players[i]?.name || '';
+  g.hist.forEach((e, k) => {
+    if (e.k === 'talk') (e.deb || []).forEach((l, n) => { if (l.who === me && l.roll) out.push({ key: `d${k}.${n}`, r: l.roll, title: 'Seu argumento no debate', why: `Você disse: “${l.text}”. O dado decide se isso convence a mesa.`, sub: RANK_OK(l.roll) ? 'Convenceu: o argumento pesa mais.' : 'Não convenceu: o argumento pesa menos.' }); });
+    if (e.k === 'steal' && (e.by === me || e.from === me)) out.push({ key: `s${k}`, r: e.by === me ? e.roll : e.vs, title: e.by === me ? `Roubar ${nm(e.from)}` : `${nm(e.by)} tentou te roubar`, why: e.by === me ? `Você tenta pegar o item de ${nm(e.from)} sem ele ver: sua Prestidigitação contra o Encontrar dele.` : `${nm(e.by)} tentou pegar o seu item: o seu Encontrar contra a Prestidigitação dele.`, sub: e.ok ? (e.by === me ? `Deu certo. Agora é seu: ${Core.ITEMS[e.got as ItemKey].name}.` : `Ele levou: ${Core.ITEMS[e.got as ItemKey].name}.`) : (e.by === me ? 'Ele percebeu. Nada feito.' : 'Você percebeu a tempo.') });
+    if (e.k === 'trap') { const x = e.rolls.find(y => y.seat === me); if (x && (e.healer === undefined || e.healer === me)) { const T = Core.TRAPS[e.id as TrapKey]; out.push({ key: `t${k}`, quiet: true, r: x.roll, title: `Armadilha: ${T.name}`, why: `${T.text} Cada um rola para escapar.`, sub: RANK_OK(x.roll) ? 'Você escapou.' : `Você não escapou${x.loss ? `: perde ${x.loss} de sanidade` : ''}${x.state ? ` e fica ${x.state}` : ''}.` }); } }
+    if (e.k === 'exec' && e.by === me && e.atk) out.push({ key: `x${k}`, r: e.atk, title: `Eliminar ${nm(e.target)}`, why: `Você eliminou ${nm(e.target)}. O dado só diz se foi rápido ou feio; a eliminação acontece de qualquer jeito.`, sub: RANK_OK(e.atk) ? 'Rápido e limpo.' : 'Foi feio: a mesa toda perde mais sanidade.' });
+    if (e.k === 'sense' && e.by === me && e.boss !== undefined) out.push({ key: `o${k}`, quiet: true, r: e.roll, title: `Ocultismo em ${nm(e.about)}`, why: `Seu Ocultismo procura algo de errado em ${nm(e.about)}.`, sub: e.boss ? `Algo em ${nm(e.about)} te arrepia. Cuidado.` : `Nada de estranho em ${nm(e.about)}.` });
+    if (e.k === 'psy' && e.by === me && e.roll && e.read) out.push({ key: `p${k}`, quiet: true, r: e.roll, title: `Você lê ${nm(e.about)}`, why: `${nm(e.about)} disse à mesa o que viu. Sua Psicologia contra a ${e.vs?.label || 'Persuasão'} dele${e.vs ? ` (ele tirou ${e.vs.d}, precisava de ${e.vs.val})` : ''}: se você vencer, sabe se é verdade.`, sub: e.lie ? `Você percebeu: ${nm(e.about)} está mentindo.` : `Você percebeu: ${nm(e.about)} disse a verdade.` });
+  });
+  return out;
+}
+function myRolls(g: Game): void {
+  const me = soloSeat(g);
+  if (me < 0 || !g.sheets) return;
+  const all = rollsOf(g, me), id = String(g.players.map(p => p.name)) + g.deck.length;
+  if (!seenRolls || seenGame !== (g.hist[0] ? id : '')) { seenRolls = new Set(all.map(x => x.key)); seenGame = g.hist[0] ? id : ''; return; }
+  const fresh = all.filter(x => !(seenRolls as Set<string>).has(x.key));
+  fresh.forEach(x => (seenRolls as Set<string>).add(x.key));
+  // D112: never over what the table is watching (the envelope of an investigation, a law coming out): after it
+  // D132: only what the person did, or what was done to the person, is shown big; the automatic rolls (traps, reading
+  // someone, sensing something) are a short note that does not hold the game
+  const big = fresh.filter(x => !x.quiet), quiet = fresh.filter(x => x.quiet);
+  if (quiet.length) toast(quiet.map(x => `🎲 ${x.r.label} ${String(x.r.d).padStart(2, '0')}: ${x.sub}`).join(' '));
+  if (big.length) whenClear(() => big.forEach(x => bigRoll(x.r, x.title, x.sub, x.why)));
+}
+/** Run once nothing the table watches is on the screen (checked a beat later, so what starts with this same move counts). */
+function whenClear(run: () => void, waited = 0): void {
+  setTimeout(() => (waited < 6000 && (frozenFor() > 0 || document.querySelector('.claim-fx, .fxl:not(.big-roll)')) ? whenClear(run, waited + 250) : run()), 250);
+}
+/* D117, D130: the rolls wait their turn, one at a time; each stays until "Seguir", and the game waits under it. */
+const ROLL_SPIN = 30;
+const rollQueue: [Roll, string, string, string][] = [];
+export function bigRoll(r: Roll, title: string, sub = '', why = ''): void {
+  rollQueue.push([r, title, sub, why]);
+  if (!document.querySelector('.big-roll')) nextRoll();
+}
+function nextRoll(): void {
+  const item = rollQueue.shift();
+  if (item) showRoll(...item);
+}
+function showRoll(r: Roll, title: string, sub = '', why = ''): void {
+  const good = RANK_OK(r), need = r.hard ? Math.floor(r.val / 2) : r.val;
+  const notes = [
+    r.hard ? 'Teste difícil: vale metade da perícia.' : '',
+    r.base !== undefined && r.base !== r.val ? `Ficha ${r.base}, +${r.val - r.base} da mesa.` : '',
+    r.mod === 1 ? 'Dado de bônus: rola duas dezenas e fica com a menor.' : r.mod === -1 ? 'Dado de penalidade: rola duas dezenas e fica com a maior.' : '',
+    r.shaken ? 'Abalado: a sanidade baixa atrapalha.' : '',
+    r.helped ? `${Core.CHAR_NAME[r.helped] || r.helped} alta ajuda.` : ''
+  ].filter(Boolean).map(x => `<li>${esc(x)}</li>`).join('');
+  const tens = r.tens ? `<div class="br-tens">Dezenas: ${r.tens.map(t => `<i class="${t * 10 + ((r.d - 1) % 10) + 1 === r.d ? 'kept' : ''}">${String(t * 10).padStart(2, '0')}</i>`).join('')}</div>` : '';
+  const el = document.createElement('div');
+  el.className = `fxl big-roll ${r.level} ${good ? 'good' : 'bad'}`; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', title);
+  el.innerHTML = `<div class="br-card"><small class="br-title">${esc(title)}</small>${why ? `<p class="br-why">${esc(why)}</p>` : ''}<div class="br-test"><b class="br-skill">${esc(r.label)} <span>${r.val}</span></b><span class="br-need">Precisa tirar <b>${need}</b> ou menos no d100</span>${notes ? `<ul class="br-notes">${notes}</ul>` : ''}</div>${tens}<div class="br-die"><span class="br-num">??</span></div><div class="br-after"><b class="br-res">Tirou ${String(r.d).padStart(2, '0')}: ${Core.ROLL_NAME[r.level]}</b>${r.luck ? `<p class="br-luck">🍀 Gastou ${r.luck} de Sorte para passar.</p>` : ''}${sub ? `<p class="br-sub">${esc(sub)}</p>` : ''}<button class="btn primary block" id="rollok">Seguir ▸</button></div></div>`;
+  document.body.appendChild(el);
+  el.querySelector('#rollok')?.addEventListener('click', e => { e.stopPropagation(); el.remove(); nextRoll(); });
+  const num = el.querySelector('.br-num') as HTMLElement;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { num.textContent = String(r.d).padStart(2, '0'); el.classList.add('land'); return; }
+  let n = 0;
+  const t = setInterval(() => { num.textContent = String(1 + ((r.d * 31 + n * 47) % 100)).padStart(2, '0'); if (++n >= ROLL_SPIN) { clearInterval(t); num.textContent = String(r.d).padStart(2, '0'); el.classList.add('land'); } }, 60);
+}
+
+/* D118, D129: the narrator's lines (📜 and 📄 in the log) are told once, on a page over the whole screen, in the
+   keeper's voice: the opening, each act and the end. The game waits under it until "Seguir". Lines already on the
+   record when the game was opened are not told again. */
+let toldKey = '', told = 0;
+function tellStory(g: Game): void {
+  const lines = g.log.filter(l => l.startsWith('📜 ') || l.startsWith('📄 ')), key = String(g.players.map(p => p.name)) + (g.scene || '');
+  if (key !== toldKey) { document.querySelectorAll('.narrator').forEach(x => x.remove()); toldKey = key; told = g.hist.length || g.log.length > lines.length + 2 ? lines.length : 0; }
+  if (lines.length <= told) return;
+  const fresh = lines.slice(told); told = lines.length;
+  document.querySelectorAll('.narrator').forEach(x => x.remove());
+  const el = document.createElement('div');
+  el.className = 'fxl narrator'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'A história');
+  el.innerHTML = `<div class="nar-page">${fresh.map(l => l.startsWith('📄') ? `<p class="nar-doc">${esc(l.slice(3))}</p>` : `<p>${esc(l.slice(3))}</p>`).join('')}</div><button class="btn primary block" id="storyok">Seguir ▸</button>`;
+  document.body.appendChild(el);
+  el.querySelector('#storyok')?.addEventListener('click', e => { e.stopPropagation(); el.remove(); });
+}
+
+/** D122: the setup of a Secret Cultist game, right above "Jogar agora": one game or a campaign, your investigator's
+ *  stereotype, and the horror's weight. */
+function cultSetup(): string { const st = S.stereo ? Core.STEREOTYPES[S.stereo] : null;
+      // D116: the person picks the stereotype of their own investigator (the app's players are drawn)
+      // D120: how heavy the horror is
+      const hz = (S.horror || 'classico') as keyof typeof Core.HORROR;
+      const horror = `<div class="horror" id="horror"><span class="label">Peso do horror</span><div class="seg quick-mode">${(Object.keys(Core.HORROR) as (keyof typeof Core.HORROR)[]).map(k => `<button data-act="horror" data-v="${k}" aria-pressed="${hz === k}" class="${hz === k ? 'on' : ''}">${Core.HORROR[k].name}</button>`).join('')}</div><p class="hint">${esc(Core.HORROR[hz].text)}</p></div>`;
+      const pm = ui.playMode || 'avulsa';   // D121: one game or a campaign of three chapters
+      const camp = `<div class="play-mode" id="playmode"><span class="label">Modo</span><div class="seg quick-mode" role="tablist">${([['avulsa', '🎲 Partida avulsa'], ['campanha', '📖 Campanha (3 capítulos)']] as const).map(([v, l]) => `<button role="tab" data-act="playmode" data-v="${v}" aria-selected="${pm === v}" class="${pm === v ? 'on' : ''}">${l}</button>`).join('')}</div>${pm === 'campanha' ? '<p class="hint">Três capítulos no mesmo cenário e com a mesma mesa. Sua ficha, sanidade, item e Mitos seguem; se o culto vencer um capítulo, o próximo começa pior.</p>' : ''}</div>`;
+      const stereo = `<div class="stereo" id="stereo"><span class="label">Seu investigador</span><button class="btn ghost block stereo-cur" data-act="stereoopen" aria-expanded="${!!ui.stereoOpen}">${st ? `🕵️ ${esc(st.name)} <small>${esc(st.good)}</small>` : '🎲 Sorteado <small>a API escolhe o estereótipo</small>'}</button>${ui.stereoOpen ? `<div class="stereo-list" role="listbox"><button data-act="stereo" data-v="" class="${!S.stereo ? 'on' : ''}"><b>🎲 Sorteado</b></button>${Object.entries(Core.STEREOTYPES).map(([k, v]) => `<button data-act="stereo" data-v="${k}" class="${S.stereo === k ? 'on' : ''}"><b>${esc(v.name)}</b><small>${esc(v.good)}</small></button>`).join('')}</div>` : ''}</div>`;
+      return `<div class="cult-setup" id="cultsetup">${camp}${stereo}${horror}</div>`;
+}
