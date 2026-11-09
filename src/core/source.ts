@@ -33,3 +33,19 @@ export function normLore(j: Json): { text: string; sources: string[] } | null {
   if (text.length < 3 || text.length > 600) return null;
   return { text, sources: Array.isArray(j.sources) ? j.sources.filter((x: Json) => typeof x === 'string') : [] };
 }
+
+/* D138: Supabase Auth. A password login answers the tokens and the user; the role is the user's app_metadata.role, set
+   only by the project's owner, and anything else than driver is a pedestrian. */
+export function normSession(j: Json): { token: string; refresh: string; exp: number; email: string; role: 'driver' | 'pedestrian' } | null {
+  if (!j || typeof j !== 'object') return null;
+  const token = j.access_token ?? j.token, refresh = j.refresh_token ?? j.refresh, user = j.user ?? {};
+  const email = user.email ?? j.email, exp = typeof j.expires_at === 'number' ? j.expires_at * 1000 : typeof j.exp === 'number' ? j.exp : 0;
+  if (typeof token !== 'string' || typeof refresh !== 'string' || typeof email !== 'string' || !email) return null;
+  const role = (user.app_metadata?.role ?? j.role) === 'driver' ? 'driver' : 'pedestrian';
+  return { token, refresh, exp, email, role };
+}
+/** D138: the expansion's key from game_secrets ([{ value }]), or null. */
+export function normSecret(j: Json): string | null {
+  const v = Array.isArray(j) && j[0] && typeof j[0] === 'object' ? j[0].value : null;
+  return typeof v === 'string' && v.length >= 40 && v.length <= 60 ? v : null;
+}

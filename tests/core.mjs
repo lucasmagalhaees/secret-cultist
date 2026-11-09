@@ -26,7 +26,11 @@ for (const name of ['window', 'document', 'localStorage', 'fetch']) {
   Object.defineProperty(globalThis, name, { configurable: true, get() { throw new Error(`the core touched ${name}`); } });
 }
 const { Core } = await import(pathToFileURL(path.join(outDir, 'core.mjs')).href);
-const res = cases(Core);
+const KEY = process.env.DLC_KEY;
+if (!KEY) { console.error('DLC_KEY não definida: a chave da expansão (secret do CI, ou do Supabase para o driver)'); process.exit(1); }
+const pre = { lockedRed: Core.words('vermelho').boss, wrong: await Core.openDlc('errada'), before: Core.dlcData() };
+pre.dlc = await Core.openDlc(KEY);
+const res = cases(Core, pre);
 for (const f of res.fails) console.log('FAIL', f);
 console.log(`${res.n - res.fails.length}/${res.n} checks passed without a browser`);
 process.exit(res.fails.length ? 1 : 0);

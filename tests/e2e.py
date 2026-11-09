@@ -5,6 +5,7 @@ Opens dist/index.html from the disk, with the network blocked: the page must not
 Chance is taken out of the way by stacking the roles and the deck through window.__APP.S (invented test data); every
 action is still a tap on the screen. Screenshots go to tests/shots/.
 """
+import json, os
 import json, pathlib, re, sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import cov
@@ -25,7 +26,7 @@ with sync_playwright() as p:
     ctx.route('**/*', lambda r: r.abort() if r.request.url.startswith('http') else r.continue_())
     ctx.add_init_script("new MutationObserver(() => { if (!window.__KEEP_STORY) document.getElementById('storyok')?.click(); if (!window.__KEEP_ROLL) document.getElementById('rollok')?.click(); }).observe(document, { childList: true, subtree: true })")   # D129, D130: the story and the rolls are closed at once, except where they are tested
     ctx.add_init_script('window.__SEED = 7')   # D68: the same game every run, here and in CI
-    ctx.add_init_script('window.__DLC = true')   # D98: these tests play the historical themes too
+    ctx.add_init_script("window.__AUTH = {email: 'teste@exemplo.com', role: 'driver'}; window.__DLC = " + json.dumps(os.environ['DLC_KEY']))   # D98, D138: logged in as a driver, with the expansion's key
     pg = ctx.new_page(); errs = []
     # D57/D60: an app player may accuse the person at any step, and the debate covers the screen until it is answered;
     # a scripted click answers it first (with the first argument each time) and closes it
@@ -65,8 +66,8 @@ with sync_playwright() as p:
     assert pg.locator('#ruleslist').count() == 0 and pg.locator('#moreopts').count() == 0 and 'sorteado' in txt('#moresum'), 'the rules and the other choices start closed'
     pg.click('#rulestoggle'); assert pg.locator('#ruleslist li').count() >= 5; pg.click('#rulestoggle'); assert pg.locator('#ruleslist').count() == 0
     # D25: every drawing, in a gallery: each continent, both themes, liberal, member and leader, with the animal's name
-    pg.click('#gallerytoggle'); assert pg.locator('.cast figure').count() == 6 * 3 * 3 and pg.locator('#table').count() == 0, 'the gallery has every drawing (3 themes since D96)'
-    gal = txt('#view'); assert 'aranha' in gal and pg.evaluate('window.__APP.Core.WORDS.vermelho.boss') in gal and 'coala' in gal and 'condor' in gal and 'onça' not in gal and overflow() == 0, gal[:300]
+    pg.click('#gallerytoggle'); assert pg.locator('.cast figure').count() == 7 * 3 * 3 and pg.locator('#table').count() == 0, 'the gallery has every drawing (3 themes since D96; Brazil too, for a driver, D138)'
+    gal = txt('#view'); assert 'aranha' in gal and pg.evaluate('window.__APP.Core.WORDS.vermelho.boss') in gal and 'coala' in gal and 'condor' in gal and 'onça' in gal and overflow() == 0, gal[:300]
     shot(f's0-galeria-{THEME}.png'); pg.click('#galleryback'); assert pg.locator('#table').count() == 1 and pg.locator('.cast').count() == 0
     pg.fill('#name', 'Xu'); pg.press('#name', 'Enter'); assert 'Faltam 4' in txt('[data-act=start]') and 'Completar com 4 da IA' in txt('#fillmin')
     pg.click('#fillmin'); assert pg.locator('#names li').count() == 5 and not pg.locator('[data-act=start]').is_disabled() and 'Começar com 5 jogadores' in txt('[data-act=start]')
@@ -530,10 +531,8 @@ with sync_playwright() as p:
     pg.click('[data-act=region][data-v=americas]'); ams = pg.evaluate('window.__APP.Core.NAMES_BY.vermelho.americas')
     assert pg.inner_html('#pack .packart') != world_art and pg.locator('#pack .packart svg').count() == 9, 'the drawings change with the continent (3 themes since D96)'
     assert pg.evaluate('window.__APP.S.region') == 'americas' and all(x in ams for x in pg.locator('#names li').filter(has=pg.locator('small.ai')).locator('b').all_text_contents()) and overflow() == 0, 'the app seats take names of the Americas'
-    # D27: the Brazil expansion shows up only with the password
-    assert pg.locator('[data-act=region][data-v=brasil]').count() == 0
-    pg.click('#dlc summary'); pg.fill('#dlckey', 'senha'); pg.click('#dlcgo'); assert pg.locator('[data-act=region][data-v=brasil]').count() == 0 and pg.evaluate('window.__APP.S.dlc') is None, 'a wrong password unlocks nothing'
-    pg.fill('#dlckey', 'unlockresenha'); pg.click('#dlcgo'); assert pg.evaluate('window.__APP.S.dlc') is True and pg.locator('#dlcon').count() == 1
+    # D27, D138: a driver has the expansion's key, so Brazil is there
+    assert pg.locator('[data-act=region][data-v=brasil]').count() == 1 and pg.locator('#dlcon').count() == 1
     pg.click('#gallerytoggle'); assert pg.locator('.cast figure').count() == 7 * 3 * 3 and 'polvo' in txt('#gallery-brasil') and 'tucano' in txt('#gallery-brasil'), 'unlocked, the gallery shows Brazil too'; pg.click('#galleryback')
     pg.click('[data-act=region][data-v=brasil]'); br = pg.evaluate('window.__APP.Core.NAMES_BY.vermelho.brasil')
     assert pg.evaluate('document.documentElement.dataset.region') == 'brasil', 'the continent is set on the page (D29)'
@@ -590,7 +589,7 @@ with sync_playwright() as p:
     mctx.route('**/*', lambda r: r.abort() if r.request.url.startswith('http') else r.continue_())
     mctx.add_init_script('window.__SEED = 7')
     mctx.add_init_script("new MutationObserver(() => { if (!window.__KEEP_STORY) document.getElementById('storyok')?.click(); if (!window.__KEEP_ROLL) document.getElementById('rollok')?.click(); }).observe(document, { childList: true, subtree: true })")   # D129, D130: the story and the rolls are closed at once, except where they are tested
-    mctx.add_init_script('window.__DLC = true')   # D98: these tests play the historical themes too
+    mctx.add_init_script("window.__AUTH = {email: 'teste@exemplo.com', role: 'driver'}; window.__DLC = " + json.dumps(os.environ['DLC_KEY']))   # D98, D138: logged in as a driver, with the expansion's key
     mp = mctx.new_page(); merrs = []
     # D63: while an animation plays, taps wait; a scripted click waits for it to end first
     _mclick = mp.click

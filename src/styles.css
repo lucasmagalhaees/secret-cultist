@@ -1216,3 +1216,16 @@ body:has(.dock-gap) .toast{bottom:calc(var(--dock) + 8px + env(safe-area-inset-b
 
 /* D134: the chronicle, a line of the narrator under the seats */
 .chron{margin:8px 0;padding:8px 12px;border-left:3px solid #c9a227;font:italic 500 15px/1.45 Georgia,'Times New Roman',serif;opacity:.92}
+
+/* D138: login and the account in the header */
+.top .user{display:flex;align-items:center;gap:8px;margin-left:auto}
+.top .user .who{font-size:12px;max-width:34vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.top .user .role{font-style:normal;font-size:10px;letter-spacing:.06em;text-transform:uppercase;margin-left:6px;padding:1px 6px;border:1px solid currentColor;border-radius:999px}
+.top .user .role.driver{color:#c9a227}
+.top .user .btn.small{min-height:32px;padding:4px 10px;font-size:13px}
+.login{display:grid;gap:12px;margin-top:24px}
+.login-title{margin:0;font-size:28px}
+.login .field{display:grid;gap:4px}.login input{font-size:16px}
+.login .err{color:#e05a4f}
+.login .demo{border-top:1px dashed currentColor;padding-top:12px;margin-top:4px;display:grid;gap:8px}
+.top .wrap{flex-wrap:wrap;row-gap:4px}
