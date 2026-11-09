@@ -966,3 +966,7 @@ Pedido: "integre isso com o secret cultist". Depois de cada lance com narração
 ## D139. Secret Leônidas, a cara pública (2026-11-09)
 
 Pedido: uma versão de apresentação para o portfólio, atenienses contra espartanos, "Secret Leônidas", sem nada de comunismo ou nazismo, fácil de explicar para um entrevistador. Escolhas do Lucas: substitui o Secret Cultist como cara pública; Leônidas (mais conhecido que Lisandro, apesar de ter morrido 50 anos antes da Guerra do Peloponeso); a página pública não pede login; o painel com login fica com o Secret Cultist e a expansão; dados, fichas, deuses e armadilhas na versão grega viram um liga e desliga do cenário, num passo seguinte. A conta de visitante (pedestrian) deixa de ser necessária. Cargos da época: arconte no lugar de presidente, estratego no lugar de chanceler; decretos de Atenas e de Esparta; votos Naí!/Oú!.
+
+## D140. Supabase próprio do jogo (2026-11-09)
+
+O Lucas quis um projeto do Supabase só para o jogo, mas o plano grátis já estava no limite de projetos; fica no projeto do lore-enhancer. Mesmo assim o endereço sai do código e vem, como a chave publicável, de uma variável de build: `VITE_SUPABASE_URL` (sem ela, o app aponta para `https://supabase.invalid`, que é o que os testes interceptam).
