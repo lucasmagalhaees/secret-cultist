@@ -26,6 +26,10 @@ def supabase(r):
             return r.fulfill(status=500, content_type='application/json', body='{}', headers=CORS)
         if d['password'] == 'estranho':
             return r.fulfill(status=200, content_type='application/json', body='{"ok": true}', headers=CORS)
+        if d['password'] == 'naoconfirmado':
+            return r.fulfill(status=400, content_type='application/json', body='{"code":400,"error_code":"email_not_confirmed","msg":"Email not confirmed"}', headers=CORS)
+        if d['password'] == 'semchave':
+            return r.fulfill(status=401, content_type='application/json', body='{"message":"No API key found in request"}', headers=CORS)
         if d['password'] == 'errada':
             return r.fulfill(status=400, content_type='application/json', body='{"error":"invalid_grant"}', headers=CORS)
         role = 'pedestrian' if d['email'].startswith('visitante') else 'driver'
@@ -46,7 +50,7 @@ def supabase(r):
 with sync_playwright() as p:
     b = p.chromium.launch()
     ctx = b.new_context(viewport={'width': 393, 'height': 852}, color_scheme='dark')
-    ctx.route('https://supabase.invalid/**', supabase)   # D139: the build without VITE_SUPABASE_URL
+    ctx.route('https://ydzqrfkcsrochzwegrig.supabase.co/**', supabase)   # D141: the project's address, the app's default
     pg = ctx.new_page(); errs = []
     pg.on('pageerror', lambda e: errs.append(str(e)))
     cov.start(pg)
@@ -63,7 +67,7 @@ with sync_playwright() as p:
     pg.click('#painel'); pg.wait_for_selector('#login'); assert pg.locator('#user .who').count() == 0
     pg.click('[data-act=login]'); assert 'Preencha' in pg.inner_text('#loginerr')
     pg.fill('#loginemail', 'motorista@exemplo.com')
-    for pw, says in (('caiu', 'Sem conexão'), ('quebrou', 'respondeu 500'), ('estranho', 'não entende'), ('errada', 'errados')):
+    for pw, says in (('caiu', 'Sem conexão'), ('quebrou', 'respondeu 500'), ('estranho', 'não entende'), ('naoconfirmado', 'confirmado'), ('semchave', 'sem a chave'), ('errada', 'errados')):
         pg.fill('#loginpass', pw); pg.click('#logingo'); pg.wait_for_timeout(1500); assert says in (pg.text_content('#loginerr') or ''), (pw, pg.text_content('#loginerr'))
     pg.click('#back'); pg.wait_for_selector('[data-act=quickgame]')
     pg.click('#painel'); pg.wait_for_selector('#login')

@@ -357,11 +357,10 @@ export function initEvents(): void {
     else if (a === 'assist') { const next = { ...S }; if (d.v === 'on') next.assist = true; else delete next.assist; setS(next); saveS(); render(); }
     else if (a === 'start') start();
     else if (a === 'quickgame' && !session()) quickGame(null, 'esparta');   // D139: the public page
-    else if (a === 'quickgame') { const cult = ui.quickMode !== 'mix' && ui.quickMode !== 'esparta'; if (ui.quickMode === 'esparta') { quickGame(null, 'esparta'); return; } if (cult && ui.playMode === 'campanha') quickGame(null, 'culto', { ch: 1, scene: '', wins: { L: 0, F: 0 } }); else quickGame(null, cult ? 'culto' : undefined); }   // D108, D110, D122   // D108, D110: the tab picks the theme
-    else if (a === 'quickmode') { ui.quickMode = d.v === 'mix' ? 'mix' : d.v === 'esparta' ? 'esparta' : 'culto'; render(); }
+    else if (a === 'quickgame') { const pk = packNow(); if (pk === 'culto' && ui.playMode === 'campanha') quickGame(null, 'culto', { ch: 1, scene: '', wins: { L: 0, F: 0 } }); else quickGame(null, pk); }   // D141: the theme from Tema do jogo
     else if (a === 'tutorial') tutorial();
     else if (a === 'tutok' && g && g.tut) { const k = d.v || ''; setS({ ...S, game: { ...g, tut: [...g.tut, k] } }); saveS(); render(); tick(); }   // D89
-    else if (a === 'nextgame') quickGame(S.game, !session() ? 'esparta' : ui.quickMode === 'mix' ? undefined : ui.quickMode === 'esparta' ? 'esparta' : 'culto');
+    else if (a === 'nextgame') quickGame(S.game, packNow());
     else if (a === 'gallery') { ui.gallery = !ui.gallery; render(); scrollTo(0, 0); }   // every drawing (D25)
     else if (a === 'exportgames') void exportGames();
     else if (a === 'faith' && S.game) { const me = S.game.players.findIndex(p => !p.ai); if (me >= 0 && Core.canFaith(S.game, me)) { ui.sheet = null; play(Core.faith(S.game, me, d.k === 'reza' ? 'reza' : 'estudo')); } }   // D126

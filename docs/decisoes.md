@@ -969,4 +969,12 @@ Pedido: uma versão de apresentação para o portfólio, atenienses contra espar
 
 ## D140. Supabase próprio do jogo (2026-11-09)
 
-O Lucas quis um projeto do Supabase só para o jogo, mas o plano grátis já estava no limite de projetos; fica no projeto do lore-enhancer. Mesmo assim o endereço sai do código e vem, como a chave publicável, de uma variável de build: `VITE_SUPABASE_URL` (sem ela, o app aponta para `https://supabase.invalid`, que é o que os testes interceptam).
+O Lucas quis um projeto do Supabase só para o jogo, mas o plano grátis já estava no limite de projetos; fica no projeto do lore-enhancer. Mesmo assim o endereço sai do código e vem, como a chave publicável, de uma variável de build: `VITE_SUPABASE_URL` (sem ela, o padrão do código).
+
+## D141. O login diz o motivo do erro, e o endereço e a chave publicável têm padrão no código (2026-11-09)
+
+O login em produção respondia "E-mail ou senha errados" para tudo, inclusive quando faltava a chave publicável no build. Agora a mensagem vem do código do Supabase: e-mail não confirmado, senha errada ou chave faltando. O endereço do projeto e a chave publicável (pública por definição) ficam como padrão no código; as variáveis `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` só trocam o padrão.
+
+## D142 (2026-11-09): o jogo rápido segue o "Tema do jogo"
+
+As abas Cthulhu, Leônidas e Sorteado do jogo rápido brigavam com o cartão "Tema do jogo" (duas escolhas para a mesma coisa). Saíram: "Jogar agora" joga o tema escolhido no cartão (`packNow()`), e a campanha só aparece no Secret Cultist. Os desenhos gregos (coruja ateniense, lobo espartano, Leônidas leão) foram refeitos no traço dos outros: corpo inteiro, foco de luz, contorno grosso, hoplitas de elmo coríntio, lança e escudo.

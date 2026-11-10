@@ -249,8 +249,8 @@ function vQuick(): string {
   // "Jogar agora" is the quick game (D35): 7 seats, you and 6 app players at the hard level, no assistance, theme and
   // continent drawn at random; the table below stays for setting up a game by hand
   if (S.game) return '';
-  const qm = ui.quickMode || 'culto', modes = ([['culto', '🐙 Cthulhu'], ['esparta', '🏛 Leônidas'], ['mix', '🎲 Sorteado']] as const);
-  return `<section class="card quick" id="quick">${session() ? `<div class="seg quick-mode" role="tablist" aria-label="Tema do jogo rápido">${modes.map(([v, l]) => `<button role="tab" data-act="quickmode" data-v="${v}" aria-selected="${qm === v}" class="${qm === v ? 'on' : ''}">${l}</button>`).join('')}</div>` : ''}${session() && qm === 'culto' ? cultSetup() : ''}<button class="btn block big" data-act="quickgame" id="quickgame">${ui.playMode === 'campanha' && (!dlcOn() || (ui.quickMode || 'culto') === 'culto') ? '▶ Começar a campanha' : '▶ Jogar agora'}</button><p class="hint">Partida rápida: 7 lugares, você e 6 IAs no difícil (o nível em Contra a IA vale para a mesa que você monta), sem assistência, ${dlcOn() ? 'tema e continente sorteados' : 'continente sorteado'}.</p><button class="btn ghost block" data-act="tutorial" id="tutorial">📘 Nunca jogou? Tutorial</button></section>`;
+  const pk = packNow();   // D141: the quick game plays the theme picked in "Tema do jogo"
+  return `<section class="card quick" id="quick">${pk === 'culto' ? cultSetup() : ''}<button class="btn block big" data-act="quickgame" id="quickgame">${ui.playMode === 'campanha' && pk === 'culto' ? '▶ Começar a campanha' : '▶ Jogar agora'}</button><p class="hint">Partida rápida: 7 lugares, você e 6 IAs no difícil (o nível em Contra a IA vale para a mesa que você monta), sem assistência, no tema escolhido em Tema do jogo.</p><button class="btn ghost block" data-act="tutorial" id="tutorial">📘 Nunca jogou? Tutorial</button></section>`;
 }
 /** Your game at a glance, at the top of the result (D34): won or lost, with what role, and how the notebook did. */
 function vYours(g: Game): string {

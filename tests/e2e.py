@@ -578,9 +578,8 @@ with sync_playwright() as p:
     assert f"lei {RW['f']}" in txt('#decree').lower() or 'lei liberal' in txt('#decree').lower()
     assert overflow() == 0; shot(f's7-vermelhos-{THEME}.png')
     pg.click('[data-act=end]'); pg.click('[data-act=end]'); pg.click('[data-act=pack][data-v=classico]'); assert txt('#boss') == pg.evaluate('window.__APP.Core.WORDS.classico.boss'), (txt('#boss'), pg.evaluate('[window.__APP.S.pack, !!window.__APP.S.game]'))
-    assert pg.locator('[data-act=quickmode][data-v=culto][aria-selected=true]').count() == 1, 'the quick game starts on Cthulhu (D110)'
-    pg.click('[data-act=quickmode][data-v=mix]'); assert pg.locator('[data-act=quickmode][data-v=mix][aria-selected=true]').count() == 1
-    pg.click('[data-act=quickmode][data-v=culto]'); pg.click('#quickgame'); assert G()['pack'] == 'culto' and len(G()['players']) == 7, 'the quick game of Cthulhu (D108, D110)'
+    assert pg.locator('[data-act=quickmode]').count() == 0, 'no theme tabs on the quick game: Tema do jogo picks it (D141)'
+    pg.click('#pack [data-act=pack][data-v=culto]'); pg.click('#quickgame'); assert G()['pack'] == 'culto' and len(G()['players']) == 7, 'the quick game of Cthulhu (D108, D110)'
 
     cov.stop(pg, f'e2e-{THEME}')
     assert not errs, errs
