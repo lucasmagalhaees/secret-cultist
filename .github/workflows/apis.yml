@@ -1,0 +1,28 @@
+name: APIs
+
+# D149: the two optional APIs (sheets and lore) are checked after every merge to main and once a day. The game never
+# needs them, so a fallen one is silent for the players: this is where it shows. On a pull request it only reports.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: '17 11 * * *'   # every day, 08:17 in Brazil
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  apis:
+    name: apis
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Are the sheets and the lore up? (pull request, only reports)
+        if: github.event_name == 'pull_request'
+        run: python3 scripts/check_apis.py --report
+      - name: The sheets and the lore must be up
+        if: github.event_name != 'pull_request'
+        run: python3 scripts/check_apis.py

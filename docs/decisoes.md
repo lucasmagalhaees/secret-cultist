@@ -994,3 +994,24 @@ Uma IA que diz o contrário do que disse antes sobre o mesmo jogador agora assum
 ## D146. CI resistente ao espelho do Ubuntu (2026-11-11)
 
 O e2e e a cobertura caíram em todos os PRs no `playwright install --with-deps`: o apt do runner não resolvia o espelho do Ubuntu (`Temporary failure resolving 'azure.archive.ubuntu.com'`), uma falha da rede do GitHub, não do código. O Chromium do Playwright agora é baixado sem o apt, e as dependências do sistema (`install-deps`) têm 150 s e não derrubam o CI se o espelho estiver fora: a imagem do GitHub já traz quase tudo, e se faltar algo o próprio teste diz. O runner fica fixo no `ubuntu-24.04`, para uma troca de imagem do `ubuntu-latest` não pegar o CI de surpresa.
+
+## D147. Tela da partida mais limpa, voto confirmado, Leônidas como cara do app (2026-11-11)
+
+- Os pedidos à IA que preside ("me indica", "não indicar", "investigue") ficam recolhidos em "💬 Falar com a mesa"; o pedido de eliminação continua aberto, porque é a hora de falar. O "não esperar" virou um link pequeno, para o único botão cheio ser a jogada da vez.
+- Jogando sozinho, o voto entra no segundo toque na mesma escolha ("toque de novo para confirmar, ou no outro para trocar"): era onde mais se errava o dedo. Não é desfazer (D34): nada já jogado volta.
+- A página pública abre como Secret Leônidas: título, ícone (escudo com lambda, em SVG no próprio HTML) e descrição. O título da aba segue o tema da partida.
+- A tela inicial de quem não entrou mostra só "Jogar agora", o tutorial e as regras; tema, mesa e opções ficam em "⚙ Personalizar".
+- As cartas na mão do presidente ficam um pouco maiores.
+
+## D148. A virada, o humor da mesa, o desafio do dia, o ostracismo e duas colunas (2026-11-11)
+
+- No fim, jogando sozinho, o cartão do resultado diz em que lei a partida virou (a partir da qual quem venceu ficou na frente de vez), quem a aprovou e como a pessoa votou naquele governo (`turning`).
+- Na faixa da mesa, cada IA mostra 😠 ou 🙂 pelo que disse da pessoa em voz alta pela última vez (`moodOf`). É só o que todos ouviram: não diz papel.
+- "🗓 Desafio do dia": a mesa, os papéis e o baralho vêm da data (`dailySeed`), iguais para todo mundo naquele dia, no nível extremo; as IAs decidem como sempre. O resultado compartilhado diz a data.
+- No Secret Leônidas, eliminar vira ostracizar nas palavras da tela, e com os deuses ligados a peste de Atenas chega com o 3º decreto de Esparta. Só palavras.
+- Em tela larga deitada (1100 px ou mais), a partida fica em duas colunas: a jogada da vez à esquerda; tabuleiro, jogadores e registro à direita.
+
+## D149. Saúde das APIs e a lore guardada no aparelho (2026-11-11)
+
+- O jogo nunca espera pelas fichas nem pela lore, então uma API caída passava calada. O `scripts/check_apis.py` bate em `/health` das duas (a de lore precisa estar com o banco, `SupabaseStore`), no workflow `APIs`, depois de cada merge e todo dia às 8h17; em PR só informa. Conferido em 2026-11-11: fichas `{"status":"UP"}`, lore `{"ok":true,"store":"SupabaseStore"}`.
+- Cada frase da lore que chega fica guardada no aparelho com os nomes do lance trocados por lacunas, até 6 por deus e momento. Com a API fora, lenta ou no disjuntor, o narrador usa uma dessas preenchida com os nomes do lance de agora; sem nenhuma, a crônica do código, como antes.

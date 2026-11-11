@@ -148,6 +148,8 @@ export interface Game {
   /** D134: how far the chronicle has told the record, and the person's own thread (an index of STAKES). */
   chron?: number;
   stake?: number;
+  /** D148: the daily challenge: the date of the challenge this game is. */
+  daily?: string;
   /** D144: Secret Leônidas with gods and oracles: the patron of the game, and the oracle of Delphi once consulted. */
   olymp?: string;
   oracle?: { at: number; text: string };

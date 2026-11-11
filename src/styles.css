@@ -1235,3 +1235,20 @@ body:has(.dock-gap) .toast{bottom:calc(var(--dock) + 8px + env(safe-area-inset-b
 :root[data-pack="esparta"] .top{border-bottom:0;background-image:repeating-linear-gradient(90deg,#b4512a 0 6px,transparent 6px 12px);background-size:100% 4px;background-repeat:no-repeat;background-position:bottom;background-color:var(--ink)}
 @media (prefers-color-scheme:dark){:root[data-pack="esparta"]:not([data-theme="light"]){--bg:#17100b;--surface:#2a1a10;--accent:#e98a55;--accent-bg:#b4512a}}
 :root[data-pack="esparta"][data-theme="dark"]{--bg:#17100b;--surface:#2a1a10;--accent:#e98a55;--accent-bg:#b4512a}
+/* D147: the requests to the table, folded; waiting is a small link; the vote asks for a second tap; bigger cards in hand */
+details.asknow>summary{cursor:pointer;list-style:none;min-height:44px;display:flex;align-items:center;font:800 13px/1.2 var(--display);text-transform:uppercase;letter-spacing:.06em}
+details.asknow>summary::-webkit-details-marker{display:none}
+details.asknow>summary::after{content:'▾';margin-left:auto;font-size:16px}
+details.asknow[open]>summary::after{content:'▴'}
+.linkbtn{display:block;margin:10px auto 0;min-height:36px;padding:4px 10px;background:none;border:0;color:var(--muted,var(--fg));opacity:.8;font:600 14px/1 var(--font);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.confirm-vote{margin:10px 0 0;font-weight:700;text-align:center}
+.hand .law{max-width:136px}
+/* D148: the table's mood toward you, the turning point, and two columns on a tablet or a computer in landscape:
+   the move of the turn on the left, the board, the players and the record on the right. */
+.seats .mood{font-style:normal;margin-right:2px}
+.turning{margin:10px 0 0;padding:10px 12px;border-left:4px solid var(--fg);font-weight:600}
+@media (min-width:1100px) and (orientation:landscape){
+  .top .wrap,main .wrap.ingame{max-width:1180px}
+  main .wrap.ingame{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,440px);column-gap:24px;align-items:start}
+  main .wrap.ingame>.col-main,main .wrap.ingame>.col-side{display:flex;flex-direction:column;gap:16px;min-width:0}
+}

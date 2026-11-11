@@ -57,6 +57,8 @@ with sync_playwright() as p:
     pg.goto((ROOT / 'dist/index.html').as_uri()); pg.wait_for_function('window.__APP')
     # D139: the public page plays Secret Leônidas, no login
     assert pg.locator('#login').count() == 0 and pg.locator('[data-act=quickgame]').count() == 1 and pg.text_content('#boss') == 'Leônidas', pg.evaluate("JSON.stringify([!!document.getElementById('login'), document.querySelectorAll('[data-act=quickgame]').length, document.getElementById('boss').textContent, document.documentElement.dataset.pack])")
+    assert pg.locator('#pack').count() == 0 and pg.locator('#rules').count() + pg.locator('[data-act=quickgame]').count() >= 1, 'D147: the public home is short'
+    pg.click('[data-act=custom]')
     assert pg.locator('#pack [data-act=pack]').count() == 1 and pg.locator('[data-act=quickmode]').count() == 0 and pg.locator('#pack [data-act=region]').count() == 0, 'only Secret Leônidas, no continents'
     pg.click('[data-act=oracles]'); assert pg.get_attribute('#oracles', 'aria-pressed') == 'true', 'D144: the gods and oracles toggle'
     pg.click('[data-act=quickgame]'); pg.wait_for_function('window.__APP.S.game')
@@ -73,6 +75,16 @@ with sync_playwright() as p:
     pg.evaluate("window.__APP.S.game = { ...window.__APP.S.game, laws: { L: 1, F: 1 } }"); pg.click('#view [data-act=help]')
     pg.wait_for_selector('#oracleask'); pg.wait_for_function('!(window.__APP.ui.frozen > Date.now())'); pg.click('[data-act=oracle]')   # after the decree's animation
     pg.wait_for_selector('#oracle p'); assert 'Pítia' in pg.inner_text('#oracle') and pg.locator('#oracleask').count() == 0, pg.inner_text('#oracle')
+    pg.evaluate('window.__APP.S.game = null'); cov.reload(pg); pg.wait_for_function('window.__APP')
+    # D148: the daily challenge is the same table for everyone today; on a wide screen the board goes to its own column
+    pg.set_viewport_size({'width': 1280, 'height': 800}); pg.click('[data-act=daily]'); pg.wait_for_function('window.__APP.S.game && window.__APP.S.game.daily')
+    d1 = pg.evaluate('window.__APP.S.game.players.map(p => p.name + p.role).join()')
+    pg.evaluate('window.__APP.ui.think = 1e9')
+    if pg.locator('[data-act=open]').count(): pg.click('[data-act=open]'); pg.click('[data-act=hiderole]')
+    pg.wait_for_selector('#view .col-side #board')
+    pg.evaluate('window.__APP.S.game = null'); cov.reload(pg); pg.wait_for_function('window.__APP'); pg.click('[data-act=daily]'); pg.wait_for_function('window.__APP.S.game && window.__APP.S.game.daily')
+    assert pg.evaluate('window.__APP.S.game.players.map(p => p.name + p.role).join()') == d1, 'the same table and roles the same day'
+    pg.set_viewport_size({'width': 393, 'height': 852}); pg.evaluate('window.__APP.ui.think = null')
     pg.evaluate('window.__APP.S.game = null'); cov.reload(pg); pg.wait_for_function('window.__APP')
     # the dashboard: #painel asks for the login
     pg.click('#painel'); pg.wait_for_selector('#login'); assert pg.locator('#user .who').count() == 0

@@ -752,6 +752,16 @@ export default function cases(Core, pre) {
     eq('D144: to one of the hidden side, the oracle says who is watching them', /Os olhos de|silêncio/.test(Core.consult(fas, Core.seeded(4)).oracle.text), true);
     const said = { ...sp, hist: [{ k: 'talk', by: 1, about: 2, say: 'trust' }, { k: 'gov', pres: 2, chanc: 3, law: 'F' }] };
     eq('D145: an app player that turns on someone it defended owns it, from what the table saw', [Core.mindChange(said, 1, 2, 'acc').startsWith('Eu defendi Caio, e errei'), Core.mindChange(said, 1, 2, 'trust'), Core.mindChange(said, 4, 2, 'acc'), Core.mindChange({ ...said, hist: [{ k: 'talk', by: 1, about: 2, say: 'acc' }] }, 1, 2, 'trust')], [true, '', '', 'Retiro o que disse de Caio. Não tenho mais certeza.']);
+    const end = { ...sp, phase: 'over', winner: 'L', why: 'x', laws: { L: 5, F: 3 }, hist: [{ k: 'gov', pres: 1, chanc: 2, law: 'F' }, { k: 'gov', pres: 2, chanc: 3, law: 'F' }, { k: 'vote', pres: 3, chanc: 4, ja: [0, 3, 4] }, { k: 'gov', pres: 3, chanc: 4, law: 'L' }, { k: 'gov', pres: 4, chanc: 5, law: 'L' }, { k: 'gov', pres: 5, chanc: 6, law: 'L' }] };
+    eq('D148: the turning point is the law after which the winners stayed ahead, with how you voted', [Core.turning(end, 0).startsWith('A partida virou quando Fabio e Gil'), Core.turning({ ...end, phase: 'vote' }, 0), Core.turning({ ...end, hist: [{ k: 'chaos', law: 'L' }] }, 0).includes('caos')], [true, '', true]);
+    const talkd = { ...sp, hist: [{ k: 'talk', by: 2, about: 0, say: 'trust' }, { k: 'talk', by: 3, about: 0, say: 'acc' }, { k: 'talk', by: 2, about: 0, say: 'quiet' }] };
+    eq('D148: the mood of each app player toward you is the last thing it said out loud', [Core.moodOf(talkd, 2, 0), Core.moodOf(talkd, 3, 0), Core.moodOf(talkd, 4, 0), Core.moodOf(talkd, 0, 0)], ['trust', 'acc', '', '']);
+    eq('D148: the daily seed is the same for the same day and differs between days', [Core.dailySeed('2026-11-11') === Core.dailySeed('2026-11-11'), Core.dailySeed('2026-11-11') === Core.dailySeed('2026-11-12')], [true, false]);
+    eq('D148: in Athens one is ostracized, and the plague comes with the third decree of Sparta', [Core.speakAs('esparta', 'Eliminação: X eliminou Y; eliminar alguém'), Core.olympusTell({ ...on, laws: { L: 0, F: 3 }, chron: on.hist.length }).log.at(-1).startsWith('🏛 A peste')], ['Ostracismo: X ostracizou Y; ostracizar alguém', true]);
+    const lq = { at: 9, moment: 'lei-F', god: 'zeus', names: { pres: 'Péricles', chanc: 'Cimon' } };
+    const lp = Core.loreKeep({}, lq, 'Péricles e Cimon leram a página.');
+    eq('D149: a lore line is kept with its names as gaps, and filled with the names of another move', [lp['zeus|lei-F'][0], Core.lorePick(lp, { ...lq, names: { pres: 'Ana', chanc: 'Bia' } }, () => 0), Core.lorePick(lp, { ...lq, names: { pres: 'Ana' } }, () => 0), Core.lorePick(lp, { ...lq, god: 'ares' }, () => 0), Core.readLorePool({ a: ['x', 2], b: 'y' })], ['{pres} e {chanc} leram a página.', 'Ana e Bia leram a página.', null, null, { a: ['x'] }]);
+    eq('D149: only the newest few lines are kept for each moment', Array.from({ length: 9 }, (_, k) => k).reduce((p, k) => Core.loreKeep(p, lq, `linha ${k}`), {})['zeus|lei-F'].length, Core.LORE_POOL_MAX);
   }
   return { n, fails };
 }

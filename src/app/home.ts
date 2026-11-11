@@ -47,14 +47,14 @@ export function vQuick(): string {
   // continent drawn at random; the table below stays for setting up a game by hand
   if (S.game) return '';
   const pk = packNow();   // D141: the quick game plays the theme picked in "Tema do jogo"
-  return `<section class="card quick" id="quick">${pk === 'culto' ? cultSetup() : ''}<button class="btn block big" data-act="quickgame" id="quickgame">${ui.playMode === 'campanha' && pk === 'culto' ? '▶ Começar a campanha' : '▶ Jogar agora'}</button><p class="hint">Partida rápida: 7 lugares, você e 6 IAs no difícil (o nível em Contra a IA vale para a mesa que você monta), sem assistência, no tema escolhido em Tema do jogo.</p><button class="btn ghost block" data-act="tutorial" id="tutorial">📘 Nunca jogou? Tutorial</button></section>`;
+  return `<section class="card quick" id="quick">${pk === 'culto' ? cultSetup() : ''}<button class="btn block big" data-act="quickgame" id="quickgame">${ui.playMode === 'campanha' && pk === 'culto' ? '▶ Começar a campanha' : '▶ Jogar agora'}</button><p class="hint">Partida rápida: 7 lugares, você e 6 IAs no difícil (o nível em Contra a IA vale para a mesa que você monta), sem assistência, no tema escolhido em Tema do jogo.</p><button class="btn ghost block" data-act="tutorial" id="tutorial">📘 Nunca jogou? Tutorial</button><button class="btn ghost block" data-act="daily" id="daily">🗓 Desafio do dia: a mesma partida para todo mundo</button></section>`;
 }
 /** Your game at a glance, at the top of the result (D34): won or lost, with what role, and how the notebook did. */
 export function vYours(g: Game): string {
   const me = solo(g);
   if (me < 0 || !g.winner) return '';
   const p = g.players[me], won = Core.partyOf(p.role) === g.winner, sc = g.notes ? Core.notesScore(g, me) : null, n = sc ? sc.right.length + sc.wrong.length : 0;
-  return `<section class="card yours ${won ? 'won' : 'lost'}" id="yours"><p class="big">${won ? '🏆 Você venceu' : '💀 Você perdeu'}</p><p>Você era <span class="role ${Core.partyOf(p.role)}">${role(p.role)}</span>${n ? ` · caderno: <b>${sc?.right.length}</b> de ${n} certas` : ''}</p>${vBadges(g, me)}<button class="btn ghost block" data-act="share" id="share">📤 Compartilhar resultado</button></section>`;
+  return `<section class="card yours ${won ? 'won' : 'lost'}" id="yours"><p class="big">${won ? '🏆 Você venceu' : '💀 Você perdeu'}</p><p>Você era <span class="role ${Core.partyOf(p.role)}">${role(p.role)}</span>${n ? ` · caderno: <b>${sc?.right.length}</b> de ${n} certas` : ''}</p>${(t => t ? `<p class="turning" id="turning">🔀 ${esc(t)}</p>` : '')(Core.turning(g, me))}${g.daily ? `<p class="hint" id="dailydone">🗓 Desafio de ${g.daily.split('-').reverse().join('/')}: a mesma mesa, os mesmos papéis e o mesmo baralho para todo mundo hoje.</p>` : ''}${vBadges(g, me)}<button class="btn ghost block" data-act="share" id="share">📤 Compartilhar resultado</button></section>`;
 }
 /** The achievements of this game (D41), and how many of all there are the person has on the device. */
 function vBadges(g: Game, me: number): string {
@@ -150,14 +150,18 @@ export function vHistory(): string {
       return `${P0.played ? `<p class="past-rate" id="pastrate"><b>${Math.round(100 * P0.won / P0.played)}%</b> de vitórias suas (${P0.won} de ${P0.played})</p>` : ''}<ol class="past" id="past">${rows.map(r => `<li class="${r.won === undefined ? '' : r.won ? 'won' : 'lost'}"><small>${when(r.at)}</small><span>${esc(Core.WORDS[r.pack as Pack]?.theme || '')} · ${r.seats} lugares</span><b>${r.winner === 'L' ? 'Liberais venceram' : r.winner === 'F' ? `${esc(Core.words(r.pack as Pack).fs)} venceram` : 'Encerrada'}</b>${r.role ? `<em>você: ${r.role === 'liberal' ? 'liberal' : r.role === 'lider' ? esc(Core.words(r.pack as Pack).boss) : esc(Core.words(r.pack as Pack).f)}${r.won !== undefined ? (r.won ? ' · ganhou' : ' · perdeu') : ''}</em>` : ''}</li>`).join('')}</ol>${P0.rows.length > rows.length ? `<button class="more" data-act="pastall" id="pastall">Ver todas (${P0.rows.length})</button>` : ''}`; })() : ''}
     ${n ? `<button class="btn block" data-act="exportgames" id="exportgames">Exportar partidas</button><button class="more" data-act="wipe" id="wipe">${ui.confirmWipe ? 'Toque de novo para apagar todas' : 'Apagar as partidas guardadas'}</button>` : ''}</section>`;
 }
+/** The version of the app and the button to look for a new one (D147: on the short public home too). */
+export function vAbout(): string {
+  const built = builtFrom();
+  return `<section class="card" id="about"><span class="label">Versão do app</span><p class="hint" id="version">${built ? `Versão ${esc(built.slice(0, 7))}.` : 'Versão de desenvolvimento.'} ${canUpdate() ? 'O app fica guardado neste aparelho: abre na hora e também sem internet.' : 'Neste endereço o app não fica guardado no aparelho.'}</p>${canUpdate() ? '<button class="btn ghost block" data-act="checkupdate">Procurar versão nova</button>' : ''}</section>`;
+}
 export function vSettings(): string {
   const t = S.theme || 'auto', opt = (v: string, label: string): string => `<button class="${t === v ? 'on' : ''}" data-act="theme" data-t="${v}" aria-pressed="${t === v}">${label}</button>`;
   const l = S.look || 'poster', sty = (v: string, label: string): string => `<button class="${l === v ? 'on' : ''}" data-act="look" data-l="${v}" aria-pressed="${l === v}">${label}</button>`;
-  const built = builtFrom();
   return `<section class="card" id="look"><span class="label">Aparência</span><p class="hint">Estilo</p><div class="segm" role="group" aria-label="Estilo">${sty('poster', 'Pôster')}${sty('deco', 'Art déco')}</div><p class="hint">Tema</p><div class="segm" role="group" aria-label="Tema">${opt('auto', 'Automático')}${opt('light', 'Claro')}${opt('dark', 'Escuro')}</div><p class="hint">Som e vibração</p><div class="segm" role="group" aria-label="Som e vibração"><button class="${S.quiet ? '' : 'on'}" data-act="fx" data-v="on" aria-pressed="${!S.quiet}">Ligados</button><button class="${S.quiet ? 'on' : ''}" data-act="fx" data-v="off" aria-pressed="${!!S.quiet}">Desligados</button></div>
     <p class="hint">Esconder o segredo ao virar o celular para baixo</p><div class="segm" role="group" aria-label="Esconder ao virar o celular"><button class="${S.flip ? '' : 'on'}" data-act="flip" data-v="off" aria-pressed="${!S.flip}">Desligado</button><button class="${S.flip ? 'on' : ''}" data-act="flip" data-v="on" aria-pressed="${!!S.flip}">Ligado</button></div>
     <p class="hint" id="fliptext">${S.flip ? 'Um segredo aberto se fecha quando o celular fica de tela para baixo. Deitado, o sensor pode achar que o celular foi virado.' : 'Um segredo aberto se fecha quando o app sai da tela. Ligado, também se fecha com o celular de tela para baixo.'}</p></section>
-    <section class="card" id="about"><span class="label">Versão do app</span><p class="hint" id="version">${built ? `Versão ${esc(built.slice(0, 7))}.` : 'Versão de desenvolvimento.'} ${canUpdate() ? 'O app fica guardado neste aparelho: abre na hora e também sem internet.' : 'Neste endereço o app não fica guardado no aparelho.'}</p>${canUpdate() ? '<button class="btn ghost block" data-act="checkupdate">Procurar versão nova</button>' : ''}</section>`;
+    ${vAbout()}`;
 }
 /** The vote result, stamped over the screen for a moment. */
 export function vLogin(): string {

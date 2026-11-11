@@ -1,6 +1,6 @@
 import { Core } from '../core';
 import { ARAB, CLERIC, RUSSIAN } from './art';
-import type { Breaker, Entry, Game, Json, Region, Sheet } from '../core';
+import type { Breaker, Entry, Game, Json, LorePool, Region, Sheet } from '../core';
 
 /* ================= the outside source =================
    Every call goes through getJSON. What comes back is read only by the normalisers of src/core/source.ts. The entries
@@ -107,12 +107,18 @@ const LORE_KEY = 'secretcultist.lore.v1';
 let loreB: Breaker | null = null;
 const getLB = (): Breaker => (loreB ??= (() => { try { return Core.readBreaker(JSON.parse(localStorage.getItem(LORE_KEY) || 'null')); } catch { return Core.readBreaker(null); } })());
 const keepLB = (b: Breaker): void => { loreB = b; try { localStorage.setItem(LORE_KEY, JSON.stringify(b)); } catch { /* storage may be off */ } };
+/** D149: the lore lines kept on the device, for when the API is down. */
+const LORE_POOL = 'secretcultist.lore.pool.v1';
+const readLore = (): LorePool => { try { return Core.readLorePool(JSON.parse(localStorage.getItem(LORE_POOL) || 'null')); } catch { return {}; } };
+const writeLore = (p: LorePool): void => { try { localStorage.setItem(LORE_POOL, JSON.stringify(p)); } catch { /* storage may be off */ } };
 export async function askLore(q: { at: number; moment: string; god: string; names: Record<string, string> }): Promise<string | null> {
-  if (!Core.breakerAllows(getLB(), Date.now())) return null;
+  const kept = (): string | null => Core.lorePick(readLore(), q, Core.seeded(q.at * 31 + q.moment.length));   // D149: a line kept on the device
+  if (!Core.breakerAllows(getLB(), Date.now())) return kept();
   const p = new URLSearchParams({ campaign: 'secret-cultist', moment: q.moment, god: q.god, seed: String(q.at), ...q.names });
   try {
     const r = Core.normLore(await getJSON(`${LORE}?${p}`, LORE_WAIT));
     keepLB(Core.breakerOk());
-    return r ? r.text : null;
-  } catch { keepLB(Core.breakerFail(getLB(), Date.now())); return null; }
+    if (r) writeLore(Core.loreKeep(readLore(), q, r.text));
+    return r ? r.text : kept();
+  } catch { keepLB(Core.breakerFail(getLB(), Date.now())); return kept(); }
 }

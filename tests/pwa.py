@@ -74,7 +74,7 @@ with sync_playwright() as p:
     # no connection at all: the page still opens, from the device
     site['down'] = True; before = len(site['hits'])
     cov.reload(pg); pg.wait_for_function('window.__APP && window.__APP.S')
-    check('opens with the site unreachable', pg.title() == 'Secret Cultist' and pg.evaluate('!!document.getElementById("view").textContent'), pg.title())
+    check('opens with the site unreachable', pg.title() == 'Secret Leônidas' and pg.evaluate('!!document.getElementById("view").textContent'), pg.title())
     check('the page did not come from the network', '/index.html' not in site['hits'][before:] and '/' not in site['hits'][before:], site['hits'][before:])
     stored = pg.evaluate('caches.keys().then(ks => Promise.all(ks.map(k => caches.open(k).then(c => c.keys())))).then(all => all.flat().map(r => r.url))')
     check('the worker keeps the page and nothing else', stored == [BASE + '/'], stored)

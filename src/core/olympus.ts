@@ -34,7 +34,9 @@ export function olympusTell(g: Game): Game {
     const e: Event = g.hist[k];
     if ((e.k === 'gov' || e.k === 'chaos') && e.law) lines.push(`🏛 ${e.law === 'L' ? o.L : o.F}.`);
   }
-  return from === g.hist.length ? g : { ...g, chron: g.hist.length, log: [...g.log, ...lines] };
+  // D148: the plague of Athens (430 a.C.) arrives with the third decree of Sparta, once: only words, like the patron
+  if (g.laws.F >= 3 && !g.log.some(l => l.startsWith('🏛 A peste'))) lines.push('🏛 A peste chega a Atenas pelo porto. A Assembleia fica mais vazia, e cada um olha o vizinho de lado.');
+  return !lines.length && from === g.hist.length ? g : { ...g, chron: g.hist.length, log: [...g.log, ...lines] };
 }
 
 /** The person playing alone, or -1. */

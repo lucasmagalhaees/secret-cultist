@@ -59,6 +59,7 @@ run contract python3 tests/contract.py
 run guard    python3 tests/guard.py
 run affected python3 scripts/affected.py
 run prod     python3 scripts/check_production.py --selftest
+run apis     python3 scripts/check_apis.py --selftest
 if [ "$full" -eq 1 ]; then
   run e2e-dark  python3 tests/e2e.py dark
   run iphone    python3 tests/iphone.py chromium
