@@ -439,7 +439,7 @@ const LABEL: Record<string, string> = {
 /** The animal behind each role, by name, for the gallery (D25). */
 export const animalOf = (r: Role, pack: Pack = 'culto', region: Region = 'mundo'): string => {
   if (pack === 'culto') return r === 'liberal' ? 'investigador' : r === 'lider' ? 'sumo sacerdote' : 'cultista';   // D96
-  if (pack === 'esparta') return r === 'liberal' ? 'coruja ateniense' : r === 'lider' ? 'leão de Esparta' : 'lobo espartano';   // D139
+  if (pack === 'esparta') return r === 'liberal' ? 'hoplita ateniense' : r === 'lider' ? 'rei de Esparta' : 'hoplita espartano';   // D139, D150
   if (region === 'mundo') return r === 'liberal' ? 'pássaro' : pack === 'vermelho' ? (r === 'lider' ? 'urso' : 'lobo-branco') : r === 'lider' ? 'naja' : 'jacaré';
   if (r === 'lider') return LABEL[BOSSES[region][pack === 'vermelho' ? 'S' : 'H']];
   return LABEL[ANIMALS[region][r === 'liberal' ? 'L' : pack === 'vermelho' ? 'C' : 'F']];
@@ -457,54 +457,148 @@ const investigator = (): string => `<circle cx="60" cy="62" r="52" fill="#f2d98a
 const cultist = (): string => `<circle cx="60" cy="62" r="52" fill="#c4381f" opacity=".25"/><path d="M18 118c4-40 18-78 42-90 24 12 38 50 42 90z" fill="#9e2414" ${K}/><path d="M36 74c0-24 10-38 24-38s24 14 24 38c-6 6-14 9-24 9s-18-3-24-9z" fill="#2a0f0a" ${K}/><path d="M44 48c-10-6-16-2-18 6 6-3 10-2 14 2M76 48c10-6 16-2 18 6-6-3-10-2-14 2" fill="#efe6d2" ${K}/><path d="M46 50c2-6 8-8 14-8s12 2 14 8l-3 16c-2 8-6 14-11 16-5-2-9-8-11-16z" fill="#efe6d2" ${K}/><path d="M50 56l6 3-5 3zM70 56l-6 3 5 3z" fill="#15110e"/><path d="M57 70h6l-3 5z" fill="#15110e"/><path d="M55 78h10M57 82h6" stroke="#15110e" stroke-width="2"/><path d="M48 118l12-26 12 26" fill="#2a0f0a" ${K}/>`;
 // the High Priest: black robe and gold mitre over a face of tentacles, more of them crawling out from under the robe
 const priest = (): string => `<circle cx="60" cy="62" r="52" fill="#3c6e71" opacity=".3"/><path d="M14 118c4-40 18-74 46-86 28 12 42 46 46 86z" fill="#1d1a24" ${K}/><path d="M40 74c0-22 9-34 20-34s20 12 20 34c-6 5-13 8-20 8s-14-3-20-8z" fill="#2f5a5c" ${K}/><circle cx="52" cy="58" r="3.5" fill="#d4ac0d"/><circle cx="68" cy="58" r="3.5" fill="#d4ac0d"/><path d="M46 66c-2 10 0 18-6 26M53 68c0 10 2 18-2 28M60 68c0 12 2 20 0 30M67 68c0 10-2 18 2 28M74 66c2 10 0 18 6 26" fill="none" stroke="#3c8a8c" stroke-width="5" stroke-linecap="round"/><path d="M46 66c-2 10 0 18-6 26M53 68c0 10 2 18-2 28M60 68c0 12 2 20 0 30M67 68c0 10-2 18 2 28M74 66c2 10 0 18 6 26" fill="none" stroke="#15110e" stroke-width="1.5" stroke-dasharray="1 4" stroke-linecap="round"/><path d="M44 38 50 6l10 14 10-14 6 32c-5-3-10-4-16-4s-11 1-16 4z" fill="#d4ac0d" ${K}/><circle cx="60" cy="24" r="4" fill="#3c6e71" ${K}/><path d="M18 116c4-10 10-12 12-4s8 6 10-4M80 112c2-10 8-10 10-2s8 4 10-6" fill="none" stroke="#3c8a8c" stroke-width="6" stroke-linecap="round"/>`;
-// D139: Secret Leônidas, in the same cartoon as the rest: full figures on the spotlight, thick ink, big heads.
-// The Athenian: a round owl (Athena's bird) in a blue chiton and a bronze Corinthian helmet with a blue plume, a spear
-// and the round shield with Athena's owl; the Spartan: a grey wolf in a red cloak, a helmet with a black crest across
-// and the lambda on the shield; Leônidas, "son of the lion": a lion with a great mane, a tall red crest and a red cloak.
-const BRONZE = '#c8902e', BRONZE2 = '#9c6a1c', CLOAK = '#b3261e', CLOAK2 = '#8a1a14';
-const helmet = (crest: string, across: boolean): string => `
-  <path d="M44 34 C44 16 58 10 68 10 C80 10 92 18 92 34 L90 50 L84 50 L82 36 L54 36 L52 50 L46 50Z" fill="${BRONZE}" ${o()}/>
-  <path d="M66 36 L68 52 L70 36Z" fill="${BRONZE2}" ${o(1.6)}/>
-  <path d="M50 26 C60 22 76 22 86 26" fill="none" stroke="${BRONZE2}" stroke-width="3"/>
-  ${across
-    ? `<path d="M40 14 C52 2 84 2 96 14 L92 18 C80 10 56 10 44 18Z" fill="${crest}" ${o()}/>`
-    : `<path d="M60 12 C60 -2 92 -2 98 18 C92 12 78 10 72 16Z" fill="${crest}" ${o()}/>`}`;
-const shield = (mark: string): string => `<circle cx="28" cy="84" r="20" fill="${BRONZE}" ${o()}/><circle cx="28" cy="84" r="14" fill="none" stroke="${BRONZE2}" stroke-width="3"/>${mark}`;
-const legs = (c: string): string => `<path d="M50 100 L48 113 M44 113 h8 M66 100 L68 113 M64 113 h8" fill="none" stroke="${K}" stroke-width="6" stroke-linecap="round"/><path d="M50 100 L48 113 M44 113 h8 M66 100 L68 113 M64 113 h8" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`;
-const spear = `<path d="M100 22 L100 112" ${o(4)}/><path d="M100 22 L100 112" stroke="#8a5a2a" stroke-width="2"/><path d="M100 8 L105 22 L95 22Z" fill="#cfd3d6" ${o(2)}/>`;
-const athenian = (): string => `${spot}${spear}${legs('#e0a12a')}
-  <path d="M38 82 C38 64 50 56 60 56 C74 56 84 66 84 82 C84 98 74 104 60 104 C46 104 38 98 38 82Z" fill="#2e5d8a" ${o()}/>
-  <path d="M52 60 L60 74 L68 60" fill="none" stroke="${W}" stroke-width="3"/>
-  <path d="M84 70 L98 64" ${o(5)}/><path d="M84 70 L98 64" stroke="#a6784a" stroke-width="3"/>
-  ${shield(`<circle cx="24" cy="82" r="4" fill="${W}" ${o(1.4)}/><circle cx="32" cy="82" r="4" fill="${W}" ${o(1.4)}/><circle cx="24" cy="82" r="1.6" fill="${K}"/><circle cx="32" cy="82" r="1.6" fill="${K}"/><path d="M26 88 L28 92 L30 88Z" fill="${K}"/>`)}
-  <ellipse cx="68" cy="40" rx="24" ry="22" fill="#a6784a" ${o()}/>
-  <ellipse cx="68" cy="44" rx="18" ry="15" fill="#e8cfa4"/>
-  <circle cx="60" cy="42" r="8.5" fill="#f6d64a" ${o(2)}/><circle cx="77" cy="42" r="8.5" fill="#f6d64a" ${o(2)}/>
-  <circle cx="61" cy="43" r="4" fill="${K}"/><circle cx="78" cy="43" r="4" fill="${K}"/><circle cx="62.4" cy="41.6" r="1.3" fill="${W}"/><circle cx="79.4" cy="41.6" r="1.3" fill="${W}"/>
-  <path d="M65 50 L68.5 57 L72 50Z" fill="#e0a12a" ${o(1.8)}/>
-  ${helmet('#2e5d8a', false)}`;
-const spartan = (): string => `${spot}${spear}${legs('#8a8f96')}
-  <path d="M30 104 C32 76 44 60 60 60 C78 60 90 76 92 104Z" fill="${CLOAK}" ${o()}/>
-  <path d="M46 66 C52 74 68 74 74 66 L72 100 L48 100Z" fill="${CLOAK2}"/>
-  ${shield(`<path d="M20 94 L28 74 L36 94" fill="none" stroke="${CLOAK}" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>`)}
-  <path d="M46 50 C46 34 56 26 68 26 C80 26 90 34 90 50 C90 58 84 62 80 62 L56 62 C50 62 46 58 46 50Z" fill="#8a8f96" ${o()}/>
-  <path d="M74 50 C82 50 100 52 104 58 C100 64 86 64 76 62Z" fill="#b8bcc1" ${o()}/>
-  <circle cx="103" cy="57" r="3" fill="${K}"/>
-  <path d="M84 60 C90 62 96 62 100 61" fill="none" ${o(1.6)}/><path d="M86 61 l2 4 l2 -4 M92 61 l2 4 l2 -4" fill="${W}" ${o(1)}/>
-  <path d="M62 44 L72 46 L64 50Z" fill="#f6d64a" ${o(1.6)}/><circle cx="67" cy="47" r="1.6" fill="${K}"/>
-  <path d="M52 30 L48 14 L60 24Z" fill="#8a8f96" ${o()}/>
-  ${helmet(K, true)}`;
-const leonidas = (): string => `${spot}${spear}${legs('#d9902e')}
-  <path d="M26 106 C28 74 42 58 60 58 C80 58 94 74 96 106Z" fill="${CLOAK}" ${o()}/>
-  ${shield(`<path d="M20 94 L28 74 L36 94" fill="none" stroke="${GOLD}" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>`)}
-  <path d="M68 16 C96 16 104 38 100 54 C98 66 88 74 68 74 C48 74 38 66 36 54 C32 38 40 16 68 16Z" fill="#b5651d" ${o()}/>
-  <path d="M42 36 l-6 -4 M40 48 l-7 1 M44 60 l-6 4 M94 36 l6 -4 M96 48 l7 1 M92 60 l6 4" ${o(2.2)}/>
-  <ellipse cx="68" cy="50" rx="20" ry="19" fill="#e9b45f" ${o()}/>
-  <path d="M56 44 l8 2 l-7 3Z M80 44 l-8 2 l7 3Z" fill="${K}"/>
-  <path d="M63 54 h10 l-5 5Z" fill="#4a2a14" ${o(1.4)}/>
-  <path d="M58 60 C62 68 74 68 78 60 C74 64 62 64 58 60Z" fill="#7a1a10" ${o(1.8)}/><path d="M61 62 l1.5 3 M75 62 l-1.5 3" stroke="${W}" stroke-width="2"/>
-  ${helmet(RED, true)}
-  <path d="M40 14 C52 -2 84 -2 96 14" fill="none" stroke="${GOLD}" stroke-width="2"/>`;
+// D150: Secret Leônidas, drawn again (by Claude Fable 5.1, approved by the user): helmeted hoplite busts in the style of
+// the other portraits. The Athenian in profile with a Corinthian helmet pushed up (like the Pericles bust), white and blue;
+// the Spartan anonymous behind a closed helmet and the lambda shield, eyes glowing; Leônidas with the ram-horn cheek guards
+// of the marble "Leonidas" of Sparta, a general's transverse crest, red cloak and spear. Gradient ids are fixed per piece.
+const athenian = (): string => `<defs>
+<radialGradient id="atV" cx="55%" cy="42%" r="62%"><stop offset="0" stop-color="#eaf7ff"/><stop offset=".55" stop-color="#74b4e4"/><stop offset="1" stop-color="#1d4a86"/></radialGradient>
+<clipPath id="atC"><path d="M-10 -10H130V60H-10Z"/><circle cx="60" cy="60" r="57"/></clipPath>
+</defs>
+<circle cx="60" cy="60" r="57" fill="url(#atV)" stroke="#1b1512" stroke-width="2.6"/>
+<g clip-path="url(#atC)" stroke="#1b1512" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">
+<!-- crest -->
+<path d="M88 19C86 5 68 0 52 2C30 5 15 24 15 50C15 60 18 68 23 75C24 62 27 52 32 44L60 30Z" fill="#f6f1e6"/>
+<path d="M85 19C76 7.500 60 5.500 48 9.500C31 15.500 21 34 20.500 62" fill="none" stroke="#2f66b3" stroke-width="4" stroke-linecap="butt"/>
+<g stroke-width="1.1" fill="none"><path d="M72 5L74 14M58 3L60 12M44 6L48 15M32 14L38 21M23 26L30 31M18 40L25 43M17 54L24 54"/></g>
+<!-- cloak behind -->
+<path d="M46 72C28 78 12 96 6 122L46 122Z" fill="#2f66b3"/>
+<path d="M30 92C24 100 20 110 18 120" fill="none" stroke-width="1.6"/>
+<!-- neck -->
+<path d="M52 66L49 100L77 100L73 74Z" fill="#dba06c"/>
+<path d="M54 76L74 80L74 88C66 86 58 82 54 76Z" fill="#b57a4c" stroke="none"/>
+<!-- linothorax -->
+<path d="M20 122C22 102 34 91 50 87L62 96L77 90C90 94 98 106 100 122Z" fill="#f3eee2"/>
+<path d="M50 87L62 96L77 90L78 95L61 102L46 92Z" fill="#2f66b3" stroke-width="1.5"/>
+<path d="M34 98C32 106 31 114 31 122" fill="none" stroke-width="1.4"/>
+<!-- face -->
+<path d="M70 36L75.5 44L84 56Q83.5 59 79.5 59L80 61.5Q82 63 80 64.5Q81.5 66.5 79.5 68Q78 70 80 73Q80.5 79 73 80L58 77Q47 70 47 54L50 36Z" fill="#e3aa76"/>
+
+<!-- hair + beard -->
+<path d="M72 36Q69 44 63 43.500Q64 48 60 49Q55 49 54 54L52 60Q46 58 45 50Q44 42 48 36Z" fill="#3b2a20"/>
+<path d="M55 57C57 63 62 66 68 66.500C72 67 74 66.500 76 66.500L79.500 67.500Q78 70 80.500 73Q82.500 79 76 82Q72 84.500 68 82.500Q63 83.500 60 79.500Q55 78 54 72Q50 66 52 58Z" fill="#3b2a20"/>
+<path d="M71 63.500Q75 59 80.500 60.500Q82 62.500 80 63.800Q75 63.300 72 65.500Z" fill="#3b2a20" stroke-width="1.6"/>
+<path d="M56.500 52.500Q60.500 50 61.500 54Q62 58.500 58.500 60Q56.500 60 56.500 57.500Z" fill="#e3aa76" stroke-width="1.5"/><path d="M58.300 54Q59.800 54.500 59.300 57" fill="none" stroke-width="1"/>
+<path d="M60 72Q63 75 67 75M66 70Q69 72 73 71" fill="none" stroke="#6b4a36" stroke-width="1.3"/>
+<!-- eye -->
+<path d="M68 49.500Q72 45.500 78 48.200Q74 52 68 49.500Z" fill="#fff" stroke-width="1.2"/>
+<circle cx="75" cy="48.600" r="1.9" fill="#1b1512" stroke="none"/>
+<path d="M68 49.3Q72 45.500 78 48.200" fill="none" stroke-width="2"/>
+<path d="M65.500 45.500Q71 42.500 78.500 46.300" fill="none" stroke-width="3"/>
+<!-- helmet pushed up -->
+<path d="M33 67C26 46 31 15 60 13C70 12.5 79 15 84 20L93 30.5L87.5 31.5L91 38.5Q80 41.5 70 39.5C60 38.5 52 42 48 50C45 56 43 62 41 68Z" fill="#dfe5ea"/>
+<path d="M33 67C26 46 31 15 60 13C48 18 40 30 40 46C40 54 40 62 41 68Z" fill="#a9b4c0" stroke="none"/>
+<path d="M56 17C64 15 72 16 78 20C70 19 62 19 54 21Z" fill="#ffffff" stroke="none"/>
+<path d="M73.5 30.5Q80 24.5 87 30Q80 34.5 73.5 30.5Z" fill="#1b1512" stroke-width="1.4"/>
+<path d="M88 36Q79 38 70 36.5C59 35.5 50 39 45.5 48" fill="none" stroke-width="1.2"/>
+<!-- olive leaves -->
+<g fill="#d9a93a" stroke-width="1.2"><path d="M46 36Q50 28 58 28Q54 35 46 36Z"/><path d="M56 30Q61 23 69 24Q64 30 56 30Z"/><path d="M45 40Q43 31 48 25Q51 33 45 40Z"/></g>
+<!-- shield -->
+<circle cx="87" cy="99" r="26" fill="#e0b04a"/>
+<circle cx="87" cy="99" r="20.500" fill="#2f66b3" stroke-width="1.6"/>
+<path d="M66 89A23.500 23.500 0 0 1 82 76" fill="none" stroke="#fff3c4" stroke-width="1.6"/>
+</g>
+<path d="M3 60A57 57 0 0 0 117 60" fill="none" stroke="#1b1512" stroke-width="2.6"/>`;
+const spartan = (): string => `<defs>
+<radialGradient id="esV" cx="50%" cy="42%" r="62%"><stop offset="0" stop-color="#e8604a"/><stop offset=".55" stop-color="#8e1f1a"/><stop offset="1" stop-color="#2a0808"/></radialGradient>
+<clipPath id="esC"><path d="M-10 -10H130V60H-10Z"/><circle cx="60" cy="60" r="57"/></clipPath>
+<filter id="esG" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="2.2"/></filter>
+</defs>
+<circle cx="60" cy="60" r="57" fill="url(#esV)" stroke="#1b1512" stroke-width="2.6"/>
+<g clip-path="url(#esC)" stroke="#1b1512" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">
+<!-- crest -->
+<path d="M64 8C92 4 113 30 109 70L105 87L101.500 78L98 89L94 77C96 60 90 42 72 28Z" fill="#a81e18"/>
+<path d="M78 14L76 22M90 22L85 28M99 34L93 38M104 48L97 50M105 62L98 62" fill="none" stroke-width="1.1" opacity=".8"/>
+<path d="M54 30C52 18 48 10 45 4L49.500 6L52.500 1.500L56.500 5L60 0.800L63.500 5L67.500 1.500L70.500 6L75 4C72 10 68 18 66 30Z" fill="#d8301f"/>
+<path d="M56.500 9L57.500 24M60 6L60 24M63.500 9L62.500 24" fill="none" stroke="#7d1310" stroke-width="1.2"/>
+<!-- body -->
+<path d="M28 122C32 100 44 91 60 89C80 89 96 98 104 122Z" fill="#a8702c"/>
+<path d="M72 86C90 86 106 96 118 122L80 122C82 108 80 97 72 86Z" fill="#c8281e"/>
+<path d="M84 94C90 102 93 112 94 122M98 100C103 108 106 115 108 122" fill="none" stroke-width="1.4"/>
+<circle cx="78" cy="92" r="4.2" fill="#e9b94f" stroke-width="1.8"/>
+<g transform="translate(60 23) scale(.92) translate(-60 -16)">
+<!-- helmet -->
+<path d="M60 16C83 16 96 32 96 52C96 68 91 83 83 93L67 98L60 94L53 98L37 93C29 83 24 68 24 52C24 32 37 16 60 16Z" fill="#cf9038"/>
+<path d="M60 16C83 16 96 32 96 52C96 68 91 83 83 93L75 95.5C84 82 88 68 87 52C86 34 76 21 60 16Z" fill="#96591f" stroke="none"/>
+<path d="M32 46C33 33 42 24 54 21C45 27 39 36 38 47Z" fill="#f7d488" stroke="none"/>
+<path d="M56 17L57.5 48Q60 51 62.5 48L64 17Z" fill="#e9b94f" stroke-width="1.5"/>
+<path d="M30 45Q46 39 58 52M90 45Q74 39 62 52" fill="none" stroke="#f7d488" stroke-width="1.5"/>
+<path d="M33 50Q46 47 56 57L57 72Q60 76 63 72L64 57Q74 47 87 50Q83 65 66 66L64.5 99L55.5 99L54 66Q37 65 33 50Z" fill="#120b09"/>
+<g stroke="none"><ellipse cx="46" cy="57.5" rx="8" ry="5" fill="#ff3b1f" filter="url(#esG)"/><ellipse cx="74" cy="57.5" rx="8" ry="5" fill="#ff3b1f" filter="url(#esG)"/>
+<path d="M39 54Q47 53 53 60Q45 62 39 54Z" fill="#ff5a2a"/><path d="M81 54Q73 53 67 60Q75 62 81 54Z" fill="#ff5a2a"/>
+<path d="M43 55.5Q47 55.5 50.5 59Q46 59.5 43 55.5Z" fill="#ffe27a"/><path d="M77 55.5Q73 55.5 69.5 59Q74 59.5 77 55.5Z" fill="#ffe27a"/></g>
+<path d="M70 30L76 36M73 29L77 33" fill="none" stroke-width="1" opacity=".7"/>
+</g>
+<!-- shield -->
+<circle cx="40" cy="110" r="39" fill="#e0a945"/>
+<circle cx="40" cy="110" r="32" fill="#c08232" stroke-width="1.6"/>
+<path d="M6 99A36 36 0 0 1 30 75.5" fill="none" stroke="#fff0b8" stroke-width="1.8"/>
+<path d="M40 82L23 121L32 121L40 101L48 121L57 121Z" fill="#c8281e" stroke-width="2.2"/>
+</g>
+<path d="M3 60A57 57 0 0 0 117 60" fill="none" stroke="#1b1512" stroke-width="2.6"/>`;
+const leonidas = (): string => `<defs>
+<radialGradient id="leV" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#a3241a"/><stop offset=".6" stop-color="#4a0f12"/><stop offset="1" stop-color="#17070a"/></radialGradient>
+<clipPath id="leC"><path d="M-10 -10H130V60H-10Z"/><circle cx="60" cy="60" r="57"/></clipPath>
+<clipPath id="leR"><circle cx="60" cy="60" r="56"/></clipPath>
+<filter id="leG" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="2.2"/></filter>
+</defs>
+<circle cx="60" cy="60" r="57" fill="url(#leV)" stroke="#1b1512" stroke-width="2.6"/>
+<path d="M60 60L139.8 54.4L139.8 65.6ZM60 60L136.9 82.1L133.1 92.5ZM60 60L124.7 107.0L117.5 115.6ZM60 60L104.7 126.3L95.1 131.9ZM60 60L79.4 137.6L68.4 139.6ZM60 60L51.6 139.6L40.6 137.6ZM60 60L24.9 131.9L15.3 126.3ZM60 60L2.5 115.6L-4.7 107.0ZM60 60L-13.1 92.5L-16.9 82.1ZM60 60L-19.8 65.6L-19.8 54.4ZM60 60L-16.9 37.9L-13.1 27.5ZM60 60L-4.7 13.0L2.5 4.4ZM60 60L15.3 -6.3L24.9 -11.9ZM60 60L40.6 -17.6L51.6 -19.6ZM60 60L68.4 -19.6L79.4 -17.6ZM60 60L95.1 -11.9L104.7 -6.3ZM60 60L117.5 4.4L124.7 13.0ZM60 60L133.1 27.5L136.9 37.9Z" fill="#f0b93c" opacity=".16" clip-path="url(#leR)"/>
+<circle cx="60" cy="60" r="53.6" fill="none" stroke="#f0b93c" stroke-width="1.8"/>
+<g clip-path="url(#leC)" stroke="#1b1512" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round">
+<!-- transverse crest -->
+<path d="M91.0 50.0L109.5 50.0L106.5 47.4L109.2 44.5L105.9 42.2L108.3 39.0L104.8 37.1L106.7 33.7L103.1 32.2L104.6 28.5L100.8 27.5L101.9 23.7L98.0 23.0L98.7 19.1L94.7 18.9L95.0 15.0L91.1 15.3L90.9 11.3L87.0 12.0L86.3 8.1L82.5 9.2L81.5 5.4L77.8 6.9L76.3 3.3L72.9 5.2L71.0 1.7L67.8 4.1L65.5 0.8L62.6 3.5L60.0 0.5L57.4 3.5L54.5 0.8L52.2 4.1L49.0 1.7L47.1 5.2L43.7 3.3L42.2 6.9L38.5 5.4L37.5 9.2L33.7 8.1L33.0 12.0L29.1 11.3L28.9 15.3L25.0 15.0L25.3 18.9L21.3 19.1L22.0 23.0L18.1 23.7L19.2 27.5L15.4 28.5L16.9 32.2L13.3 33.7L15.2 37.1L11.7 39.0L14.1 42.2L10.8 44.5L13.5 47.4L10.5 50.0L29.0 50.0A31 31 0 1 1 91.0 50.0Z" fill="#d42c20"/>
+<path d="M99.3 45.6L105.7 44.8M97.3 37.0L103.4 34.8M93.4 29.0L98.9 25.5M87.9 22.1L92.5 17.5M81.0 16.6L84.5 11.1M73.0 12.7L75.2 6.6M64.4 10.7L65.2 4.3M55.6 10.7L54.8 4.3M47.0 12.7L44.8 6.6M39.0 16.6L35.5 11.1M32.1 22.1L27.5 17.5M26.6 29.0L21.1 25.5M22.7 37.0L16.6 34.8M20.7 45.6L14.3 44.8" fill="none" stroke="#7d1310" stroke-width="1.3"/>
+<path d="M98.0 50.0A38 38 0 1 0 22.0 50.0" fill="none" stroke-width="1.2"/>
+<path d="M95.2 49.4A35.2 35.2 0 1 0 24.8 49.4" fill="none" stroke="#f6f1e6" stroke-width="4.6" stroke-linecap="butt"/>
+<path d="M95.2 49.4A35.2 35.2 0 1 0 24.8 49.4" fill="none" stroke="#1b1512" stroke-width="4.6" stroke-dasharray="3.2 3.2" stroke-linecap="butt"/>
+<!-- cuirass -->
+<path d="M8 122C10 100 26 86 46 82L74 82C94 86 110 100 112 122Z" fill="#cf9038"/>
+<path d="M76 84C90 88 100 98 104 112" fill="none" stroke="#f7d488" stroke-width="1.8"/>
+<path d="M70 96C78 96 86 100 90 108" fill="none" stroke-width="1.5"/>
+<!-- cloak -->
+<path d="M0 122C2 98 20 84 46 80C56 92 72 108 86 122Z" fill="#c8281e"/>
+<path d="M46 80C56 92 72 108 86 122L76 122C63 109 50 96 39 83Z" fill="#f0b93c" stroke-width="1.5"/>
+<path d="M47.5 87L51 84.5M53.5 93.5L57 91M60 100L63.5 97.5M66.5 106.5L70 104M73 113L76.500 110.500" fill="none" stroke-width="1.3"/>
+<path d="M16 96C14 104 13 112 13 120M28 90C27 100 27 110 28 120" fill="none" stroke-width="1.4"/>
+<!-- beard -->
+<path d="M55 74L65 74L65 87L81 83C83 91 79 97 75 100Q72 104 68 104Q64 109 60 108Q56 109 52 104Q48 104 45 100C41 97 37 91 39 83L55 87Z" fill="#4a2c1c"/>
+<path d="M50 92Q51 98 55 101M70 92Q69 98 65 101M60 90L60 102" fill="none" stroke="#8a5a34" stroke-width="1.5"/>
+<!-- helmet -->
+<path d="M60 20C81 20 92 33 92 50C92 64 88 77 81 86L66 90L60 87L54 90L39 86C32 77 28 64 28 50C28 33 39 20 60 20Z" fill="#f0b93c"/>
+<path d="M60 20C81 20 92 33 92 50C92 64 88 77 81 86L74 88C82 76 85 63 84 50C83 35 74 24 60 20Z" fill="#b97a22" stroke="none"/>
+<path d="M34 44C35 34 42 27 52 24C45 29 40 36 39 45Z" fill="#fff3c0" stroke="none"/>
+<path d="M33.500 45Q47 40.500 58 51M86.500 45Q73 40.500 62 51" fill="none" stroke="#9a6218" stroke-width="1.6"/>
+<path d="M60 21L60 46" fill="none" stroke="#9a6218" stroke-width="1.4"/>
+<!-- ram-horn cheek pieces -->
+<path d="M34 67Q42 62 48.500 67.500Q52.500 73 47.500 77Q42.500 79 41.500 74.500Q42 71 45.500 72.200" fill="none" stroke="#9a6218" stroke-width="1.7"/>
+<path d="M86 67Q78 62 71.500 67.500Q67.500 73 72.500 77Q77.500 79 78.500 74.500Q78 71 74.500 72.200" fill="none" stroke="#9a6218" stroke-width="1.7"/>
+<path d="M36 49Q47 46 56.5 55L57.5 68Q60 71.5 62.5 68L63.5 55Q73 46 84 49Q80.5 62 65.5 63L64.2 91L55.8 91L54.5 63Q39.5 62 36 49Z" fill="none" stroke="#1b1512" stroke-width="5.6"/>
+<path d="M36 49Q47 46 56.5 55L57.5 68Q60 71.5 62.5 68L63.5 55Q73 46 84 49Q80.5 62 65.5 63L64.2 91L55.8 91L54.5 63Q39.5 62 36 49Z" fill="#120b09" stroke="#fff0b0" stroke-width="2.6"/>
+<path d="M36 49Q47 46 56.5 55L57.5 68Q60 71.5 62.5 68L63.5 55Q73 46 84 49Q80.5 62 65.5 63L64.2 91L55.8 91L54.5 63Q39.5 62 36 49Z" fill="#120b09" stroke-width="1"/>
+
+<g stroke="none"><ellipse cx="47.500" cy="55.500" rx="7" ry="4.500" fill="#ffb01f" filter="url(#leG)"/><ellipse cx="72.500" cy="55.500" rx="7" ry="4.500" fill="#ffb01f" filter="url(#leG)"/>
+<path d="M41.500 52.500Q48 51.500 53.500 57.500Q46.500 59 41.500 52.500Z" fill="#ffd23a"/><path d="M78.500 52.500Q72 51.500 66.500 57.500Q73.500 59 78.500 52.500Z" fill="#ffd23a"/>
+<path d="M45 54Q48.500 54 51.500 57Q47.500 57.500 45 54Z" fill="#fffbe0"/><path d="M75 54Q71.500 54 68.500 57Q72.500 57.500 75 54Z" fill="#fffbe0"/></g>
+<!-- pin -->
+<circle cx="37" cy="86" r="6" fill="#f0b93c" stroke-width="1.8"/><circle cx="37" cy="86" r="2.2" fill="#c8281e" stroke-width="1"/>
+<!-- spear -->
+<path d="M100 122L105.500 36" fill="none" stroke-width="6.2"/><path d="M100 122L105.500 36" fill="none" stroke="#8a5a2c" stroke-width="3"/>
+<path d="M105.800 38C99 30 103 15 108.500 3C113 15 114 30 105.800 38Z" fill="#e6e0d4"/>
+<path d="M106.300 35L108.300 7" fill="none" stroke-width="1.1"/>
+<path d="M102.300 38L109.500 39" fill="none" stroke="#f0b93c" stroke-width="3"/>
+</g>
+<path d="M3 60A57 57 0 0 0 117 60" fill="none" stroke="#1b1512" stroke-width="2.6"/>`;
 export const portrait = (r: Role, pack: Pack = 'culto', region: Region = 'mundo'): string => {
   if (pack === 'esparta') return svg(r === 'liberal' ? athenian() : r === 'lider' ? leonidas() : spartan(), 'art');   // D139
   if (pack === 'culto') return svg(r === 'liberal' ? investigator() : r === 'lider' ? priest() : cultist(), 'art');
