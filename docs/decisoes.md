@@ -991,6 +991,6 @@ O Lucas pediu o Leônidas com conteúdo, no liga e desliga combinado no D139. Fi
 
 Uma IA que diz o contrário do que disse antes sobre o mesmo jogador agora assume: "Eu defendi X, e errei: depois daquela lei com X no governo, não dá mais", ou "Retiro o que disse de X". O motivo vem só do que a mesa viu (`mindChange`). E, enquanto uma IA pensa, o botão "⏩ Não esperar" faz ela jogar na hora, para quem já entendeu o lance.
 
-## D146. CI em Ubuntu 24.04 (2026-11-11)
+## D146. CI resistente ao espelho do Ubuntu (2026-11-11)
 
-O `ubuntu-latest` do GitHub passou a ser o 26.04, e o `playwright install --with-deps` falha nele (código 100 no apt), derrubando o e2e e a cobertura de todo PR. O CI fica fixo no `ubuntu-24.04` até o Playwright suportar o 26.04; conferir de novo antes de soltar.
+O e2e e a cobertura caíram em todos os PRs no `playwright install --with-deps`: o apt do runner não resolvia o espelho do Ubuntu (`Temporary failure resolving 'azure.archive.ubuntu.com'`), uma falha da rede do GitHub, não do código. A instalação agora tenta 3 vezes, com 30 s entre elas, e o runner fica fixo no `ubuntu-24.04`, para uma troca de imagem do `ubuntu-latest` não pegar o CI de surpresa.

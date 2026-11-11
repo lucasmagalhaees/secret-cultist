@@ -15,7 +15,7 @@ concurrency:
 jobs:
   checks:
     name: checks
-    runs-on: ubuntu-24.04   # D146: ubuntu-latest became 26.04, where playwright install --with-deps fails (2026-11-11)
+    runs-on: ubuntu-24.04   # D146: fixed, so an image change does not surprise the CI
     env:
       DLC_KEY: ${{ secrets.DLC_KEY }}   # D138: the expansion's key (not in the repository)
     timeout-minutes: 10
@@ -31,14 +31,14 @@ jobs:
       - name: Install Playwright and the build tools
         run: |
           pip install -r tests/requirements.txt
-          playwright install --with-deps chromium
+          for t in 1 2 3; do playwright install --with-deps chromium && break; echo "apt falhou ($t), tentando de novo"; sleep 30; done; playwright install --with-deps chromium   # D146: the Ubuntu mirror fails now and then
           npm ci
       - name: Types, build, docs, core, unit and contract checks
         run: scripts/verify.sh --quick
 
   coverage:
     name: coverage
-    runs-on: ubuntu-24.04   # D146: ubuntu-latest became 26.04, where playwright install --with-deps fails (2026-11-11)
+    runs-on: ubuntu-24.04   # D146: fixed, so an image change does not surprise the CI
     env:
       DLC_KEY: ${{ secrets.DLC_KEY }}   # D138: the expansion's key (not in the repository)
     timeout-minutes: 15
@@ -54,14 +54,14 @@ jobs:
       - name: Install Playwright and the build tools
         run: |
           pip install -r tests/requirements.txt
-          playwright install --with-deps chromium
+          for t in 1 2 3; do playwright install --with-deps chromium && break; echo "apt falhou ($t), tentando de novo"; sleep 30; done; playwright install --with-deps chromium   # D146: the Ubuntu mirror fails now and then
           npm ci
       - name: Everything, with the coverage minimums
         run: scripts/verify.sh
 
   e2e:
     name: e2e (${{ matrix.theme }})
-    runs-on: ubuntu-24.04   # D146: ubuntu-latest became 26.04, where playwright install --with-deps fails (2026-11-11)
+    runs-on: ubuntu-24.04   # D146: fixed, so an image change does not surprise the CI
     env:
       DLC_KEY: ${{ secrets.DLC_KEY }}   # D138: the expansion's key (not in the repository)
     timeout-minutes: 20
@@ -81,7 +81,7 @@ jobs:
       - name: Install Playwright
         run: |
           pip install -r tests/requirements.txt
-          playwright install --with-deps chromium
+          for t in 1 2 3; do playwright install --with-deps chromium && break; echo "apt falhou ($t), tentando de novo"; sleep 30; done; playwright install --with-deps chromium   # D146: the Ubuntu mirror fails now and then
       - name: Build the page the test opens
         run: |
           npm ci
