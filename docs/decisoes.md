@@ -993,4 +993,4 @@ Uma IA que diz o contrário do que disse antes sobre o mesmo jogador agora assum
 
 ## D146. CI resistente ao espelho do Ubuntu (2026-11-11)
 
-O e2e e a cobertura caíram em todos os PRs no `playwright install --with-deps`: o apt do runner não resolvia o espelho do Ubuntu (`Temporary failure resolving 'azure.archive.ubuntu.com'`), uma falha da rede do GitHub, não do código. A instalação agora tenta 3 vezes, com 30 s entre elas, e o runner fica fixo no `ubuntu-24.04`, para uma troca de imagem do `ubuntu-latest` não pegar o CI de surpresa.
+O e2e e a cobertura caíram em todos os PRs no `playwright install --with-deps`: o apt do runner não resolvia o espelho do Ubuntu (`Temporary failure resolving 'azure.archive.ubuntu.com'`), uma falha da rede do GitHub, não do código. O Chromium do Playwright agora é baixado sem o apt, e as dependências do sistema (`install-deps`) têm 150 s e não derrubam o CI se o espelho estiver fora: a imagem do GitHub já traz quase tudo, e se faltar algo o próprio teste diz. O runner fica fixo no `ubuntu-24.04`, para uma troca de imagem do `ubuntu-latest` não pegar o CI de surpresa.
