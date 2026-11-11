@@ -994,3 +994,11 @@ Uma IA que diz o contrário do que disse antes sobre o mesmo jogador agora assum
 ## D146. CI resistente ao espelho do Ubuntu (2026-11-11)
 
 O e2e e a cobertura caíram em todos os PRs no `playwright install --with-deps`: o apt do runner não resolvia o espelho do Ubuntu (`Temporary failure resolving 'azure.archive.ubuntu.com'`), uma falha da rede do GitHub, não do código. O Chromium do Playwright agora é baixado sem o apt, e as dependências do sistema (`install-deps`) têm 150 s e não derrubam o CI se o espelho estiver fora: a imagem do GitHub já traz quase tudo, e se faltar algo o próprio teste diz. O runner fica fixo no `ubuntu-24.04`, para uma troca de imagem do `ubuntu-latest` não pegar o CI de surpresa.
+
+## D147. Tela da partida mais limpa, voto confirmado, Leônidas como cara do app (2026-11-11)
+
+- Os pedidos à IA que preside ("me indica", "não indicar", "investigue") ficam recolhidos em "💬 Falar com a mesa"; o pedido de eliminação continua aberto, porque é a hora de falar. O "não esperar" virou um link pequeno, para o único botão cheio ser a jogada da vez.
+- Jogando sozinho, o voto entra no segundo toque na mesma escolha ("toque de novo para confirmar, ou no outro para trocar"): era onde mais se errava o dedo. Não é desfazer (D34): nada já jogado volta.
+- A página pública abre como Secret Leônidas: título, ícone (escudo com lambda, em SVG no próprio HTML) e descrição. O título da aba segue o tema da partida.
+- A tela inicial de quem não entrou mostra só "Jogar agora", o tutorial e as regras; tema, mesa e opções ficam em "⚙ Personalizar".
+- As cartas na mão do presidente ficam um pouco maiores.

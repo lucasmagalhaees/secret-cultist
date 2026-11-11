@@ -8,7 +8,7 @@ import { thud } from './fx';
 import { S, packNow, ui } from './state';
 import { session } from './auth';
 import { myPlays, myRolls, soloSeat, tellStory } from './overlay';
-import { vGallery, vHistory, vLogin, vPack, vQuick, vRules, vSettings, vTable, vTut, vYours } from './home';
+import { vGallery, vHistory, vLogin, vPack, vQuick, vRules, vAbout, vSettings, vTable, vTut, vYours } from './home';
 
 /* ================= the screen =================
    Rendering is innerHTML from the state. Every text that did not come from the code goes through esc(). A field with
@@ -29,6 +29,7 @@ export function render(): void {
   document.documentElement.dataset.pack = P;
   document.documentElement.dataset.region = R;              // the cards wear the continent's colours (D29)
   part('boss').textContent = P === 'culto' ? 'Cultist' : W.boss;   // D96: "Secret Cultist"
+  document.title = `Secret ${P === 'culto' ? 'Cultist' : W.boss}`;   // D147: the tab and the home screen say the theme being played
   const me0 = g ? soloSeat(g) : -1, seen = g && me0 >= 0 && (g.phase !== 'reveal' || (g.reveal ?? 0) > me0);   // D131: playing alone, your role always on top
   part('score').innerHTML = g ? `${seen ? `<span class="chip me ${Core.partyOf(g.players[me0].role)}" id="myrole" title="O seu papel">Você: ${role(g.players[me0].role)}</span>` : ''}<span class="chip L">${g.laws.L}/${Core.WIN.L}</span><span class="chip F">${g.laws.F}/${Core.WIN.F}</span>` : '';
   const expanded = [...view.querySelectorAll<HTMLDetailsElement>('.note-detail[open]')].map(d => d.id);
@@ -37,7 +38,7 @@ export function render(): void {
   const me = session();   // D138: nobody plays without logging in
   part('user').innerHTML = me ? `<span class="who" id="whoami" title="${esc(me.email)}">${esc(me.email.split('@')[0])}<i class="role ${me.role}">${me.role}</i></span><button class="btn ghost small" data-act="logout" id="logout">Sair</button>` : location.hash === '#painel' ? '<a class="btn ghost small" href="#" id="back">Voltar</a>' : '<a class="btn ghost small" href="#painel" id="painel">Painel</a>';
   if (!me && location.hash === '#painel') { view.innerHTML = vLogin(); afterPaint(null); return; }   // D139: the public page plays Secret Leônidas; #painel is the login
-  view.innerHTML = themed(g ? vGame(g) : ui.gallery ? vGallery() : vQuick() + vPack() + vTable() + vRules() + vHistory() + vSettings(), W as unknown as Record<string, string>);
+  view.innerHTML = themed(g ? vGame(g) : ui.gallery ? vGallery() : (me || ui.custom ? vQuick() + vPack() + vTable() + vRules() + vHistory() + vSettings() : vQuick() + vRules() + '<button class="btn ghost block" data-act="custom" id="custom">⚙ Personalizar: tema, mesa e opções</button>' + vAbout()), W as unknown as Record<string, string>);   // D147: the public home is short
   for (const id of expanded) { const detail = document.getElementById(id); if (detail instanceof HTMLDetailsElement) detail.open = true; }
   const dr = document.getElementById('drawer'); if (dr) dr.scrollTop = keep;
   // the needle swings from where it was to the new reading (D32)
@@ -243,7 +244,7 @@ const DOING: Record<string, string> = {
 };
 function vBot(g: Game, seat: number, ask: string): string {
   const who = ask === 'votes' ? '' : `${av(g, seat, 'l')}<b>${name(g, seat)}</b> ${AI_TAG} `;
-  return `<section class="card" id="phase"><span class="label">Vez da IA</span><p class="big thinking" id="thinking">${who}${DOING[ask]}<span class="dots-wait" aria-hidden="true"><i></i><i></i><i></i></span></p>${vAskNow(g, seat, ask)}${ask === 'reveal' ? '' : '<button class="btn ghost small" data-act="hurry" id="hurry">⏩ Não esperar</button>'}</section>`;
+  return `<section class="card" id="phase"><span class="label">Vez da IA</span><p class="big thinking" id="thinking">${who}${DOING[ask]}<span class="dots-wait" aria-hidden="true"><i></i><i></i><i></i></span></p>${vAskNow(g, seat, ask)}${ask === 'reveal' ? '' : '<button class="linkbtn" data-act="hurry" id="hurry">⏩ não esperar</button>'}</section>`;
 }
 /** D67: while an app player presides and is choosing, the person can ask it right there, before it decides: pick me,
  *  do not pick someone (nomination), investigate someone (investigation). The app player waits a moment for it. */
@@ -262,11 +263,11 @@ function vAskNow(g: Game, seat: number, ask: string): string {
   if (ask === 'nominate') {
     const pick = Core.canAsk(g, me, 'pick', me), avoid = others.filter(i => Core.canAsk(g, me, 'avoid', i));
     if (!pick && !avoid.length) return done ? '<p class="asknow-done">Pedido feito. Pesa pelo quanto confiam em você.</p>' : '';
-    return `<div class="asknow" id="asknow"><b>Peça antes que ${name(g, seat)} escolha</b>${pick ? '<button class="tbtn" data-act="tpick" id="askpick">🙋 “Me indica para chanceler”</button>' : ''}${avoid.length ? `<small>Não indicar:</small><div class="chips">${avoid.map(i => chip('avoid', i)).join('')}</div>` : ''}</div>`;
+    return `<details class="asknow" id="asknow"${ui.askOpen ? ' open' : ''}><summary data-act="askfold">💬 Falar com a mesa antes que ${name(g, seat)} escolha</summary>${pick ? '<button class="tbtn" data-act="tpick" id="askpick">🙋 “Me indica para chanceler”</button>' : ''}${avoid.length ? `<small>Não indicar:</small><div class="chips">${avoid.map(i => chip('avoid', i)).join('')}</div>` : ''}</details>`;
   }
   const inv = others.filter(i => Core.canAsk(g, me, 'inv', i));
   if (!inv.length) return done ? '<p class="asknow-done">Pedido feito. Pesa pelo quanto confiam em você.</p>' : '';
-  return `<div class="asknow" id="asknow"><b>Sugira quem ${name(g, seat)} deve investigar</b><div class="chips">${inv.map(i => chip('inv', i)).join('')}</div></div>`;
+  return `<details class="asknow" id="asknow"${ui.askOpen ? ' open' : ''}><summary data-act="askfold">💬 Sugerir quem ${name(g, seat)} deve investigar</summary><div class="chips">${inv.map(i => chip('inv', i)).join('')}</div></details>`;
 }
 /** The person at a table with app players was eliminated: the game plays on to the end, for them to watch. */
 const vWatching = (g: Game): string => Core.hasAi(g) && g.phase !== 'over' && !Core.humansAlive(g).length
@@ -889,7 +890,7 @@ function vPhase(g: Game): string {
 function vVoteAi(g: Game): string {
   const people = Core.humansAlive(g), one = people.length === 1;
   const row = (i: number): string => `<div class="voter"${one ? '' : ` id="voter-${i}"`}>${one ? '' : `<b>${name(g, i)}</b>`}<div class="pick"><button class="btn vote L${ui.votes[i] === true ? ' on' : ''}" data-act="myvote" data-i="${i}" data-v="1" aria-pressed="${ui.votes[i] === true}"><span class="vw">${ui.votes[i] === true ? '✓ ' : ''}{ja}</span></button><button class="btn vote F${ui.votes[i] === false ? ' on' : ''}" data-act="myvote" data-i="${i}" data-v="0" aria-pressed="${ui.votes[i] === false}">${ui.votes[i] === false ? '✓ ' : ''}{nein}</button></div></div>`;
-  return `<section class="card" id="phase"><span class="label">Votação</span><p class="big"><b>${name(g, g.pres)}</b> presidente + <b>${name(g, g.chanc as number)}</b> chanceler?</p>${(() => { const me = soloSeat(g); return me >= 0 && Core.mad(g, me) ? '<p class="mad-note" id="madnote">🌀 Você enlouqueceu (sanidade zero): toque num voto, mas ele sai no escuro.</p>' : ''; })()}<p class="hint">${one ? 'Seu voto' : 'Cada pessoa toca no próprio voto'}; as IAs votam junto. Mais {ja} que {nein} elege; empate rejeita.</p>${people.map(row).join('')}${one ? '' : `<button class="btn block" data-act="countvotes"${people.every(i => typeof ui.votes[i] === 'boolean') ? '' : ' disabled'}>Abrir os votos</button>`}${g.tracker ? `<p class="hint">Já ${g.tracker === 1 ? 'foi 1 governo rejeitado' : `foram ${g.tracker} governos rejeitados`} seguido${g.tracker === 1 ? '' : 's'}. No ${Core.TRACKER_MAX}º, a lei do topo entra sozinha.</p>` : ''}</section>`;
+  return `<section class="card" id="phase"><span class="label">Votação</span><p class="big"><b>${name(g, g.pres)}</b> presidente + <b>${name(g, g.chanc as number)}</b> chanceler?</p>${(() => { const me = soloSeat(g); return me >= 0 && Core.mad(g, me) ? '<p class="mad-note" id="madnote">🌀 Você enlouqueceu (sanidade zero): toque num voto, mas ele sai no escuro.</p>' : ''; })()}<p class="hint">${one ? 'Seu voto' : 'Cada pessoa toca no próprio voto'}; as IAs votam junto. Mais {ja} que {nein} elege; empate rejeita.</p>${people.map(row).join('')}${one && typeof ui.votes[people[0]] === 'boolean' ? `<p class="confirm-vote" id="confirmvote">Toque de novo em <b>${ui.votes[people[0]] ? '{ja}' : '{nein}'}</b> para confirmar, ou no outro para trocar.</p>` : ''}${one ? '' : `<button class="btn block" data-act="countvotes"${people.every(i => typeof ui.votes[i] === 'boolean') ? '' : ' disabled'}>Abrir os votos</button>`}${g.tracker ? `<p class="hint">Já ${g.tracker === 1 ? 'foi 1 governo rejeitado' : `foram ${g.tracker} governos rejeitados`} seguido${g.tracker === 1 ? '' : 's'}. No ${Core.TRACKER_MAX}º, a lei do topo entra sozinha.</p>` : ''}</section>`;
 }
 
 export * from './home';

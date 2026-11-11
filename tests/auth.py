@@ -57,6 +57,8 @@ with sync_playwright() as p:
     pg.goto((ROOT / 'dist/index.html').as_uri()); pg.wait_for_function('window.__APP')
     # D139: the public page plays Secret Leônidas, no login
     assert pg.locator('#login').count() == 0 and pg.locator('[data-act=quickgame]').count() == 1 and pg.text_content('#boss') == 'Leônidas', pg.evaluate("JSON.stringify([!!document.getElementById('login'), document.querySelectorAll('[data-act=quickgame]').length, document.getElementById('boss').textContent, document.documentElement.dataset.pack])")
+    assert pg.locator('#pack').count() == 0 and pg.locator('#rules').count() + pg.locator('[data-act=quickgame]').count() >= 1, 'D147: the public home is short'
+    pg.click('[data-act=custom]')
     assert pg.locator('#pack [data-act=pack]').count() == 1 and pg.locator('[data-act=quickmode]').count() == 0 and pg.locator('#pack [data-act=region]').count() == 0, 'only Secret Leônidas, no continents'
     pg.click('[data-act=oracles]'); assert pg.get_attribute('#oracles', 'aria-pressed') == 'true', 'D144: the gods and oracles toggle'
     pg.click('[data-act=quickgame]'); pg.wait_for_function('window.__APP.S.game')

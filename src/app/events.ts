@@ -58,7 +58,7 @@ function play(ended: Game, msg?: string, undo: Game | null = null): void {
   setS({ ...S, game: next }); saveS();
   if (next.pack === 'culto' && !next.sheets && next.phase !== 'over' && sheetsFor !== next.players.map(p => p.name).join('|')) fetchSheets(next);   // D94
   if (changed) { const q = Core.loreAsk(next); if (q) void askLore(q).then(t => { if (t && S.game) { const g2 = Core.retell(S.game, q.at, t); if (g2 !== S.game) { setS({ ...S, game: g2 }); saveS(); render(); } } }); }   // D137: the lore API, when it answers in time
-  if (changed && !spoke) { ui.open = ''; ui.pick = null; ui.confirmEnd = false; ui.undo = undo; ui.votes = {}; }
+  if (changed && !spoke) { ui.askOpen = false; ui.open = ''; ui.pick = null; ui.confirmEnd = false; ui.undo = undo; ui.votes = {}; }
   render();
   if (before && changed) {
     const power = next.hist.slice(before.hist.length).find(e => e.k === 'inv' || e.k === 'exec');
@@ -170,9 +170,11 @@ function afterBot(before: Game, next: Game): void {
 /** A person voted at a table with app players: once every person still in the game has, the votes are counted. */
 function myVote(i: number, yes: boolean): void {
   const g = S.game as Game;
+  const again = ui.votes[i] === yes;   // D147: alone, the vote goes in at the second tap on the same choice
   ui.votes = { ...ui.votes, [i]: yes };
   const people = Core.humansAlive(g);
-  if (people.length === 1) count(g);
+  if (people.length === 1 && again) count(g);
+  else if (people.length === 1) render();
   else render();
 }
 /** D73: the vote in progress while the person may still turn one: the votes, what was said, the deadline. */
@@ -369,6 +371,8 @@ export function initEvents(): void {
     else if (a === 'stereo') { setS({ ...S, stereo: d.v && Core.STEREOTYPES[d.v] ? d.v : undefined }); saveS(); ui.stereoOpen = false; render(); }   // D116
     else if (a === 'oracles') { setS({ ...S, oracles: S.oracles ? undefined : true }); saveS(); render(); }   // D144
     else if (a === 'oracle' && S.game) { const g2 = Core.consult(S.game, rand); if (g2 !== S.game) { play(g2); if (g2.oracle) toast(g2.oracle.text); } }   // D144: Delphi
+    else if (a === 'custom') { ui.custom = true; render(); }   // D147
+    else if (a === 'askfold') { e.preventDefault(); ui.askOpen = !ui.askOpen; render(); }   // D147: the requests to the table, folded
     else if (a === 'hurry') { const was = ui.think; ui.think = 0; tick(); ui.think = was; }   // D145: the person does not want to wait
     else if (a === 'horror') { setS({ ...S, horror: d.v === 'pulp' || d.v === 'purista' ? d.v : undefined }); saveS(); render(); }   // D120
     else if (a === 'playmode') { ui.playMode = d.v === 'campanha' ? 'campanha' : 'avulsa'; render(); }   // D122

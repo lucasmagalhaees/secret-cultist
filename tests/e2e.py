@@ -360,7 +360,7 @@ with sync_playwright() as p:
     pg.evaluate("(() => { const A = window.__APP, g = A.S.game, me = g.players.findIndex(p => !p.ai), p = g.players.findIndex((x, i) => x.ai && x.alive && i !== me); A.ui.think = 600000; g.pres = p; g.chanc = null; g.phase = 'nominate'; g.hist.push({ k: 'gov', pres: p, chanc: me, law: 'L', pc: 1, cc: 0 }); })()")
     pg.click('[data-act=help]'); pg.click('[data-act=help]')
     assert pg.locator('#asknow').count() == 1 and pg.locator('.dock #diarytoggle').count() == 0, 'the request box in the app player\'s turn; the dock keeps two buttons'
-    pg.click('#asknow #askpick'); assert any('me indica' in l for l in G()['log'][-3:]) and pg.locator('#asknow #askpick').count() == 0
+    pg.click('#asknow [data-act=askfold]'); pg.click('#asknow #askpick'); assert any('me indica' in l for l in G()['log'][-3:]) and pg.locator('#asknow #askpick').count() == 0
     pg.evaluate(f'(() => {{ window.__APP.S.game = JSON.parse({kept67!r}); window.__APP.ui.think = {json.dumps(think67)}; }})()'); pg.click('[data-act=help]'); pg.click('[data-act=help]')
     if not pg.locator('#notes').is_visible(): pg.click('#notestoggle')
     pg.locator(f'#notes [data-act=court][data-i="{first}"]').click(); assert pg.locator('#court').is_visible() and overflow() == 0, 'the court opens'
