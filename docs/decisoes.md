@@ -1019,3 +1019,7 @@ O e2e e a cobertura caíram em todos os PRs no `playwright install --with-deps`:
 ## D150. Arte nova do Secret Leônidas (2026-11-11)
 
 As caricaturas de bicho (coruja, lobo, leão) e as tentativas seguintes (monstros gregos, vaso de figuras negras) não chegaram ao nível das outras artes do jogo. Os três papéis foram redesenhados pelo modelo Claude Fable 5.1, com pesquisa em fontes de domínio público sobre elmos, cristas e escudos gregos e sobre a estátua de Leônidas em Esparta, e aprovados pelo Lucas com uma mudança (sem a coruja no escudo do ateniense). Bustos de hoplita no traço dos outros retratos: o ateniense de perfil, de elmo coríntio empurrado para cima, branco e azul; o espartano anônimo atrás do elmo fechado e do escudo com o lambda, de olhos acesos; Leônidas de elmo dourado com volutas de chifre de carneiro, crista transversal de general, capa vermelha e lança. O lambda é anacrônico para a época de Leônidas (as fontes são da Guerra do Peloponeso) e fica de propósito, por ser o sinal que todo mundo reconhece.
+
+## D151. Seis retratos redesenhados (2026-11-11)
+
+O modelo Claude Fable 5.1 redesenhou seis retratos que eram corpo inteiro pequeno ou tinham partes soltas, em busto, no mesmo traço e no mesmo conceito, e o Lucas aprovou todos: o pássaro liberal, o jacaré e o lobo do mundo, o dragão-de-komodo (Ásia), o ornitorrinco (Oceania) e o casuar (o líder da Oceania). Os três primeiros trocam o desenho da função; os três de continente entram inteiros (`REDRAWN` em `src/app/art.ts`) no lugar das partes montadas por `member()` e `leader()`.
