@@ -15,7 +15,7 @@ concurrency:
 jobs:
   checks:
     name: checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # D146: fixed, so an image change does not surprise the CI
     env:
       DLC_KEY: ${{ secrets.DLC_KEY }}   # D138: the expansion's key (not in the repository)
     timeout-minutes: 10
@@ -31,14 +31,14 @@ jobs:
       - name: Install Playwright and the build tools
         run: |
           pip install -r tests/requirements.txt
-          playwright install --with-deps chromium
+          playwright install chromium && (timeout 150 playwright install-deps chromium || echo 'apt do Ubuntu fora do ar: segue com o que a imagem já tem')   # D146
           npm ci
       - name: Types, build, docs, core, unit and contract checks
         run: scripts/verify.sh --quick
 
   coverage:
     name: coverage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # D146: fixed, so an image change does not surprise the CI
     env:
       DLC_KEY: ${{ secrets.DLC_KEY }}   # D138: the expansion's key (not in the repository)
     timeout-minutes: 15
@@ -54,14 +54,14 @@ jobs:
       - name: Install Playwright and the build tools
         run: |
           pip install -r tests/requirements.txt
-          playwright install --with-deps chromium
+          playwright install chromium && (timeout 150 playwright install-deps chromium || echo 'apt do Ubuntu fora do ar: segue com o que a imagem já tem')   # D146
           npm ci
       - name: Everything, with the coverage minimums
         run: scripts/verify.sh
 
   e2e:
     name: e2e (${{ matrix.theme }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # D146: fixed, so an image change does not surprise the CI
     env:
       DLC_KEY: ${{ secrets.DLC_KEY }}   # D138: the expansion's key (not in the repository)
     timeout-minutes: 20
@@ -81,7 +81,7 @@ jobs:
       - name: Install Playwright
         run: |
           pip install -r tests/requirements.txt
-          playwright install --with-deps chromium
+          playwright install chromium && (timeout 150 playwright install-deps chromium || echo 'apt do Ubuntu fora do ar: segue com o que a imagem já tem')   # D146
       - name: Build the page the test opens
         run: |
           npm ci

@@ -457,12 +457,54 @@ const investigator = (): string => `<circle cx="60" cy="62" r="52" fill="#f2d98a
 const cultist = (): string => `<circle cx="60" cy="62" r="52" fill="#c4381f" opacity=".25"/><path d="M18 118c4-40 18-78 42-90 24 12 38 50 42 90z" fill="#9e2414" ${K}/><path d="M36 74c0-24 10-38 24-38s24 14 24 38c-6 6-14 9-24 9s-18-3-24-9z" fill="#2a0f0a" ${K}/><path d="M44 48c-10-6-16-2-18 6 6-3 10-2 14 2M76 48c10-6 16-2 18 6-6-3-10-2-14 2" fill="#efe6d2" ${K}/><path d="M46 50c2-6 8-8 14-8s12 2 14 8l-3 16c-2 8-6 14-11 16-5-2-9-8-11-16z" fill="#efe6d2" ${K}/><path d="M50 56l6 3-5 3zM70 56l-6 3 5 3z" fill="#15110e"/><path d="M57 70h6l-3 5z" fill="#15110e"/><path d="M55 78h10M57 82h6" stroke="#15110e" stroke-width="2"/><path d="M48 118l12-26 12 26" fill="#2a0f0a" ${K}/>`;
 // the High Priest: black robe and gold mitre over a face of tentacles, more of them crawling out from under the robe
 const priest = (): string => `<circle cx="60" cy="62" r="52" fill="#3c6e71" opacity=".3"/><path d="M14 118c4-40 18-74 46-86 28 12 42 46 46 86z" fill="#1d1a24" ${K}/><path d="M40 74c0-22 9-34 20-34s20 12 20 34c-6 5-13 8-20 8s-14-3-20-8z" fill="#2f5a5c" ${K}/><circle cx="52" cy="58" r="3.5" fill="#d4ac0d"/><circle cx="68" cy="58" r="3.5" fill="#d4ac0d"/><path d="M46 66c-2 10 0 18-6 26M53 68c0 10 2 18-2 28M60 68c0 12 2 20 0 30M67 68c0 10-2 18 2 28M74 66c2 10 0 18 6 26" fill="none" stroke="#3c8a8c" stroke-width="5" stroke-linecap="round"/><path d="M46 66c-2 10 0 18-6 26M53 68c0 10 2 18-2 28M60 68c0 12 2 20 0 30M67 68c0 10-2 18 2 28M74 66c2 10 0 18 6 26" fill="none" stroke="#15110e" stroke-width="1.5" stroke-dasharray="1 4" stroke-linecap="round"/><path d="M44 38 50 6l10 14 10-14 6 32c-5-3-10-4-16-4s-11 1-16 4z" fill="#d4ac0d" ${K}/><circle cx="60" cy="24" r="4" fill="#3c6e71" ${K}/><path d="M18 116c4-10 10-12 12-4s8 6 10-4M80 112c2-10 8-10 10-2s8 4 10-6" fill="none" stroke="#3c8a8c" stroke-width="6" stroke-linecap="round"/>`;
-// D139: Secret Leônidas. The Athenian: an owl (Athena's bird) in a hoplite's Corinthian helmet and blue chiton, with the
-// round shield; the Spartan: a wolf in a red cloak and a helmet with a black crest, the lambda on the shield; Leônidas,
-// "son of the lion": a lion with a tall red crest and a red cloak, roaring
-const athenian = (): string => `<circle cx="60" cy="62" r="52" fill="#e8b57a" opacity=".35"/><path d="M22 118c3-28 17-42 38-42s35 14 38 42z" fill="#2e5d8a" ${K}/><path d="M44 80l16 30 16-30" fill="#efe6d2" ${K}/><ellipse cx="60" cy="56" rx="24" ry="24" fill="#a6784a" ${K}/><path d="M42 50c4-6 10-7 14-3M78 50c-4-6-10-7-14-3" fill="none" stroke="#15110e" stroke-width="3"/><circle cx="50" cy="56" r="8" fill="#f6e7a8" ${K}/><circle cx="70" cy="56" r="8" fill="#f6e7a8" ${K}/><circle cx="50" cy="57" r="3.5" fill="#15110e"/><circle cx="70" cy="57" r="3.5" fill="#15110e"/><path d="M56 64l4 7 4-7z" fill="#e0a12a" ${K}/><path d="M34 46c0-18 12-28 26-28s26 10 26 28l-6 2c-2-12-10-18-20-18s-18 6-20 18z" fill="#c9a227" ${K}/><path d="M60 18c-10-10-6-16 0-14 6-2 10 4 0 14z" fill="#2e5d8a" ${K}/><circle cx="96" cy="94" r="16" fill="#c9a227" ${K}/><path d="M89 92c3-6 11-6 14 0-3 6-11 6-14 0z" fill="#15110e"/>`;
-const spartan = (): string => `<circle cx="60" cy="62" r="52" fill="#c4381f" opacity=".25"/><path d="M14 118c4-32 18-46 46-46s42 14 46 46z" fill="#a3201a" ${K}/><path d="M40 78l20 32 20-32" fill="#6b4a2a" ${K}/><path d="M38 70c0-22 10-34 22-34s22 12 22 34l-6 8H44z" fill="#8a8f96" ${K}/><path d="M38 40l8 14M82 40l-8 14" stroke="#15110e" stroke-width="3"/><path d="M48 56l6 2-5 3zM72 56l-6 2 5 3z" fill="#f6e7a8" ${K}/><path d="M52 70l8 8 8-8" fill="#efe6d2" ${K}/><path d="M36 46c0-18 10-28 24-28s24 10 24 28h-8c-2-10-8-14-16-14s-14 4-16 14z" fill="#b08d3a" ${K}/><path d="M56 48h8v22h-8z" fill="#b08d3a" ${K}/><path d="M30 22c14-14 46-14 60 0-14-4-46-4-60 0z" fill="#15110e" ${K}/><circle cx="24" cy="96" r="16" fill="#b08d3a" ${K}/><path d="M18 104l6-16 6 16" fill="none" stroke="#a3201a" stroke-width="4"/>`;
-const leonidas = (): string => `<circle cx="60" cy="62" r="52" fill="#c9a227" opacity=".3"/><path d="M10 118c4-34 20-50 50-50s46 16 50 50z" fill="#a3201a" ${K}/><path d="M24 70c-6-26 10-48 36-48s42 22 36 48c-6 14-20 22-36 22S30 84 24 70z" fill="#b5651d" ${K}/><path d="M38 66c0-18 10-28 22-28s22 10 22 28c-4 10-12 16-22 16s-18-6-22-16z" fill="#e0a95a" ${K}/><path d="M46 56l8 2-7 3zM74 56l-8 2 7 3z" fill="#15110e"/><path d="M54 66h12l-6 6z" fill="#3a2a1a"/><path d="M50 74c4 6 16 6 20 0-2 8-18 8-20 0z" fill="#7a1a10" ${K}/><path d="M53 76l2 4M67 76l-2 4" stroke="#fff" stroke-width="2"/><path d="M34 44c0-20 12-30 26-30s26 10 26 30h-8c-2-10-8-16-18-16s-16 6-18 16z" fill="#c9a227" ${K}/><path d="M24 20c16-18 56-18 72 0-6 8-14 4-36 4s-30 4-36-4z" fill="#a3201a" ${K}/><path d="M30 20c14-6 46-6 60 0" fill="none" stroke="#15110e" stroke-width="2"/>`;
+// D139: Secret Leônidas, in the same cartoon as the rest: full figures on the spotlight, thick ink, big heads.
+// The Athenian: a round owl (Athena's bird) in a blue chiton and a bronze Corinthian helmet with a blue plume, a spear
+// and the round shield with Athena's owl; the Spartan: a grey wolf in a red cloak, a helmet with a black crest across
+// and the lambda on the shield; Leônidas, "son of the lion": a lion with a great mane, a tall red crest and a red cloak.
+const BRONZE = '#c8902e', BRONZE2 = '#9c6a1c', CLOAK = '#b3261e', CLOAK2 = '#8a1a14';
+const helmet = (crest: string, across: boolean): string => `
+  <path d="M44 34 C44 16 58 10 68 10 C80 10 92 18 92 34 L90 50 L84 50 L82 36 L54 36 L52 50 L46 50Z" fill="${BRONZE}" ${o()}/>
+  <path d="M66 36 L68 52 L70 36Z" fill="${BRONZE2}" ${o(1.6)}/>
+  <path d="M50 26 C60 22 76 22 86 26" fill="none" stroke="${BRONZE2}" stroke-width="3"/>
+  ${across
+    ? `<path d="M40 14 C52 2 84 2 96 14 L92 18 C80 10 56 10 44 18Z" fill="${crest}" ${o()}/>`
+    : `<path d="M60 12 C60 -2 92 -2 98 18 C92 12 78 10 72 16Z" fill="${crest}" ${o()}/>`}`;
+const shield = (mark: string): string => `<circle cx="28" cy="84" r="20" fill="${BRONZE}" ${o()}/><circle cx="28" cy="84" r="14" fill="none" stroke="${BRONZE2}" stroke-width="3"/>${mark}`;
+const legs = (c: string): string => `<path d="M50 100 L48 113 M44 113 h8 M66 100 L68 113 M64 113 h8" fill="none" stroke="${K}" stroke-width="6" stroke-linecap="round"/><path d="M50 100 L48 113 M44 113 h8 M66 100 L68 113 M64 113 h8" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round"/>`;
+const spear = `<path d="M100 22 L100 112" ${o(4)}/><path d="M100 22 L100 112" stroke="#8a5a2a" stroke-width="2"/><path d="M100 8 L105 22 L95 22Z" fill="#cfd3d6" ${o(2)}/>`;
+const athenian = (): string => `${spot}${spear}${legs('#e0a12a')}
+  <path d="M38 82 C38 64 50 56 60 56 C74 56 84 66 84 82 C84 98 74 104 60 104 C46 104 38 98 38 82Z" fill="#2e5d8a" ${o()}/>
+  <path d="M52 60 L60 74 L68 60" fill="none" stroke="${W}" stroke-width="3"/>
+  <path d="M84 70 L98 64" ${o(5)}/><path d="M84 70 L98 64" stroke="#a6784a" stroke-width="3"/>
+  ${shield(`<circle cx="24" cy="82" r="4" fill="${W}" ${o(1.4)}/><circle cx="32" cy="82" r="4" fill="${W}" ${o(1.4)}/><circle cx="24" cy="82" r="1.6" fill="${K}"/><circle cx="32" cy="82" r="1.6" fill="${K}"/><path d="M26 88 L28 92 L30 88Z" fill="${K}"/>`)}
+  <ellipse cx="68" cy="40" rx="24" ry="22" fill="#a6784a" ${o()}/>
+  <ellipse cx="68" cy="44" rx="18" ry="15" fill="#e8cfa4"/>
+  <circle cx="60" cy="42" r="8.5" fill="#f6d64a" ${o(2)}/><circle cx="77" cy="42" r="8.5" fill="#f6d64a" ${o(2)}/>
+  <circle cx="61" cy="43" r="4" fill="${K}"/><circle cx="78" cy="43" r="4" fill="${K}"/><circle cx="62.4" cy="41.6" r="1.3" fill="${W}"/><circle cx="79.4" cy="41.6" r="1.3" fill="${W}"/>
+  <path d="M65 50 L68.5 57 L72 50Z" fill="#e0a12a" ${o(1.8)}/>
+  ${helmet('#2e5d8a', false)}`;
+const spartan = (): string => `${spot}${spear}${legs('#8a8f96')}
+  <path d="M30 104 C32 76 44 60 60 60 C78 60 90 76 92 104Z" fill="${CLOAK}" ${o()}/>
+  <path d="M46 66 C52 74 68 74 74 66 L72 100 L48 100Z" fill="${CLOAK2}"/>
+  ${shield(`<path d="M20 94 L28 74 L36 94" fill="none" stroke="${CLOAK}" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>`)}
+  <path d="M46 50 C46 34 56 26 68 26 C80 26 90 34 90 50 C90 58 84 62 80 62 L56 62 C50 62 46 58 46 50Z" fill="#8a8f96" ${o()}/>
+  <path d="M74 50 C82 50 100 52 104 58 C100 64 86 64 76 62Z" fill="#b8bcc1" ${o()}/>
+  <circle cx="103" cy="57" r="3" fill="${K}"/>
+  <path d="M84 60 C90 62 96 62 100 61" fill="none" ${o(1.6)}/><path d="M86 61 l2 4 l2 -4 M92 61 l2 4 l2 -4" fill="${W}" ${o(1)}/>
+  <path d="M62 44 L72 46 L64 50Z" fill="#f6d64a" ${o(1.6)}/><circle cx="67" cy="47" r="1.6" fill="${K}"/>
+  <path d="M52 30 L48 14 L60 24Z" fill="#8a8f96" ${o()}/>
+  ${helmet(K, true)}`;
+const leonidas = (): string => `${spot}${spear}${legs('#d9902e')}
+  <path d="M26 106 C28 74 42 58 60 58 C80 58 94 74 96 106Z" fill="${CLOAK}" ${o()}/>
+  ${shield(`<path d="M20 94 L28 74 L36 94" fill="none" stroke="${GOLD}" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>`)}
+  <path d="M68 16 C96 16 104 38 100 54 C98 66 88 74 68 74 C48 74 38 66 36 54 C32 38 40 16 68 16Z" fill="#b5651d" ${o()}/>
+  <path d="M42 36 l-6 -4 M40 48 l-7 1 M44 60 l-6 4 M94 36 l6 -4 M96 48 l7 1 M92 60 l6 4" ${o(2.2)}/>
+  <ellipse cx="68" cy="50" rx="20" ry="19" fill="#e9b45f" ${o()}/>
+  <path d="M56 44 l8 2 l-7 3Z M80 44 l-8 2 l7 3Z" fill="${K}"/>
+  <path d="M63 54 h10 l-5 5Z" fill="#4a2a14" ${o(1.4)}/>
+  <path d="M58 60 C62 68 74 68 78 60 C74 64 62 64 58 60Z" fill="#7a1a10" ${o(1.8)}/><path d="M61 62 l1.5 3 M75 62 l-1.5 3" stroke="${W}" stroke-width="2"/>
+  ${helmet(RED, true)}
+  <path d="M40 14 C52 -2 84 -2 96 14" fill="none" stroke="${GOLD}" stroke-width="2"/>`;
 export const portrait = (r: Role, pack: Pack = 'culto', region: Region = 'mundo'): string => {
   if (pack === 'esparta') return svg(r === 'liberal' ? athenian() : r === 'lider' ? leonidas() : spartan(), 'art');   // D139
   if (pack === 'culto') return svg(r === 'liberal' ? investigator() : r === 'lider' ? priest() : cultist(), 'art');

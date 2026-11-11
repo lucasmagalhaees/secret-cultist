@@ -6,9 +6,9 @@ import { Core } from '../core';
 import type { Json } from '../core/types';
 
 /** The game's own Supabase project (the lore-enhancer's; the free plan had no room for another), given at build time like the key. */
-export const AUTH_URL: string = (import.meta.env.VITE_SUPABASE_URL || 'https://supabase.invalid').replace(/\/$/, '');
-/** The publishable key: public by design (Supabase's own name for it), given at build time. */
-export const AUTH_KEY: string = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
+export const AUTH_URL: string = (import.meta.env.VITE_SUPABASE_URL || 'https://ydzqrfkcsrochzwegrig.supabase.co').replace(/\/$/, '');
+/** The publishable key: public by design (Supabase's own name for it), here by default and overridable at build time. */
+export const AUTH_KEY: string = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_x4W0U9jRy676J5VEe6sRjA_VMPx9cdt';
 const SESSION = 'secretcultist.session.v1', DLC = 'secretcultist.dlc.v1';
 export const AUTH_WAIT = 10000;
 
@@ -25,12 +25,22 @@ export function session(): Session | null {
   try { return Core.normSession(JSON.parse(get(SESSION) || 'null')); } catch { return null; }
 }
 
+/** What a failed answer of Supabase means, in words (D141): the code it gives, or the status. */
+export function why(status: number, body: Json): string {
+  const code = String(body?.error_code ?? body?.error ?? ''), msg = String(body?.msg ?? body?.message ?? body?.error_description ?? '');
+  if (code === 'email_not_confirmed') return 'Esse e-mail ainda não foi confirmado no Supabase.';
+  if (code === 'invalid_credentials' || code === 'invalid_grant') return 'E-mail ou senha errados.';
+  if (/api ?key/i.test(msg) || (status === 401 && !AUTH_KEY)) return 'O login está sem a chave do Supabase (VITE_SUPABASE_PUBLISHABLE_KEY na Vercel, e um Redeploy).';
+  if (status === 400) return 'E-mail ou senha errados.';
+  return `O login respondeu ${status}${msg ? `: ${msg}` : ''}.`;
+}
+
 async function call(path: string, init: RequestInit, token?: string): Promise<Json> {
   const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), AUTH_WAIT);
   try {
     const r = await fetch(AUTH_URL + path, { ...init, signal: ctl.signal, headers: { apikey: AUTH_KEY, 'content-type': 'application/json', ...(token ? { authorization: `Bearer ${token}` } : {}) } });
     const body = await r.json().catch(() => null);
-    if (!r.ok) throw new Error(r.status === 400 || r.status === 401 ? 'E-mail ou senha errados.' : `O login respondeu ${r.status}.`);
+    if (!r.ok) throw new Error(why(r.status, body));
     return body;
   } catch (e) {
     throw new Error(e instanceof Error && e.message.includes('.') ? e.message : 'Sem conexão com o login.');

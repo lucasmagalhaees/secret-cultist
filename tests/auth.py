@@ -26,6 +26,10 @@ def supabase(r):
             return r.fulfill(status=500, content_type='application/json', body='{}', headers=CORS)
         if d['password'] == 'estranho':
             return r.fulfill(status=200, content_type='application/json', body='{"ok": true}', headers=CORS)
+        if d['password'] == 'naoconfirmado':
+            return r.fulfill(status=400, content_type='application/json', body='{"code":400,"error_code":"email_not_confirmed","msg":"Email not confirmed"}', headers=CORS)
+        if d['password'] == 'semchave':
+            return r.fulfill(status=401, content_type='application/json', body='{"message":"No API key found in request"}', headers=CORS)
         if d['password'] == 'errada':
             return r.fulfill(status=400, content_type='application/json', body='{"error":"invalid_grant"}', headers=CORS)
         role = 'pedestrian' if d['email'].startswith('visitante') else 'driver'
@@ -46,7 +50,7 @@ def supabase(r):
 with sync_playwright() as p:
     b = p.chromium.launch()
     ctx = b.new_context(viewport={'width': 393, 'height': 852}, color_scheme='dark')
-    ctx.route('https://supabase.invalid/**', supabase)   # D139: the build without VITE_SUPABASE_URL
+    ctx.route('https://ydzqrfkcsrochzwegrig.supabase.co/**', supabase)   # D141: the project's address, the app's default
     pg = ctx.new_page(); errs = []
     pg.on('pageerror', lambda e: errs.append(str(e)))
     cov.start(pg)
@@ -63,20 +67,20 @@ with sync_playwright() as p:
     pg.click('#painel'); pg.wait_for_selector('#login'); assert pg.locator('#user .who').count() == 0
     pg.click('[data-act=login]'); assert 'Preencha' in pg.inner_text('#loginerr')
     pg.fill('#loginemail', 'motorista@exemplo.com')
-    for pw, says in (('caiu', 'Sem conexão'), ('quebrou', 'respondeu 500'), ('estranho', 'não entende'), ('errada', 'errados')):
+    for pw, says in (('caiu', 'Sem conexão'), ('quebrou', 'respondeu 500'), ('estranho', 'não entende'), ('naoconfirmado', 'confirmado'), ('semchave', 'sem a chave'), ('errada', 'errados')):
         pg.fill('#loginpass', pw); pg.click('#logingo'); pg.wait_for_timeout(1500); assert says in (pg.text_content('#loginerr') or ''), (pw, pg.text_content('#loginerr'))
     pg.click('#back'); pg.wait_for_selector('[data-act=quickgame]')
     pg.click('#painel'); pg.wait_for_selector('#login')
     # a driver: the key comes from Supabase and opens the expansion (when Supabase fails to give it, the game still opens)
     pg.fill('#loginemail', 'motorista@exemplo.com'); pg.fill('#loginpass', 'certa'); pg.click('#logingo'); pg.wait_for_selector('[data-act=quickgame]')
     assert pg.evaluate('window.__APP.Core.dlcData()') is None, 'no key, no expansion'
-    pg.click('#user [data-act=logout]'); pg.wait_for_selector('[data-act=quickgame]'); pg.click('#painel'); pg.wait_for_selector('#login')
+    cov.keep(pg); pg.click('#user [data-act=logout]'); pg.wait_for_selector('[data-act=quickgame]'); pg.click('#painel'); pg.wait_for_selector('#login')
     pg.fill('#loginemail', 'motorista@exemplo.com'); pg.fill('#loginpass', 'certa'); pg.click('#logingo'); pg.wait_for_selector('[data-act=quickgame]')
     pg.wait_for_function('window.__APP.Core.dlcData() !== null')
     assert 'driver' in pg.inner_text('#user').lower() and pg.locator('[data-act=region][data-v=brasil]').count() == 1 and pg.locator('#dlcon').count() == 1
     cov.reload(pg); pg.wait_for_function('window.__APP'); pg.wait_for_function('window.__APP.Core.dlcData() !== null')   # kept for offline, opened at start
     pg.screenshot(path=str(ROOT / 'tests/shots/auth-driver.png'))
-    pg.click('[data-act=logout]'); pg.wait_for_selector('#painel')
+    cov.keep(pg); pg.click('[data-act=logout]'); pg.wait_for_selector('#painel')   # logout reloads by itself: read the counters first
     assert pg.evaluate("localStorage.getItem('secretcultist.dlc.v1')") is None and pg.evaluate('window.__APP.Core.dlcData()') is None, 'leaving forgets the key'
     assert not errs, errs
     cov.stop(pg, 'auth')
