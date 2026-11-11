@@ -31,7 +31,7 @@ jobs:
       - name: Install Playwright and the build tools
         run: |
           pip install -r tests/requirements.txt
-          for t in 1 2 3; do playwright install --with-deps chromium && break; echo "apt falhou ($t), tentando de novo"; sleep 30; done; playwright install --with-deps chromium   # D146: the Ubuntu mirror fails now and then
+          playwright install chromium && (timeout 150 playwright install-deps chromium || echo 'apt do Ubuntu fora do ar: segue com o que a imagem já tem')   # D146
           npm ci
       - name: Types, build, docs, core, unit and contract checks
         run: scripts/verify.sh --quick
@@ -54,7 +54,7 @@ jobs:
       - name: Install Playwright and the build tools
         run: |
           pip install -r tests/requirements.txt
-          for t in 1 2 3; do playwright install --with-deps chromium && break; echo "apt falhou ($t), tentando de novo"; sleep 30; done; playwright install --with-deps chromium   # D146: the Ubuntu mirror fails now and then
+          playwright install chromium && (timeout 150 playwright install-deps chromium || echo 'apt do Ubuntu fora do ar: segue com o que a imagem já tem')   # D146
           npm ci
       - name: Everything, with the coverage minimums
         run: scripts/verify.sh
@@ -81,7 +81,7 @@ jobs:
       - name: Install Playwright
         run: |
           pip install -r tests/requirements.txt
-          for t in 1 2 3; do playwright install --with-deps chromium && break; echo "apt falhou ($t), tentando de novo"; sleep 30; done; playwright install --with-deps chromium   # D146: the Ubuntu mirror fails now and then
+          playwright install chromium && (timeout 150 playwright install-deps chromium || echo 'apt do Ubuntu fora do ar: segue com o que a imagem já tem')   # D146
       - name: Build the page the test opens
         run: |
           npm ci
