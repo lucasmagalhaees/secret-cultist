@@ -758,6 +758,10 @@ export default function cases(Core, pre) {
     eq('D148: the mood of each app player toward you is the last thing it said out loud', [Core.moodOf(talkd, 2, 0), Core.moodOf(talkd, 3, 0), Core.moodOf(talkd, 4, 0), Core.moodOf(talkd, 0, 0)], ['trust', 'acc', '', '']);
     eq('D148: the daily seed is the same for the same day and differs between days', [Core.dailySeed('2026-11-11') === Core.dailySeed('2026-11-11'), Core.dailySeed('2026-11-11') === Core.dailySeed('2026-11-12')], [true, false]);
     eq('D148: in Athens one is ostracized, and the plague comes with the third decree of Sparta', [Core.speakAs('esparta', 'Eliminação: X eliminou Y; eliminar alguém'), Core.olympusTell({ ...on, laws: { L: 0, F: 3 }, chron: on.hist.length }).log.at(-1).startsWith('🏛 A peste')], ['Ostracismo: X ostracizou Y; ostracizar alguém', true]);
+    const lq = { at: 9, moment: 'lei-F', god: 'zeus', names: { pres: 'Péricles', chanc: 'Cimon' } };
+    const lp = Core.loreKeep({}, lq, 'Péricles e Cimon leram a página.');
+    eq('D149: a lore line is kept with its names as gaps, and filled with the names of another move', [lp['zeus|lei-F'][0], Core.lorePick(lp, { ...lq, names: { pres: 'Ana', chanc: 'Bia' } }, () => 0), Core.lorePick(lp, { ...lq, names: { pres: 'Ana' } }, () => 0), Core.lorePick(lp, { ...lq, god: 'ares' }, () => 0), Core.readLorePool({ a: ['x', 2], b: 'y' })], ['{pres} e {chanc} leram a página.', 'Ana e Bia leram a página.', null, null, { a: ['x'] }]);
+    eq('D149: only the newest few lines are kept for each moment', Array.from({ length: 9 }, (_, k) => k).reduce((p, k) => Core.loreKeep(p, lq, `linha ${k}`), {})['zeus|lei-F'].length, Core.LORE_POOL_MAX);
   }
   return { n, fails };
 }

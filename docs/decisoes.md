@@ -1010,3 +1010,8 @@ O e2e e a cobertura caíram em todos os PRs no `playwright install --with-deps`:
 - "🗓 Desafio do dia": a mesa, os papéis e o baralho vêm da data (`dailySeed`), iguais para todo mundo naquele dia, no nível extremo; as IAs decidem como sempre. O resultado compartilhado diz a data.
 - No Secret Leônidas, eliminar vira ostracizar nas palavras da tela, e com os deuses ligados a peste de Atenas chega com o 3º decreto de Esparta. Só palavras.
 - Em tela larga deitada (1100 px ou mais), a partida fica em duas colunas: a jogada da vez à esquerda; tabuleiro, jogadores e registro à direita.
+
+## D149. Saúde das APIs e a lore guardada no aparelho (2026-11-11)
+
+- O jogo nunca espera pelas fichas nem pela lore, então uma API caída passava calada. O `scripts/check_apis.py` bate em `/health` das duas (a de lore precisa estar com o banco, `SupabaseStore`), no workflow `APIs`, depois de cada merge e todo dia às 8h17; em PR só informa. Conferido em 2026-11-11: fichas `{"status":"UP"}`, lore `{"ok":true,"store":"SupabaseStore"}`.
+- Cada frase da lore que chega fica guardada no aparelho com os nomes do lance trocados por lacunas, até 6 por deus e momento. Com a API fora, lenta ou no disjuntor, o narrador usa uma dessas preenchida com os nomes do lance de agora; sem nenhuma, a crônica do código, como antes.
