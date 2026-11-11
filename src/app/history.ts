@@ -56,6 +56,7 @@ export async function shareResult(g: Game, me: number, words: { boss: string; f:
   const sc = g.notes ? Core.notesScore(g, me) : null, n = sc ? sc.right.length + sc.wrong.length : 0;
   if (n) x.fillText(`Caderno: ${sc?.right.length} de ${n} certas`, 540, 560);
   x.font = '700 40px Arial, sans-serif'; x.fillStyle = '#b9ab90'; x.fillText(g.why, 540, 660, 980);
+  if (g.daily) { x.fillStyle = '#e8b730'; x.fillText(`Desafio do dia ${g.daily.split('-').reverse().join('/')}`, 540, 210); x.fillStyle = '#b9ab90'; }   // D148
   const got = Core.achievements(g, me);
   x.font = '800 44px Arial, sans-serif'; x.fillStyle = '#e8b730';
   got.slice(0, 3).forEach((a, k) => x.fillText(`🏅 ${Core.ACHIEVEMENTS[a][0]}`, 540, 780 + k * 70));

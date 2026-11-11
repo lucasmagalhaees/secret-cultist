@@ -1002,3 +1002,11 @@ O e2e e a cobertura caíram em todos os PRs no `playwright install --with-deps`:
 - A página pública abre como Secret Leônidas: título, ícone (escudo com lambda, em SVG no próprio HTML) e descrição. O título da aba segue o tema da partida.
 - A tela inicial de quem não entrou mostra só "Jogar agora", o tutorial e as regras; tema, mesa e opções ficam em "⚙ Personalizar".
 - As cartas na mão do presidente ficam um pouco maiores.
+
+## D148. A virada, o humor da mesa, o desafio do dia, o ostracismo e duas colunas (2026-11-11)
+
+- No fim, jogando sozinho, o cartão do resultado diz em que lei a partida virou (a partir da qual quem venceu ficou na frente de vez), quem a aprovou e como a pessoa votou naquele governo (`turning`).
+- Na faixa da mesa, cada IA mostra 😠 ou 🙂 pelo que disse da pessoa em voz alta pela última vez (`moodOf`). É só o que todos ouviram: não diz papel.
+- "🗓 Desafio do dia": a mesa, os papéis e o baralho vêm da data (`dailySeed`), iguais para todo mundo naquele dia, no nível extremo; as IAs decidem como sempre. O resultado compartilhado diz a data.
+- No Secret Leônidas, eliminar vira ostracizar nas palavras da tela, e com os deuses ligados a peste de Atenas chega com o 3º decreto de Esparta. Só palavras.
+- Em tela larga deitada (1100 px ou mais), a partida fica em duas colunas: a jogada da vez à esquerda; tabuleiro, jogadores e registro à direita.

@@ -274,6 +274,19 @@ function quickGame(prev?: Game | null, only?: Pack, campaign?: NonNullable<Game[
   const next = { ...S }; delete next.notes; delete next.noteDetails; delete next.assist; setS(next); saveS();
   ui.msg = ''; ui.help = false; ui.diary = false; ui.endTab = 'res'; play(campaign ? { ...r.game, campaign, ...(prev?.region ? { region: prev.region } : {}) } : r.game, campaign ? `Capítulo ${campaign.ch} de ${Core.CHAPTERS}. Veja seu papel em segredo.` : 'Partida rápida. Veja seu papel em segredo.');
 }
+/** D148: the daily challenge: the table, the roles and the deck come from the date, the same for everyone that day; the
+ *  app players still decide as always. Hard level, the theme picked. */
+function dailyGame(): void {
+  const day = new Date(), date = `${day.getFullYear()}-${String(day.getMonth() + 1).padStart(2, '0')}-${String(day.getDate()).padStart(2, '0')}`;
+  const seed = Core.seeded(Core.dailySeed(date)), pack = packNow(), region = pack === 'esparta' ? 'mundo' : (rs => rs[Math.floor(seed() * rs.length)])(Core.REGIONS.filter(r => r !== 'brasil'));
+  let names = ['Você'];
+  while (names.length < 7) names = [...names, Core.botName(names, seed, pack, region)];
+  const r = Core.newGame(names, seed, { ai: names.map((_, i) => i > 0), level: 'extremo', pack, region });
+  if (!r.ok) return;
+  const next = { ...S }; delete next.notes; delete next.noteDetails; setS(next); saveS();
+  clearFlash(); ui.msg = ''; ui.help = false; ui.endTab = 'res';
+  play({ ...r.game, daily: date }, `Desafio de ${date.split('-').reverse().join('/')}: veja seu papel em segredo.`);
+}
 function start(): void {
   if (S.names.length && flags().every(Boolean)) { ui.msg = 'Precisa de pelo menos uma pessoa na mesa.'; render(); return; }
   clearFlash();
@@ -371,6 +384,7 @@ export function initEvents(): void {
     else if (a === 'stereo') { setS({ ...S, stereo: d.v && Core.STEREOTYPES[d.v] ? d.v : undefined }); saveS(); ui.stereoOpen = false; render(); }   // D116
     else if (a === 'oracles') { setS({ ...S, oracles: S.oracles ? undefined : true }); saveS(); render(); }   // D144
     else if (a === 'oracle' && S.game) { const g2 = Core.consult(S.game, rand); if (g2 !== S.game) { play(g2); if (g2.oracle) toast(g2.oracle.text); } }   // D144: Delphi
+    else if (a === 'daily') dailyGame();   // D148
     else if (a === 'custom') { ui.custom = true; render(); }   // D147
     else if (a === 'askfold') { e.preventDefault(); ui.askOpen = !ui.askOpen; render(); }   // D147: the requests to the table, folded
     else if (a === 'hurry') { const was = ui.think; ui.think = 0; tick(); ui.think = was; }   // D145: the person does not want to wait

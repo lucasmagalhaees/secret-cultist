@@ -39,6 +39,15 @@ export function render(): void {
   part('user').innerHTML = me ? `<span class="who" id="whoami" title="${esc(me.email)}">${esc(me.email.split('@')[0])}<i class="role ${me.role}">${me.role}</i></span><button class="btn ghost small" data-act="logout" id="logout">Sair</button>` : location.hash === '#painel' ? '<a class="btn ghost small" href="#" id="back">Voltar</a>' : '<a class="btn ghost small" href="#painel" id="painel">Painel</a>';
   if (!me && location.hash === '#painel') { view.innerHTML = vLogin(); afterPaint(null); return; }   // D139: the public page plays Secret Leônidas; #painel is the login
   view.innerHTML = themed(g ? vGame(g) : ui.gallery ? vGallery() : (me || ui.custom ? vQuick() + vPack() + vTable() + vRules() + vHistory() + vSettings() : vQuick() + vRules() + '<button class="btn ghost block" data-act="custom" id="custom">⚙ Personalizar: tema, mesa e opções</button>' + vAbout()), W as unknown as Record<string, string>);   // D147: the public home is short
+  // D148: on a wide screen in landscape, the board, the players and the record go to a column of their own
+  const wide = !!g && g.phase !== 'over' && matchMedia('(min-width: 1100px) and (orientation: landscape)').matches;
+  view.classList.toggle('ingame', wide);
+  if (wide) {
+    const main = document.createElement('div'), side = document.createElement('div');
+    main.className = 'col-main'; side.className = 'col-side';
+    for (const el of [...view.children]) (['board', 'players', 'ata', 'log', 'chron', 'said', 'coach', 'oracle'].includes(el.id) ? side : main).appendChild(el);
+    view.append(main, side);
+  }
   for (const id of expanded) { const detail = document.getElementById(id); if (detail instanceof HTMLDetailsElement) detail.open = true; }
   const dr = document.getElementById('drawer'); if (dr) dr.scrollTop = keep;
   // the needle swings from where it was to the new reading (D32)
@@ -601,7 +610,8 @@ function vSeats(g: Game): string {
   seenSeatsOf = key; seenPres = g.pres; seenChanc = chanc;
   return `<ul class="seats" id="seats" aria-label="A mesa">${g.players.map((p, i) => {
     const mark = kit && i !== me ? kit.party(i) : '', f = live?.get(i);
-    const tags = `${i === g.pres ? '<i>Pres.</i>' : ''}${i === g.chanc ? '<i>Chanc.</i>' : ''}${i === me ? '<i class="you">você</i>' : ''}${f !== undefined ? `<i class="sus">${pct(f)}</i>` : ''}${S.rep && p.alive ? (r => `<i class="rep r${r}" title="Reputação na mesa" aria-label="Reputação ${r} de 3">${'★'.repeat(r)}${'☆'.repeat(3 - r)}</i>`)(Core.reputation(g, i)) : ''}`;
+    const mood = me >= 0 && p.alive ? Core.moodOf(g, i, me) : '';   // D148: what each app player said of you out loud
+    const tags = `${mood ? `<i class="mood ${mood}" title="${mood === 'acc' ? 'Desconfiou de você em voz alta' : 'Disse que confia em você'}">${mood === 'acc' ? '😠' : '🙂'}</i>` : ''}${i === g.pres ? '<i>Pres.</i>' : ''}${i === g.chanc ? '<i>Chanc.</i>' : ''}${i === me ? '<i class="you">você</i>' : ''}${f !== undefined ? `<i class="sus">${pct(f)}</i>` : ''}${S.rep && p.alive ? (r => `<i class="rep r${r}" title="Reputação na mesa" aria-label="Reputação ${r} de 3">${'★'.repeat(r)}${'☆'.repeat(3 - r)}</i>`)(Core.reputation(g, i)) : ''}`;
     return `<li data-seat="${i}" class="seat${mark ? ` ${mark}` : ''}${kit?.sure(i) ? ' sure' : ''}${p.alive ? '' : ' dead'}${i === g.pres ? ` pres-sash${i === sash ? ' sash' : ''}${newPres ? ' in' : ''}` : ''}${i === chanc ? ` medal${newChanc ? ' in' : ''}` : ''}${i >= g.players.length / 2 ? ' rt' : ''}">${kit && i !== me ? `<button class="seat-btn" data-act="seatnote" data-i="${i}" aria-label="Anotar ${esc(p.name)}">${av(g, i, 's')}${name(g, i)}${kd(g, i)}${tags}</button>` : `${av(g, i, 's')}${name(g, i)}${kd(g, i)}${tags}`}</li>`;
   }).join('')}</ul>`;
 }

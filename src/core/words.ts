@@ -73,6 +73,8 @@ const GREEK_SPEAK: [RegExp, string | ((...m: string[]) => string)][] = [
   [/\bliberal\b/g, 'ateniense'], [/\bLiberal\b/g, 'Ateniense'], [/\bLIBERAL\b/g, 'ATENIENSE'],
   [/\bpresidentes\b/g, 'arcontes'], [/\bPresidentes\b/g, 'Arcontes'], [/\bpresidente\b/g, 'arconte'], [/\bPresidente\b/g, 'Arconte'], [/\bPRESIDENTE\b/g, 'ARCONTE'],
   [/\bchanceleres\b/g, 'estrategos'], [/\bChanceleres\b/g, 'Estrategos'], [/\bchanceler\b/g, 'estratego'], [/\bChanceler\b/g, 'Estratego'], [/\bCHANCELER\b/g, 'ESTRATEGO'],
+  [/\bEliminação\b/g, 'Ostracismo'], [/\beliminação\b/g, 'ostracismo'], [/\beliminações\b/g, 'ostracismos'],   // D148: in Athens, one is sent away by ostracism
+  [/\b([Ee])limin(ar|ado|ada|ados|adas|ou|am|a|e)(?![\wçãõáéíóú])/g, (_, e, x) => `${e === 'E' ? 'O' : 'o'}straciz${x}`],
   [/\bpresidência\b/g, 'arcontado'], [/\bPresidência\b/g, 'Arcontado'], [/\bPres\./g, 'Arc.'], [/\bChanc\./g, 'Estr.']
 ];
 /** A text in the words of a theme (D102, D139): Secret Cultist's, Secret Leônidas's, or as it is. */
