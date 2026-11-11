@@ -1022,4 +1022,8 @@ As caricaturas de bicho (coruja, lobo, leão) e as tentativas seguintes (monstro
 
 ## D151. Seis retratos redesenhados (2026-11-11)
 
-O modelo Claude Fable 5.1 redesenhou seis retratos que eram corpo inteiro pequeno ou tinham partes soltas, em busto, no mesmo traço e no mesmo conceito, e o Lucas aprovou todos: o pássaro liberal, o jacaré e o lobo do mundo, o dragão-de-komodo (Ásia), o ornitorrinco (Oceania) e o casuar (o líder da Oceania). Os três primeiros trocam o desenho da função; os três de continente entram inteiros (`REDRAWN` em `src/app/art.ts`) no lugar das partes montadas por `member()` e `leader()`.
+O modelo Claude Fable 5.1 redesenhou seis retratos que eram corpo inteiro pequeno ou tinham partes soltas, em busto, no mesmo traço e no mesmo conceito, e o Lucas aprovou todos: o pássaro liberal, o jacaré e o lobo do mundo, o dragão-de-komodo (Ásia), o ornitorrinco (Oceania) e o casuar (o líder da Oceania). Os três primeiros trocam o desenho da função; os três de continente entram inteiros (`REDRAWN` em `src/app/art.ts`) no lugar das partes montadas por `member()` e `leader()`. Na mesma leva entraram, também aprovados, os outros 29: todos os bichos e líderes das Américas, África, Europa, Ásia, Oceania e Brasil, a naja e o urso do mundo, e o contorno que faltava no investigador, no cultista e no sumo sacerdote (um `${K}` solto como atributo no lugar de `${o()}`), sem mudar o desenho deles.
+
+## D152. Todo design do jogo passa pelo Fable (2026-11-11)
+
+O Lucas decidiu: tudo que for de design do jogo (retratos, rostos, símbolos, telas) passa pelo modelo Claude Fable 5.1 antes de entrar, e ele aprova a prévia. Com os 30 retratos de continente redesenhados inteiros, saiu do `art.ts` o código que montava os bichos por partes (`member`, `leader`, as cabeças e os corpos), que não era mais chamado.
