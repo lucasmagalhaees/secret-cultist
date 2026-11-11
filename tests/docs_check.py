@@ -20,7 +20,7 @@ def check(name, cond, detail=''):
 SRC = sorted((ROOT / 'src').rglob('*.ts'))
 CORE = [p for p in SRC if '/src/core/' in p.as_posix()]
 code = '\n'.join(p.read_text(encoding='utf-8') for p in SRC)
-spec, readme, contributing = read('CLAUDE.md'), read('README.md'), read('CONTRIBUTING.md')
+spec, readme, contributing = read('CLAUDE.md') + '\n' + read('docs/requisitos.md'), read('README.md'), read('CONTRIBUTING.md')   # D143: the requirements live in their own file
 MD = [p for p in ROOT.rglob('*.md') if not any(x in p.as_posix() for x in ('.git/', 'node_modules'))]
 
 # 1. every relative link in every markdown file points at something that exists
@@ -69,7 +69,7 @@ for pattern, phrase in CONSTANTS:
     check(f'code has {pattern}', re.search(pattern, code + read('src/sw.js')) is not None)
     check(f'spec says "{phrase}"', phrase in spec)
 verify = read('scripts/verify.sh')
-check('the coverage minimums are the ones the spec gives', '--min-functions 95 --min-chars 90' in verify and '95% das funções e 90% do código' in spec)
+check('the coverage minimums are the ones the spec gives', '--min-functions 93 --min-chars 95' in verify and '93% das funções e 95% do código' in spec)
 
 # 5. every module is in the architecture tables of the spec
 for p in SRC:

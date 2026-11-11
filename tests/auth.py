@@ -58,10 +58,21 @@ with sync_playwright() as p:
     # D139: the public page plays Secret Leônidas, no login
     assert pg.locator('#login').count() == 0 and pg.locator('[data-act=quickgame]').count() == 1 and pg.text_content('#boss') == 'Leônidas', pg.evaluate("JSON.stringify([!!document.getElementById('login'), document.querySelectorAll('[data-act=quickgame]').length, document.getElementById('boss').textContent, document.documentElement.dataset.pack])")
     assert pg.locator('#pack [data-act=pack]').count() == 1 and pg.locator('[data-act=quickmode]').count() == 0 and pg.locator('#pack [data-act=region]').count() == 0, 'only Secret Leônidas, no continents'
+    pg.click('[data-act=oracles]'); assert pg.get_attribute('#oracles', 'aria-pressed') == 'true', 'D144: the gods and oracles toggle'
     pg.click('[data-act=quickgame]'); pg.wait_for_function('window.__APP.S.game')
+    assert any('sob os olhos' in l for l in pg.evaluate('window.__APP.S.game.log')), 'D144: a patron god watches the game'
+    if pg.locator('[data-act=hurry]').count(): pg.click('[data-act=hurry]')   # D145: do not wait for the app player
     g = pg.evaluate('window.__APP.S.game'); assert g['pack'] == 'esparta' and not g.get('sheets'), 'pure Leônidas: no sheets, no dice'
     pg.wait_for_timeout(400); pg.screenshot(path=str(ROOT / 'tests/shots/leonidas-mesa.png'))
     assert 'Arc.' in pg.text_content('#players') and 'Pres.' not in pg.text_content('#players'), 'the words of the time'
+    # D144: after the second decree the person may consult the oracle of Delphi, once
+    pg.evaluate('window.__APP.ui.think = 1e9')   # the app players wait while the test looks
+    pg.wait_for_function("window.__APP.S.game.phase !== 'reveal' || !!document.querySelector('[data-act=open]')")
+    if pg.locator('[data-act=open]').count(): pg.click('[data-act=open]'); pg.click('[data-act=hiderole]')
+    pg.wait_for_function("window.__APP.S.game.phase !== 'reveal'")
+    pg.evaluate("window.__APP.S.game = { ...window.__APP.S.game, laws: { L: 1, F: 1 } }"); pg.click('#view [data-act=help]')
+    pg.wait_for_selector('#oracleask'); pg.wait_for_function('!(window.__APP.ui.frozen > Date.now())'); pg.click('[data-act=oracle]')   # after the decree's animation
+    pg.wait_for_selector('#oracle p'); assert 'Pítia' in pg.inner_text('#oracle') and pg.locator('#oracleask').count() == 0, pg.inner_text('#oracle')
     pg.evaluate('window.__APP.S.game = null'); cov.reload(pg); pg.wait_for_function('window.__APP')
     # the dashboard: #painel asks for the login
     pg.click('#painel'); pg.wait_for_selector('#login'); assert pg.locator('#user .who').count() == 0

@@ -978,3 +978,19 @@ O login em produção respondia "E-mail ou senha errados" para tudo, inclusive q
 ## D142 (2026-11-09): o jogo rápido segue o "Tema do jogo"
 
 As abas Cthulhu, Leônidas e Sorteado do jogo rápido brigavam com o cartão "Tema do jogo" (duas escolhas para a mesma coisa). Saíram: "Jogar agora" joga o tema escolhido no cartão (`packNow()`), e a campanha só aparece no Secret Cultist. Os desenhos gregos (coruja ateniense, lobo espartano, Leônidas leão) foram refeitos no traço dos outros: corpo inteiro, foco de luz, contorno grosso, hoplitas de elmo coríntio, lança e escudo.
+
+## D143. Cobertura pelo código, requisitos fora do CLAUDE.md, arquivos menores (2026-11-11)
+
+O mínimo de 95% das funções travava qualquer mudança: as funções anônimas de uma linha (um `.map`, um `.catch`) contavam igual a uma regra inteira, e o PR #5 caiu para 94,7% sem perder teste nenhum. Agora a medida principal é o código executado, com mínimo de 95% (estava em 96,6%), e as funções ficam em 93%. Os requisitos do produto saíram do CLAUDE.md para `docs/requisitos.md`, conferidos pelo `docs_check.py` do mesmo jeito: o CLAUDE.md fica com as regras e o mapa. O `judge.ts` e o `render.ts`, os dois maiores arquivos, foram divididos em módulos menores, sem mudar comportamento, para cada mudança mexer em menos linhas e dar menos conflito.
+
+## D144. Deuses e oráculos no Secret Leônidas (2026-11-11)
+
+O Lucas pediu o Leônidas com conteúdo, no liga e desliga combinado no D139. Fica em `src/core/olympus.ts`: um deus do Olimpo (Atena, Ares, Apolo, Hermes, Poseidon ou Zeus) é sorteado como patrono e conta cada decreto com um presságio, e quem joga sozinho pode consultar o oráculo de Delfos uma vez, depois do 2º decreto. O oráculo diz a verdade e nunca inteira: para quem não conhece os espartanos, dois nomes dos quais ao menos um é espartano; para quem conhece, qual IA mais desconfia dele. Só a pessoa vê a resposta; as IAs não sabem dela. Nada disso muda quem morre, que decreto passa ou quem vence, como os deuses do Secret Cultist.
+
+## D145. IA mais humana e menos espera (2026-11-11)
+
+Uma IA que diz o contrário do que disse antes sobre o mesmo jogador agora assume: "Eu defendi X, e errei: depois daquela lei com X no governo, não dá mais", ou "Retiro o que disse de X". O motivo vem só do que a mesa viu (`mindChange`). E, enquanto uma IA pensa, o botão "⏩ Não esperar" faz ela jogar na hora, para quem já entendeu o lance.
+
+## D146. CI resistente ao espelho do Ubuntu (2026-11-11)
+
+O e2e e a cobertura caíram em todos os PRs no `playwright install --with-deps`: o apt do runner não resolvia o espelho do Ubuntu (`Temporary failure resolving 'azure.archive.ubuntu.com'`), uma falha da rede do GitHub, não do código. O Chromium do Playwright agora é baixado sem o apt, e as dependências do sistema (`install-deps`) têm 150 s e não derrubam o CI se o espelho estiver fora: a imagem do GitHub já traz quase tudo, e se faltar algo o próprio teste diz. O runner fica fixo no `ubuntu-24.04`, para uma troca de imagem do `ubuntu-latest` não pegar o CI de surpresa.

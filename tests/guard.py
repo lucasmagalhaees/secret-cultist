@@ -3,7 +3,7 @@
 
 Two checks, both against a baseline of what was already uncovered when the guard came in (tests/guard_baseline.json):
   - every key of the Core object (src/core/index.ts) is used by a test (Core.<key> in a test file);
-  - every tap target in the page (data-act="..." in src/app/render.ts) is clicked or looked up by a test.
+  - every tap target in the page (data-act="..." in src/app/render.ts, home.ts and overlay.ts) is clicked or looked up by a test.
 A new Core function or a new button without a test fails here, in seconds, long before the coverage run finds it.
 `--update` rewrites the baseline (only to shrink it: a name that gets a test leaves the list for good)."""
 import json, pathlib, re, sys
@@ -17,7 +17,7 @@ body = index[index.index('export const Core = {') :]
 body = body[: body.index('};')]
 core = sorted({k for k in re.findall(r'\b([A-Za-z_][A-Za-z0-9_]*)\b', body.split('{', 1)[1]) if not k.isupper() or len(k) > 1})
 core = [k for k in core if re.search(rf'\b{re.escape(k)}\b', body)]
-acts = sorted(set(re.findall(r'data-act="([a-z0-9-]+)"', (ROOT / 'src/app/render.ts').read_text())))
+acts = sorted(set(re.findall(r'data-act="([a-z0-9-]+)"', ''.join((ROOT / f'src/app/{f}.ts').read_text() for f in ('render', 'home', 'overlay')))))
 
 untested_core = [k for k in core if not re.search(rf'Core\.{re.escape(k)}\b', TESTS)]
 untested_acts = [a for a in acts if not re.search(rf'data-act[=~]?["\']?{re.escape(a)}\b|\[data-act={re.escape(a)}\]|data-act="{re.escape(a)}"', TESTS)]

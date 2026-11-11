@@ -1,15 +1,14 @@
 import { Core } from '../core';
 import type { Ask, Event, Game, Gov, Law, Level, Pack, Party, Persona, Region, Role, Talk } from '../core';
-import type { Roll } from '../core/dice';
 import type { ItemKey, TrapKey } from '../core/index';
 import type { EndTab } from './state';
-import { animalOf, face, portrait, seal } from './art';
-import { $, esc, part, themed } from './format';
+import { face, portrait, seal } from './art';
+import { esc, part, themed } from './format';
 import { thud } from './fx';
-import { S, dlcOn, packNow, packsOpen, ui } from './state';
+import { S, packNow, ui } from './state';
 import { session } from './auth';
-import { builtFrom, canUpdate } from './update';
-import { earned, kept, past } from './history';
+import { myPlays, myRolls, soloSeat, tellStory } from './overlay';
+import { vGallery, vHistory, vLogin, vPack, vQuick, vRules, vSettings, vTable, vTut, vYours } from './home';
 
 /* ================= the screen =================
    Rendering is innerHTML from the state. Every text that did not come from the code goes through esc(). A field with
@@ -124,13 +123,12 @@ function sashOf(g: Game): number {
 }
 /** D70: an investigator told the table what it saw: the card of the side it named turns over, on the whole screen. It
  *  is only what was said (the investigator may lie), and the screen says so. */
-let lastDebate = '';
 /** D94: a d100 roll as the table sees it: the die, the skill and its value, and how it went. The die lands on its number
  *  with a short spin (rollDice), once per roll; the level then flashes: gold for a critical, green for a success, red
  *  shaking for a failure, cracked for a fumble. */
-type DiceRoll = { label: string; val: number; d: number; level: 'crit' | 'extreme' | 'hard' | 'ok' | 'fail' | 'fumble'; shaken?: boolean };
-const rolled = new Set<string>();
-function diceHtml(r: DiceRoll, key: string, mine = true): string {   // D128: only the person's own dice spin
+export type DiceRoll = { label: string; val: number; d: number; level: 'crit' | 'extreme' | 'hard' | 'ok' | 'fail' | 'fumble'; shaken?: boolean };
+export const rolled = new Set<string>();
+export function diceHtml(r: DiceRoll, key: string, mine = true): string {   // D128: only the person's own dice spin
   const good = r.level === 'crit' || r.level === 'extreme' || r.level === 'hard' || r.level === 'ok';
   return `<div class="dice ${r.level} ${good ? 'good' : 'bad'}${rolled.has(key) || !mine ? ' done' : ''}" data-key="${key}" data-d="${r.d}" aria-label="${esc(r.label)} ${r.val}: tirou ${r.d}, ${Core.ROLL_NAME[r.level]}"><b class="die" aria-hidden="true">${rolled.has(key) || !mine ? String(r.d).padStart(2, '0') : '??'}</b><span class="dice-txt"><small>🎲 d100 · ${esc(r.label)} ${r.val}${r.shaken ? ' · abalado' : ''}</small><strong>${Core.ROLL_NAME[r.level]}</strong></span></div>`;
 }
@@ -160,9 +158,9 @@ export function bossWin(g: Game): void {
 }
 
 /** The words of the theme of what is on screen (D12): the game's, or before a game the one chosen at the table. */
-let P: Pack = 'culto', R: Region = 'mundo', W = Core.words();
-const role = (r: Role): string => (r === 'liberal' ? 'Liberal' : r === 'lider' ? W.boss : W.F);
-const party = (p: Law): string => (p === 'L' ? 'Liberal' : W.F);
+export let P: Pack = 'culto', R: Region = 'mundo', W = Core.words();
+export const role = (r: Role): string => (r === 'liberal' ? 'Liberal' : r === 'lider' ? W.boss : W.F);
+export const party = (p: Law): string => (p === 'L' ? 'Liberal' : W.F);
 const POWER_LABEL: Record<string, string> = { investigate: 'investiga', peek: 'espia', special: 'eleição', execute: 'elimina' };
 /** The icon of each power on the board (D48). */
 const POWER_ICON: Record<string, string> = { investigate: '🔍', peek: '👁', special: '🗳', execute: '✖', win: '★' };
@@ -178,12 +176,12 @@ function known(g: Game): Map<number, ['L' | 'F', string]> {
   for (const e of g.hist) if (e.k === 'inv' && e.by === me && e.party && !knownMap.has(e.target)) knownMap.set(e.target, [e.party, `🔍 ${e.party === 'L' ? 'Liberal' : W.F}`]);
   return knownMap;
 }
-const name = (g: Game, i: number): string => {
+export const name = (g: Game, i: number): string => {
   const k = g.players[i] ? known(g).get(i) : undefined, n = esc(g.players[i]?.name ?? '?');
   return k ? `<span class="kn ${k[0]}" title="${esc(k[1])}">${n}<i class="kn-tag">${esc(k[1])}</i></span>` : n;
 };
 /** The record of a seat, like a kill/death ratio: cultist laws it passed as president and as chancellor (all the table saw). */
-const kd = (g: Game, i: number): string => {
+export const kd = (g: Game, i: number): string => {
   let pr = 0, ch = 0;
   for (const e of g.hist) if (e.k === 'gov' && e.law === 'F') { if (e.pres === i) pr++; if (e.chanc === i) ch++; }
   return pr + ch ? `<i class="kd" title="Leis ${esc(W.fs)} que aprovou: ${pr} como presidente, ${ch} como chanceler" aria-label="${pr} como presidente, ${ch} como chanceler">${pr}P·${ch}C</i>` : '';
@@ -192,13 +190,13 @@ const kd = (g: Game, i: number): string => {
  *  the seats apart at a glance. */
 /** D92: the face of a seat, in one of three sizes (s 24, m 32, l 48; xl 64 on the full screens), with its state on it: a
  *  gold ring for the president, a light one for the chancellor, grey when out. Never the colour of a side. */
-const av = (g: Game, i: number, size: 's' | 'm' | 'l' | 'xl' = 'm'): string => {
+export const av = (g: Game, i: number, size: 's' | 'm' | 'l' | 'xl' = 'm'): string => {
   const p = g.players[i];
   if (!p) return '';
   const st = !p.alive ? ' out' : g.phase !== 'over' && i === g.pres ? ' pres' : g.phase !== 'over' && i === g.chanc ? ' chanc' : '';
   return `<i class="av av-${size}${st}" aria-hidden="true">${face(p.name, g.region || 'mundo', !p.ai)}</i>`;
 };
-const AI_TAG = '<small class="ai">IA</small>';
+export const AI_TAG = '<small class="ai">IA</small>';
 /** What each level does, in a line (D10). */
 export const LEVEL: Record<Level, [string, string]> = {
   facil: ['Fácil', 'Escolhe e vota sem pensar muitas vezes, esquece o que aconteceu há mais de cinco governos e acredita em quase tudo que ouve. Os {fs} mentem pouco.'],
@@ -206,142 +204,11 @@ export const LEVEL: Record<Level, [string, string]> = {
   dificil: ['Difícil', 'Lembra de tudo e desconfia de história que não fecha. Os {fs} pensam em como a mesa vai ver cada jogada e armam para o {boss} parecer limpo.'],
   extremo: ['Extremo', 'Conta as cartas: sabe quantas leis de cada tipo ainda podem sair e calcula a chance de cada fala ser verdade. Nunca vê o papel de ninguém.']
 };
-const law = (l: Law, k?: number): string => {
+export const law = (l: Law, k?: number): string => {
   const face = `<span class="sym">${seal(l, P)}</span><span>${l === 'L' ? '{law}' : '{lawF}'}</span>`;
   return k === undefined ? `<div class="law ${l}">${face}</div>`
     : `<button class="law ${l}${ui.pick === k ? ' on' : ''}" data-act="pick" data-k="${k}" aria-pressed="${ui.pick === k}">${face}</button>`;
 };
-
-/* ---------- before the game: the table ---------- */
-/** Play again at once (D34): with a table that is ready, one big button with the last setup, before anything else. */
-/** D89: the tutorial's tips, each when its moment comes, in order; the first one not read yet shows (and holds the
- *  app players until it is read). Only the rules and what the whole table sees: never a secret. */
-export function tutTip(g: Game | null): { key: string; text: string } | null {
-  if (!g || !g.tut) return null;
-  const me = g.players.findIndex(p => !p.ai), seen = new Set(g.tut), last = [...g.hist].reverse().find(e => e.k === 'gov' || e.k === 'chaos');
-  const mine = g.hist.filter((e): e is Gov => e.k === 'gov' && (e.pres === me || e.chanc === me)).pop();
-  const tips: [string, boolean, string][] = [
-    ['role', g.phase === 'reveal', 'Cada um vê o próprio papel em segredo. Aqui você vai ser liberal. Os liberais são maioria e ganham com 5 leis liberais, ou eliminando o {boss}. Os {fs} são poucos, se conhecem e ganham com 6 leis {fs}, ou elegendo o {boss} chanceler depois da 3ª lei {f}.'],
-    ['nominate-ai', g.phase === 'nominate' && g.pres !== me, 'Cada rodada tem um presidente, e a vez passa em ordem. O presidente indica um chanceler. Repare em quem indica quem: um {f} costuma puxar um aliado.'],
-    ['nominate-me', g.phase === 'nominate' && g.pres === me, 'Agora o presidente é você. Indique um chanceler. Quem já aprovou lei liberal tende a ser mais confiável; o último governo eleito não pode voltar como chanceler.'],
-    ['vote', g.phase === 'vote', 'Todos votam {ja} ou {nein} no governo. Mais {ja} que {nein}: eleito. Três governos rejeitados seguidos, e o caos aprova a lei do topo do baralho.'],
-    ['president-me', g.phase === 'president' && g.pres === me, 'Você tirou 3 leis do baralho. Toque numa para descartar: as outras 2 vão para o chanceler. Se tem liberal, passe a liberal adiante.'],
-    ['chancellor-me', g.phase === 'chancellor' && g.chanc === me, 'Você recebeu 2 leis do presidente. A que você não descartar é aprovada.'],
-    ['claim', !!mine && (mine.pres === me ? mine.pc === undefined : mine.cc === undefined), 'Agora conte à mesa o que você teve na mão. Dá para mentir, mas liberal diz a verdade: é comparando as histórias que a mesa descobre quem mente.'],
-    ['lawF', !!last && (last.k === 'gov' || last.k === 'chaos') && last.law === 'F' && g.laws.F >= 1, 'Saiu uma lei {f}. Nem sempre é culpa de alguém: o baralho tem 11 {fs} e só 6 liberais. Mas compare o que o presidente e o chanceler disseram: se as histórias não batem, alguém mentiu.'],
-    ['notes', g.laws.F + g.laws.L >= 2 && g.phase !== 'over', 'Abra as Anotações e marque quem você acha liberal ou {f}. O 📣 diz à mesa, e acusar com uma prova da ata pesa bem mais que só desconfiar.'],
-    ['power', ['investigate', 'peek', 'special', 'execute'].includes(g.phase), 'Algumas leis {fs} dão um poder ao presidente: investigar o partido de alguém, ver as próximas leis, escolher o próximo presidente ou eliminar alguém. Quem investiga conta à mesa o que viu, e pode mentir.'],
-    ['zone', g.laws.F >= 3 && g.phase !== 'over', 'Cuidado: já são 3 leis {fs}. Se o {boss} for eleito chanceler agora, os {fs} ganham na hora. Vote {nein} em chanceler de quem você desconfia.'],
-    // D107: Secret Cultist's own tips: the sheet, the dice and sanity
-    ['sheet', !!g.sheets && g.pack === 'culto' && g.phase === 'nominate', 'Cada um tem uma ficha de investigador do Call of Cthulhu. Toque num nome na lista de jogadores para ver a ficha: Persuasão, Lábia, Charme, Psicologia e a sanidade (SAN).'],
-    ['dice', !!g.sheets && g.pack === 'culto' && g.hist.some(e => e.k === 'talk' && (e.deb || []).some(l => !!l.roll)), 'O que se diz no debate é rolado num d100 contra a perícia da ficha: quanto menor, melhor. Um sucesso deixa a fala mais forte; uma falha, mais fraca.'],
-    ['san', !!g.sheets && g.pack === 'culto' && (Core.sanity(g, me) ?? 99) < Core.SAN_LOW, 'Sua sanidade caiu: cada eliminação e cada lei {f} custam SAN. Abaixo do limite você fica abalado, e as perícias rolam com dado de penalidade.'],
-    ['over', g.phase === 'over', 'Fim do tutorial! Agora você sabe o básico. Em "Jogar agora" a partida é de verdade, contra a IA no difícil.']
-  ];
-  const t = tips.find(([k, on]) => on && !seen.has(k));
-  return t ? { key: t[0], text: t[2] } : null;
-}
-function vTut(g: Game): string {
-  const t = tutTip(g);
-  return t ? `<section class="card tut" id="tut"><span class="label">📘 Tutorial</span><p>${t.text}</p><button class="btn block" data-act="tutok" data-v="${t.key}">Entendi</button></section>` : '';
-}
-function vQuick(): string {
-  // "Jogar agora" is the quick game (D35): 7 seats, you and 6 app players at the hard level, no assistance, theme and
-  // continent drawn at random; the table below stays for setting up a game by hand
-  if (S.game) return '';
-  const pk = packNow();   // D141: the quick game plays the theme picked in "Tema do jogo"
-  return `<section class="card quick" id="quick">${pk === 'culto' ? cultSetup() : ''}<button class="btn block big" data-act="quickgame" id="quickgame">${ui.playMode === 'campanha' && pk === 'culto' ? '▶ Começar a campanha' : '▶ Jogar agora'}</button><p class="hint">Partida rápida: 7 lugares, você e 6 IAs no difícil (o nível em Contra a IA vale para a mesa que você monta), sem assistência, no tema escolhido em Tema do jogo.</p><button class="btn ghost block" data-act="tutorial" id="tutorial">📘 Nunca jogou? Tutorial</button></section>`;
-}
-/** Your game at a glance, at the top of the result (D34): won or lost, with what role, and how the notebook did. */
-function vYours(g: Game): string {
-  const me = solo(g);
-  if (me < 0 || !g.winner) return '';
-  const p = g.players[me], won = Core.partyOf(p.role) === g.winner, sc = g.notes ? Core.notesScore(g, me) : null, n = sc ? sc.right.length + sc.wrong.length : 0;
-  return `<section class="card yours ${won ? 'won' : 'lost'}" id="yours"><p class="big">${won ? '🏆 Você venceu' : '💀 Você perdeu'}</p><p>Você era <span class="role ${Core.partyOf(p.role)}">${role(p.role)}</span>${n ? ` · caderno: <b>${sc?.right.length}</b> de ${n} certas` : ''}</p>${vBadges(g, me)}<button class="btn ghost block" data-act="share" id="share">📤 Compartilhar resultado</button></section>`;
-}
-/** The achievements of this game (D41), and how many of all there are the person has on the device. */
-function vBadges(g: Game, me: number): string {
-  const got = Core.achievements(g, me), all = Object.keys(Core.ACHIEVEMENTS), have = earned();
-  return `<div class="badges" id="badges"><small>Conquistas ${have.size}/${all.length}</small>${got.length ? got.map(a => `<span class="badge-a" title="${Core.ACHIEVEMENTS[a][1]}">🏅 ${Core.ACHIEVEMENTS[a][0]}</span>`).join('') : '<span class="hint">Nenhuma nesta partida.</span>'}</div>`;
-}
-function vTable(): string {
-  const names = S.names, n = names.length;
-  let h = `<section class="card" id="table"><span class="label">Mesa (${Core.MIN_PLAYERS} a ${Core.MAX_PLAYERS} jogadores)</span>`;
-  h += n ? `<ul class="names" id="names">${names.map((x, i) => `<li><span>${i + 1}. <b>${esc(x)}</b>${S.ai?.[i] ? ` ${AI_TAG}` : ''}</span><button class="x" data-act="rmname" data-i="${i}" aria-label="Tirar ${esc(x)}">×</button></li>`).join('')}</ul>`
-    : '<p class="empty" id="empty">Ninguém na mesa ainda. Coloque os nomes na ordem em que vocês estão sentados.</p>';
-  h += `<div class="row"><div class="field"><input id="name" maxlength="${Core.NAME_MAX}" autocomplete="off" placeholder="nome do jogador" value="${esc(ui.name)}" aria-label="Nome do jogador"></div><button class="btn" data-act="addname">Pôr</button><button class="btn ghost" data-act="addbot"${n >= Core.MAX_PLAYERS ? ' disabled' : ''}>+ IA</button></div>`;
-  h += ui.msg ? `<p class="msg" id="msg">${esc(ui.msg)}</p>` : '';
-  h += n ? `<button class="more" data-act="clear" id="clear">${ui.confirmClear ? 'Toque de novo para tirar todos' : 'Limpar a mesa'}</button>` : '';
-  const short = Core.MIN_PLAYERS - n;
-  h += short > 0
-    ? `<button class="btn block" data-act="start" disabled>Faltam ${short} para começar</button>${n ? `<button class="btn ghost block" data-act="fill" data-n="${Core.MIN_PLAYERS}" id="fillmin">Completar com ${short} da IA</button>` : '<p class="hint">Ponha os nomes, ou só o seu e complete com a IA.</p>'}</section>`
-    : `<button class="btn block" data-act="start">Começar com ${n} jogadores</button></section>`;
-  return h + vSolo();
-}
-/** The choices of a game against the app that are not needed to start one (D18): the training role, the speed, the
- *  trainer and the minutes. Closed, one line says how they are set. */
-function vMore(): string {
-  return `<div id="moreopts">
-    <p class="hint">Seu papel (treino)</p><div class="segm roles" role="group" aria-label="Seu papel">${(['', 'liberal', 'cultista', 'lider'] as const).map(r => `<button class="${(S.train || '') === r ? 'on' : ''}" data-act="train" data-v="${r}" aria-pressed="${(S.train || '') === r}">${r ? role(r) : 'Sorteado'}</button>`).join('')}</div>
-    <p class="hint" id="traintext">${S.train ? `Você vai ser ${role(S.train).toLowerCase()}, para treinar esse lado. Vale quando só você é gente na mesa; as IAs não sabem que você escolheu.` : 'O seu papel é sorteado, como numa partida normal.'}</p>
-    <p class="hint">Velocidade da IA</p><div class="segm" role="group" aria-label="Velocidade da IA">${(['lenta', 'normal', 'rapida'] as const).map(v => `<button class="${(S.speed || 'normal') === v ? 'on' : ''}" data-act="speed" data-v="${v}" aria-pressed="${(S.speed || 'normal') === v}">${{ lenta: 'Lenta', normal: 'Normal', rapida: 'Rápida' }[v]}</button>`).join('')}</div>
-    <p class="hint">Dicas do treinador</p><div class="segm" role="group" aria-label="Dicas do treinador"><button class="${S.coach ? '' : 'on'}" data-act="coach" data-v="off" aria-pressed="${!S.coach}">Desligadas</button><button class="${S.coach ? 'on' : ''}" data-act="coach" data-v="on" aria-pressed="${!!S.coach}">Ligadas</button></div>
-    <p class="hint">Reputação</p><div class="segm" role="group" aria-label="Reputação"><button class="${S.rep ? '' : 'on'}" data-act="rep" data-v="off" aria-pressed="${!S.rep}">Desligado</button><button class="${S.rep ? 'on' : ''}" data-act="rep" data-v="on" aria-pressed="${!!S.rep}" id="repon">Ligado</button></div>
-    <p class="hint">Desconfiança</p><div class="segm" role="group" aria-label="Desconfiança"><button class="${S.gauge ? '' : 'on'}" data-act="gauge" data-v="off" aria-pressed="${!S.gauge}">Desligado</button><button class="${S.gauge ? 'on' : ''}" data-act="gauge" data-v="on" aria-pressed="${!!S.gauge}" id="gaugeon">Ligado</button></div>
-    <p class="hint">${S.coach ? 'Depois de cada governo, o treinador faz as contas com o que só você sabe: a chance da mão que o presidente disse, se as falas fecham, e quem parece mais {f}.' : 'Ligadas, o treinador explica o que dá para tirar de cada governo.'}</p>
-    <p class="hint">Assistência</p><div class="segm" role="group" aria-label="Assistência"><button class="${S.assist ? '' : 'on'}" data-act="assist" data-v="off" aria-pressed="${!S.assist}">Desligada</button><button class="${S.assist ? 'on' : ''}" data-act="assist" data-v="on" aria-pressed="${!!S.assist}">Ata com votos</button></div>
-    <p class="hint">${S.assist ? 'A ata mostra cada lei, quem governou e quem votou {ja} no governo que a aprovou, e soma por jogador. Só o que a mesa toda viu.' : 'Ligada, a partida ganha uma ata com quem aprovou cada lei.'}</p>
-  </div>`;
-}
-const moreSum = (): string => `Seu papel: ${S.train ? role(S.train).toLowerCase() : 'sorteado'} · velocidade ${({ lenta: 'lenta', normal: 'normal', rapida: 'rápida' } as const)[S.speed || 'normal']} · treinador ${S.coach ? 'ligado' : 'desligado'} · ata ${S.assist ? 'ligada' : 'desligada'}`;
-/** Playing alone, or with fewer people than a table needs: the app plays the other seats, at the level chosen. */
-function vSolo(): string {
-  const lv = S.level || 'medio', bots = (S.ai || []).filter(Boolean).length;
-  const now = S.names.length, size = (k: number): string => `<button class="${now === k ? 'on' : ''}" data-act="fill" data-n="${k}" aria-pressed="${now === k}">${k}</button>`;
-  const lvl = (l: Level): string => `<button class="${lv === l ? 'on' : ''}" data-act="level" data-v="${l}" aria-pressed="${lv === l}">${LEVEL[l][0]}</button>`;
-  return `<section class="card" id="solo"><span class="label">Contra a IA</span><p class="hint">Jogue sozinho ou com poucos: ponha o seu nome e complete a mesa com jogadores da IA. Cada IA só sabe o que aquele lugar saberia na mesa.</p>
-    <p class="hint">Lugares na mesa (põe ou tira IA)</p><div class="segm" role="group" aria-label="Lugares na mesa">${[5, 6, 7, 8, 9, 10].map(size).join('')}</div>
-    <p class="hint">Nível da IA</p><div class="segm" role="group" aria-label="Nível da IA">${Core.LEVELS.map(lvl).join('')}</div><p class="hint" id="leveltext">${LEVEL[lv][1]}</p>
-    <button class="more" data-act="more" id="moretoggle" aria-expanded="${ui.more}" aria-controls="moreopts">${ui.more ? 'Menos opções ▴' : 'Mais opções ▾'}</button>
-    ${ui.more ? vMore() : `<p class="hint" id="moresum">${moreSum()}</p>`}
-    ${bots ? `<p class="hint">${bots} ${bots === 1 ? 'lugar é' : 'lugares são'} da IA.</p>` : ''}</section>`;
-}
-/** The theme of the game (D12): the same rules, other sides, other names, other drawings. */
-function vPack(): string {
-  const cur = packNow();
-  const opt = (k: Pack): string => `<button class="${cur === k ? 'on' : ''}" data-act="pack" data-v="${k}" aria-pressed="${cur === k}"><span class="packart">${portrait('liberal', k, S.region)}${portrait('cultista', k, S.region)}${portrait('lider', k, S.region)}</span>${Core.WORDS[k].theme}</button>`;
-  return `<section class="card" id="pack"><span class="label">Tema do jogo</span><div class="packs" role="group" aria-label="Tema do jogo" data-keep>${packsOpen().map(opt).join('')}</div>
-    <p class="hint" id="packtext">${cur === 'esparta' ? 'Atenas contra os espartanos infiltrados na Assembleia, como no golpe dos Quatrocentos (411 a.C.): os espartanos são o time escondido e Leônidas é o líder deles. As regras são as do original: arcontes, estrategos, ostracismo e o Oráculo de Delfos.' : cur === 'culto' ? 'Investigadores contra um culto: os cultistas são o time escondido e o Sumo Sacerdote é o líder deles. As mesmas regras, e os dados valem mais: cada um tem uma ficha do Call of Cthulhu, e a Psicologia fareja mentiras, quem investiga rola para ser acreditado e quem elimina rola Intimidação.' : cur === 'vermelho' ? 'Os vermelhos são o time escondido e o Red Leader é o líder deles. Vota-se Da! ou Niet!. As regras são as mesmas; as IAs ganham nomes de liberais e vermelhos.' : 'O jogo original: os cultistas são o time escondido e o Leader é o líder deles.'}</p>
-    ${cur !== 'esparta' ? `<p class="hint">Nomes da IA</p><div class="segm regions" role="group" aria-label="Nomes da IA">${Core.REGIONS.filter(r => r !== 'brasil').map(r => `<button class="${(S.region || 'mundo') === r ? 'on' : ''}" data-act="region" data-v="${r}" aria-pressed="${(S.region || 'mundo') === r}">${Core.REGION_NAMES[r]}</button>`).join('')}</div>
-    ${dlcOn() ? `<button class="btn ghost block dlc-region${S.region === 'brasil' ? ' on' : ''}" data-act="region" data-v="brasil" aria-pressed="${S.region === 'brasil'}">Brasil · DLC</button>` : ''}
-    <p class="hint" id="regiontext">Votos: <b>${Core.words(packNow(), S.region).ja}</b> / <b>${Core.words(packNow(), S.region).nein}</b>. Figuras conhecidas ${({ mundo: 'do mundo todo', americas: 'das Américas', europa: 'da Europa', asia: 'da Ásia', africa: 'da África', oceania: 'do mundo todo (da Oceania, só os bichos)', brasil: 'do Brasil (DLC)' } as const)[S.region || 'mundo']}, dos dois lados misturados. O nome é só apelido de jogo: o papel é sorteado, e quem tem nome de liberal pode ser o {boss}.</p><button class="more" data-act="gallery" id="gallerytoggle">Ver todos os desenhos ▸</button>` : '<p class="hint" id="regiontext">Votos: <b>Naí!</b> / <b>Oú!</b>, em grego. As IAs têm nomes de gregos do século V a.C., atenienses e espartanos misturados.</p>'}   <!-- D139: the continents mean nothing to the Greeks -->
-    ${dlcOn() ? '<p class="hint" id="dlcon">Expansão liberada para o seu acesso.</p>' : ''}</section>`;
-}
-/** Every drawing of the game (D25): each continent, each theme, the liberal, the member of the hidden side and its
- *  leader, with the animal's name. */
-function vGallery(): string {
-  const back = '<button class="btn ghost block" data-act="gallery" id="galleryback">Voltar</button>';
-  const cell = (r: Role, k: Pack, reg: Region, label: string): string => `<figure>${portrait(r, k, reg)}<figcaption><b>${label}</b>${animalOf(r, k, reg)}</figcaption></figure>`;
-  const block = (reg: Region): string => `<section class="card gallery" id="gallery-${reg}"><span class="label">${Core.REGION_NAMES[reg]}</span>
-    ${packsOpen().map(k => `<p class="hint">${Core.WORDS[k].theme}</p><div class="cast">${cell('liberal', k, reg, k === 'culto' ? 'Investigador' : k === 'esparta' ? 'Ateniense' : 'Liberal')}${cell('cultista', k, reg, Core.WORDS[k].F)}${cell('lider', k, reg, Core.WORDS[k].boss)}</div>`).join('')}
-    <p class="hint">Rostos da mesa</p><div class="faces">${[...new Set([...Core.NAMES_BY.classico[reg], ...Core.NAMES_BY.vermelho[reg]])].map(n => `<figure>${face(n, reg)}<figcaption>${esc(n)}</figcaption></figure>`).join('')}</div></section>`;   // D92
-  return `<section class="card" id="gallery"><span class="label">Todos os desenhos</span><p class="hint">Cada continente com os bichos dos dois temas. O de cima é o do jogo original.</p>${back}</section>${Core.REGIONS.filter(r => r !== 'brasil' || dlcOn()).map(block).join('')}<section class="card">${back}</section>`;
-}
-function vRules(): string {
-  const head = `<section class="card" id="rules"><span class="label">Como joga</span><p>Liberais contra {fs}, e o {boss} escondido entre os {fs}. Ganha quem aprovar ${Core.WIN.L} leis liberais ou ${Core.WIN.F} leis {fs} primeiro.</p><button class="more" data-act="rules" id="rulestoggle" aria-expanded="${ui.rules}" aria-controls="ruleslist">${ui.rules ? 'Esconder as regras ▴' : 'Ver as regras ▾'}</button>`;
-  if (!ui.rules) return `${head}</section>`;
-  return `${head}<ul class="rules" id="ruleslist">
-    <li>Baralho de ${Core.DECK_F + Core.DECK_L} leis: ${Core.DECK_F} {fs} e ${Core.DECK_L} liberais. Os liberais vencem com ${Core.WIN.L} leis liberais; os {fs}, com ${Core.WIN.F} {fs}.</li>
-    <li>Os {fs} se conhecem e sabem quem é o {boss}. Com 5 ou 6 jogadores o {boss} também sabe quem é o {f}; com 7 ou mais, não sabe. Os liberais não conhecem ninguém.</li>
-    <li>A cada rodada o presidente indica o chanceler e a mesa vota. Eleito, o presidente tira 3 leis e descarta 1; o chanceler recebe 2, descarta 1 e a outra vira lei.</li>
-    <li>O último presidente e o último chanceler eleitos não podem ser chanceler na rodada seguinte (com ${Core.SMALL_TABLE} vivos ou menos, só o último chanceler).</li>
-    <li>${Core.TRACKER_MAX} governos rejeitados seguidos: a lei do topo entra sozinha, sem poder, e o limite de mandato zera.</li>
-    <li>Os poderes do presidente dependem da mesa. Com 5 ou 6: na 3ª lei {f} olha as próximas 3 leis. Com 7 ou 8: na 2ª descobre o partido de alguém, na 3ª convoca eleição especial. Com 9 ou 10: na 1ª e na 2ª descobre o partido de alguém, na 3ª convoca eleição especial. Em toda mesa, na 4ª e na 5ª elimina alguém. Ninguém é investigado duas vezes.</li>
-    <li>Eleição especial: o presidente escolhe quem é o próximo presidente. Depois dessa rodada a ordem volta a partir de quem convocou.</li>
-    <li>A partir da ${Core.VETO_FROM}ª lei {f} o chanceler pode pedir veto das duas leis; se o presidente aceitar, conta como governo rejeitado.</li>
-    <li>Com ${Core.LEADER_ZONE} ou mais leis {fs}, eleger o {boss} chanceler dá a vitória aos {fs}. Eliminar o {boss} dá a vitória aos liberais.</li>
-  </ul><p class="hint" id="credit">Baseado em <a href="https://www.secrethitler.com">Secret Hitler</a>, de Goat, Wolf, &amp; Cabbage, sob a licença <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.pt-br">CC BY-NC-SA 4.0</a>. Uso não comercial.</p></section>`;
-}
 
 /* ---------- the game ---------- */
 function vGame(g: Game): string {
@@ -364,7 +231,7 @@ function vGame(g: Game): string {
     const body = ui.endTab === 'jogo' ? vSummary(g) + vAta(g) : ui.endTab === 'log' ? vLog(g) : vYours(g) + vHighlights(g) + vThoughts(g) + vNotesScore(g) + vReview(g) + vPlayers(g) + vBoard(g);
     return vTut(g) + card + bar + body + vDock(g);
   }
-  return vUndo() + vStatus(g) + vSeats(g) + vMeters(g) + vChron(g) + vSaid(g) + vHelp(g) + vTut(g) + card + vClaims(g) + vCoach(g) + vWatching(g) + vPlayers(g) + vBoard(g) + vAta(g) + vLog(g) + `<section class="card"><button class="btn ghost block" data-act="end">${ui.confirmEnd ? 'Toque de novo para encerrar o jogo' : 'Encerrar jogo'}</button></section>` + vDock(g);
+  return vUndo() + vStatus(g) + vSeats(g) + vMeters(g) + vChron(g) + vSaid(g) + vHelp(g) + vTut(g) + card + vClaims(g) + vCoach(g) + vOracle(g) + vWatching(g) + vPlayers(g) + vBoard(g) + vAta(g) + vLog(g) + `<section class="card"><button class="btn ghost block" data-act="end">${ui.confirmEnd ? 'Toque de novo para encerrar o jogo' : 'Encerrar jogo'}</button></section>` + vDock(g);
 }
 /** The headline of each phase, printed on the page that turns in (D46). */
 const HEAD: Record<string, string> = { reveal: 'Papéis', nominate: 'Nova rodada', vote: 'Votação', president: 'Sessão legislativa', chancellor: 'Sessão legislativa', veto: 'Veto', investigate: 'Poder', peek: 'Poder', special: 'Poder', execute: 'Poder', over: 'Fim de jogo', bot: 'Vez da IA' };
@@ -376,7 +243,7 @@ const DOING: Record<string, string> = {
 };
 function vBot(g: Game, seat: number, ask: string): string {
   const who = ask === 'votes' ? '' : `${av(g, seat, 'l')}<b>${name(g, seat)}</b> ${AI_TAG} `;
-  return `<section class="card" id="phase"><span class="label">Vez da IA</span><p class="big thinking" id="thinking">${who}${DOING[ask]}<span class="dots-wait" aria-hidden="true"><i></i><i></i><i></i></span></p>${vAskNow(g, seat, ask)}</section>`;
+  return `<section class="card" id="phase"><span class="label">Vez da IA</span><p class="big thinking" id="thinking">${who}${DOING[ask]}<span class="dots-wait" aria-hidden="true"><i></i><i></i><i></i></span></p>${vAskNow(g, seat, ask)}${ask === 'reveal' ? '' : '<button class="btn ghost small" data-act="hurry" id="hurry">⏩ Não esperar</button>'}</section>`;
 }
 /** D67: while an app player presides and is choosing, the person can ask it right there, before it decides: pick me,
  *  do not pick someone (nomination), investigate someone (investigation). The app player waits a moment for it. */
@@ -547,7 +414,7 @@ function liveSuspicion(g: Game, me: number): { seat: number; f: number }[] {
   return liveCache.rows;
 }
 /** One moment of the game, told from the point of view of `me` (D15): what the whole table saw happen. */
-function moment(g: Game, i: number, me: number): string {
+export function moment(g: Game, i: number, me: number): string {
   const e = g.hist[i], who = (j: number): string => (j === me ? 'você' : `<b>${name(g, j)}</b>`);
   const lawW = (l?: Law): string => (l === 'L' ? 'liberal' : '{f}');
   const of3 = (n: number): string => (n === 0 ? '3 liberais' : n === 3 ? '3 {fs}' : n === 1 ? '1 {f} e 2 liberais' : '2 {fs} e 1 liberal');
@@ -584,9 +451,14 @@ function liveCrux(g: Game, me: number): ReturnType<typeof Core.crux> {
   return cruxCache.c;
 }
 /** The one person at a table with app players, or -1. */
-const solo = (g: Game): number => { const p = g.players.map((x, i) => (x.ai ? -1 : i)).filter(i => i >= 0); return Core.hasAi(g) && p.length === 1 ? p[0] : -1; };
+export const solo = (g: Game): number => { const p = g.players.map((x, i) => (x.ai ? -1 : i)).filter(i => i >= 0); return Core.hasAi(g) && p.length === 1 ? p[0] : -1; };
 const pct = (x: number): string => `${Math.round(x * 100)}%`;
 /** The trainer's tips (D13): what a careful player could work out from the person's own seat, after each government. */
+/** D144: the oracle of Delphi in Secret Leônidas with the gods on: the button while it may be asked, then the answer. */
+function vOracle(g: Game): string {
+  if (g.oracle) return `<section class="card oracle" id="oracle"><span class="label">Oráculo de Delfos</span><p>${esc(g.oracle.text)}</p></section>`;
+  return Core.canConsult(g) ? `<section class="card oracle" id="oracle"><button class="btn block" data-act="oracle" id="oracleask">🏛 Consultar o oráculo de Delfos (uma vez)</button></section>` : '';
+}
 function vCoach(g: Game): string {
   const me = solo(g);
   if (!S.coach || me < 0 || !g.players[me].alive || g.phase === 'reveal' || g.phase === 'over') return '';
@@ -607,7 +479,7 @@ let thoughtsCache: { key: string; html: string } | null = null;
 /** At the end, with assistance on (D19): for each person at the table, the plays that were clearly good and clearly
  *  bad, the heaviest first. With assistance off, a button to turn it on. Worked out once per finished game. */
 let reviewCache: { key: string; plays: Map<number, ReturnType<typeof Core.review>> } | null = null;
-const SHOW = 4;
+export const SHOW = 4;
 function vReview(g: Game): string {
   const people = g.players.map((p, i) => (p.ai ? -1 : i)).filter(i => i >= 0);
   if (!people.length || !g.hist.length) return '';
@@ -819,7 +691,7 @@ export const PERSONA_W: Record<Persona, [string, string]> = {
  *  screen it stays open beside the game. */
 /** The court (D39): accusing someone with a proof from the record and a tone, as a sheet over the game. */
 /** D84: one line on each verdict, from what the table saw (never a secret). */
-const WHY_V = ['a defesa convenceu', 'a prova pesou mais', 'ficou na dúvida'];
+export const WHY_V = ['a defesa convenceu', 'a prova pesou mais', 'ficou na dúvida'];
 /** D84: the answer an accused is likely to give to each kind of proof, shown before accusing. */
 const COUNTER: Record<string, string> = { clash: 'que quem mente é o outro do governo', law: 'que o baralho veio assim', vote: 'que metade da mesa votou igual', inv: 'que quem investigou mente', exec: 'que errou o palpite', count: 'as leis liberais que já aprovou' };
 /** D84: every law in order, with the pair that passed it; a tap opens the president's sheet. */
@@ -899,7 +771,7 @@ function vDrawer(g: Game): string {
     ${heard}${vTalk(g)}</aside>`;
 }
 /** A reason, with the names of the seats in it. */
-const whyText = (g: Game, line: string): string => line.replace(/\{p(\d+)\}/g, (_, i: string) => (g.players[+i] ? `<b>${name(g, +i)}</b>` : '?'));
+export const whyText = (g: Game, line: string): string => line.replace(/\{p(\d+)\}/g, (_, i: string) => (g.players[+i] ? `<b>${name(g, +i)}</b>` : '?'));
 
 /** The minutes, with assistance on (D11): every law, the government that made it and who voted Ja! for that
  *  government, and the count for each player. Only what the whole table saw: never a hand, a party or a role. */
@@ -964,9 +836,9 @@ function gated(g: Game, title: string, inner: () => string): string {
   return `<section class="card" id="phase"><span class="label">${title}</span><div class="handoff"><span class="phone" aria-hidden="true"></span><p class="big">${alone ? 'Só para os seus olhos,' : 'Passe o celular para'}</p><b class="who">${name(g, gk.who)}</b><p class="hint">Ninguém mais olha a tela.</p></div><button class="btn block" data-act="open" data-k="${esc(gk.key)}">Sou ${name(g, gk.who)}, mostrar</button></section>`;
 }
 /** A secret card, face down first: when it has just been opened it turns over like a card on the table. */
-const turn = (front: string): string => `<div class="turn${flipping ? ' go' : ''}"><div class="back" aria-hidden="true"><span>?</span></div>${front}</div>`;
+export const turn = (front: string): string => `<div class="turn${flipping ? ' go' : ''}"><div class="back" aria-hidden="true"><span>?</span></div>${front}</div>`;
 
-const pickList = (g: Game, ok: (i: number) => boolean, act: string): string =>
+export const pickList = (g: Game, ok: (i: number) => boolean, act: string): string =>
   `<div class="pick">${g.players.map((p, i) => ok(i) ? `<button class="btn ghost${ui.pick === i ? ' on' : ''}" data-act="${act}" data-i="${i}" aria-pressed="${ui.pick === i}">${name(g, i)}${kd(g, i)}</button>` : '').join('')}</div>`;
 
 function vPhase(g: Game): string {
@@ -1020,333 +892,5 @@ function vVoteAi(g: Game): string {
   return `<section class="card" id="phase"><span class="label">Votação</span><p class="big"><b>${name(g, g.pres)}</b> presidente + <b>${name(g, g.chanc as number)}</b> chanceler?</p>${(() => { const me = soloSeat(g); return me >= 0 && Core.mad(g, me) ? '<p class="mad-note" id="madnote">🌀 Você enlouqueceu (sanidade zero): toque num voto, mas ele sai no escuro.</p>' : ''; })()}<p class="hint">${one ? 'Seu voto' : 'Cada pessoa toca no próprio voto'}; as IAs votam junto. Mais {ja} que {nein} elege; empate rejeita.</p>${people.map(row).join('')}${one ? '' : `<button class="btn block" data-act="countvotes"${people.every(i => typeof ui.votes[i] === 'boolean') ? '' : ' disabled'}>Abrir os votos</button>`}${g.tracker ? `<p class="hint">Já ${g.tracker === 1 ? 'foi 1 governo rejeitado' : `foram ${g.tracker} governos rejeitados`} seguido${g.tracker === 1 ? '' : 's'}. No ${Core.TRACKER_MAX}º, a lei do topo entra sozinha.</p>` : ''}</section>`;
 }
 
-/* ---------- settings ---------- */
-/** The finished games kept on this device (D23), and the button that exports them. */
-function vHistory(): string {
-  const n = kept();
-  return `<section class="card" id="history"><span class="label">Suas partidas</span><p class="hint" id="historytext">${n ? `${n} ${n === 1 ? 'partida terminada guardada' : 'partidas terminadas guardadas'} neste aparelho (as últimas ${Core.HISTORY_MAX}).` : 'Nenhuma partida terminada ainda.'} Só ficam aqui: nada sai do aparelho sozinho. Exporte o arquivo e mande para ajustar a IA ao jeito que as pessoas jogam de verdade.</p>
-    ${n ? (() => { const P0 = Core.pastGames(past()), when = (t: number): string => new Date(t).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }), rows = ui.pastAll ? P0.rows : P0.rows.slice(0, 5);
-      return `${P0.played ? `<p class="past-rate" id="pastrate"><b>${Math.round(100 * P0.won / P0.played)}%</b> de vitórias suas (${P0.won} de ${P0.played})</p>` : ''}<ol class="past" id="past">${rows.map(r => `<li class="${r.won === undefined ? '' : r.won ? 'won' : 'lost'}"><small>${when(r.at)}</small><span>${esc(Core.WORDS[r.pack as Pack]?.theme || '')} · ${r.seats} lugares</span><b>${r.winner === 'L' ? 'Liberais venceram' : r.winner === 'F' ? `${esc(Core.words(r.pack as Pack).fs)} venceram` : 'Encerrada'}</b>${r.role ? `<em>você: ${r.role === 'liberal' ? 'liberal' : r.role === 'lider' ? esc(Core.words(r.pack as Pack).boss) : esc(Core.words(r.pack as Pack).f)}${r.won !== undefined ? (r.won ? ' · ganhou' : ' · perdeu') : ''}</em>` : ''}</li>`).join('')}</ol>${P0.rows.length > rows.length ? `<button class="more" data-act="pastall" id="pastall">Ver todas (${P0.rows.length})</button>` : ''}`; })() : ''}
-    ${n ? `<button class="btn block" data-act="exportgames" id="exportgames">Exportar partidas</button><button class="more" data-act="wipe" id="wipe">${ui.confirmWipe ? 'Toque de novo para apagar todas' : 'Apagar as partidas guardadas'}</button>` : ''}</section>`;
-}
-function vSettings(): string {
-  const t = S.theme || 'auto', opt = (v: string, label: string): string => `<button class="${t === v ? 'on' : ''}" data-act="theme" data-t="${v}" aria-pressed="${t === v}">${label}</button>`;
-  const l = S.look || 'poster', sty = (v: string, label: string): string => `<button class="${l === v ? 'on' : ''}" data-act="look" data-l="${v}" aria-pressed="${l === v}">${label}</button>`;
-  const built = builtFrom();
-  return `<section class="card" id="look"><span class="label">Aparência</span><p class="hint">Estilo</p><div class="segm" role="group" aria-label="Estilo">${sty('poster', 'Pôster')}${sty('deco', 'Art déco')}</div><p class="hint">Tema</p><div class="segm" role="group" aria-label="Tema">${opt('auto', 'Automático')}${opt('light', 'Claro')}${opt('dark', 'Escuro')}</div><p class="hint">Som e vibração</p><div class="segm" role="group" aria-label="Som e vibração"><button class="${S.quiet ? '' : 'on'}" data-act="fx" data-v="on" aria-pressed="${!S.quiet}">Ligados</button><button class="${S.quiet ? 'on' : ''}" data-act="fx" data-v="off" aria-pressed="${!!S.quiet}">Desligados</button></div>
-    <p class="hint">Esconder o segredo ao virar o celular para baixo</p><div class="segm" role="group" aria-label="Esconder ao virar o celular"><button class="${S.flip ? '' : 'on'}" data-act="flip" data-v="off" aria-pressed="${!S.flip}">Desligado</button><button class="${S.flip ? 'on' : ''}" data-act="flip" data-v="on" aria-pressed="${!!S.flip}">Ligado</button></div>
-    <p class="hint" id="fliptext">${S.flip ? 'Um segredo aberto se fecha quando o celular fica de tela para baixo. Deitado, o sensor pode achar que o celular foi virado.' : 'Um segredo aberto se fecha quando o app sai da tela. Ligado, também se fecha com o celular de tela para baixo.'}</p></section>
-    <section class="card" id="about"><span class="label">Versão do app</span><p class="hint" id="version">${built ? `Versão ${esc(built.slice(0, 7))}.` : 'Versão de desenvolvimento.'} ${canUpdate() ? 'O app fica guardado neste aparelho: abre na hora e também sem internet.' : 'Neste endereço o app não fica guardado no aparelho.'}</p>${canUpdate() ? '<button class="btn ghost block" data-act="checkupdate">Procurar versão nova</button>' : ''}</section>`;
-}
-/** The vote result, stamped over the screen for a moment. */
-let stampTimer: ReturnType<typeof setTimeout> | undefined;
-export function stamp(text: string, party: Party): void {
-  const s = part('stamp');
-  s.textContent = text; s.className = `stamp ${party}`; s.hidden = false;
-  void s.offsetWidth; s.classList.add('go');            // restart the animation even when it is the same stamp again
-  clearTimeout(stampTimer); stampTimer = setTimeout(() => { s.hidden = true; }, 1100);
-}
-/** The screen goes dark for a moment: someone was eliminated. */
-/** An elimination (D38): the screen darkens, the name comes up, ELIMINADO is stamped on it, and a card turns to say
- *  what the rule lets the table know: whether it was the hidden leader. The screen shakes once (an iPhone page cannot
- *  vibrate). Without a name, only the dark. */
-/** A new game closes the elimination screen of the last one: its words belong to that game. */
-export function clearFlash(): void { const f = part('flash'); f.hidden = true; f.innerHTML = ''; }
-export function flash(who = '', wasBoss = false, why = ''): void {
-  const f = part('flash');
-  // a shot (D45): the muzzle flashes, the screen cracks from where it hit, then the name and the stamp
-  f.innerHTML = who ? `<svg class="gun" viewBox="0 0 220 120" aria-hidden="true"><path d="M8 30 h150 l10 -8 h22 v22 h-30 v10 h-60 l-6 18 h-20 l-8 44 h-40 l12 -50 h-30 z" fill="#1a1714" stroke="#f3e8d0" stroke-width="3" stroke-linejoin="round"/><circle cx="96" cy="52" r="9" fill="none" stroke="#f3e8d0" stroke-width="3"/><path class="bang" d="M196 33 l18 -14 -4 14 10 4 -12 6 12 10 -18 -4" fill="#ffd678" stroke="#fff" stroke-width="2"/></svg><div class="muzzle"></div><svg class="crack" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><path d="M230 300 L305 299 L378 277 L454 290 L528 275 M230 300 L326 320 L417 358 L517 362 L613 385 M230 300 L314 384 L394 472 L450 580 L494 695 M230 300 L238 390 L285 473 L261 571 L320 652 M230 300 L225 372 L202 443 L221 518 L190 588 M230 300 L171 367 L128 446 L77 519 L16 585 M230 300 L146 339 L57 368 L-26 410 L-105 459 M230 300 L120 297 L10 277 L-100 269 L-205 222 M230 300 L162 250 L78 231 L9 180 L-50 117 M230 300 L155 239 L100 157 L40 81 L-37 19 M230 300 L224 215 L215 130 L206 45 L188 -39 M230 300 L270 180 L320 64 L313 -70 L415 -171 M230 300 L322 209 L390 96 L477 0 L586 -76 M230 300 L304 241 L377 180 L448 117 L558 109 M270 304 L264 321 L252 334 L235 340 L217 338 L202 329 L192 314 L190 296 L196 279 L208 266 L225 260 L243 262 L258 271 L268 286 L270 304 M325 309 L311 350 L282 380 L242 394 L200 390 L164 368 L141 332 L135 291 L149 250 L178 220 L218 206 L260 210 L296 232 L319 268 L325 309"/><circle cx="230" cy="300" r="9"/></svg><div class="exec"><i class="av av-xl out" aria-hidden="true">${face(who, S.game?.region || 'mundo', !S.game?.players.find(p => p.name === who)?.ai)}</i><b class="exec-name">${esc(who)}</b><span class="exec-stamp">Eliminado</span>${why ? `<p class="exec-why">“${esc(why)}”</p>` : ''}</div>${wasBoss ? `<div class="tear-boss" aria-hidden="true"><div class="tb-half l">${portrait('lider', P, R)}</div><div class="tb-half r">${portrait('lider', P, R)}</div></div><div class="fate boss"><div class="rays"></div><div class="birds">${'<i></i>'.repeat(7)}</div><b class="exec-card boss">Era o ${W.boss}!</b><span>Os liberais chegam ao poder</span></div>` : `<div class="fate on"><i class="sweep"></i><b class="exec-card">Não era o ${W.boss}</b><span>O jogo continua</span></div>`}` : '';
-  f.hidden = false; f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
-  freeze(who ? (wasBoss ? 4800 : 3600) : 900);   // D88: shorter; a tap skips it
-  f.classList.toggle('tap', !!who); f.onclick = who ? () => { f.hidden = true; f.innerHTML = ''; ui.frozen = 0; } : null;
-  if (who) { const v = part('view'); v.classList.remove('shake'); void v.offsetWidth; v.classList.add('shake'); }   // the page under it shakes, not the body: a moved body would carry the fixed screens with it
-  setTimeout(() => { f.hidden = true; f.innerHTML = ''; }, who ? (wasBoss ? 4800 : 3600) : 900);
-}
-/** A law has just been enacted: who made it, over the screen for a moment (D11). The text comes from the code and the
- *  names go through esc(). */
-let decreeTimer: ReturnType<typeof setTimeout> | undefined;
-export function decree(g: Game, e: Gov | Extract<Event, { k: 'chaos' }>): void {
-  const d = part('decree'), law = (e.law || 'F') as Law;
-  const who = e.k !== 'gov' && e.k !== 'veto' ? `<span class="who">O caos</span><span>aprovou</span>` : `<span class="who">${name(g, e.pres)} e ${name(g, e.chanc)}</span><span>aprovaram</span>`;
-  d.innerHTML = `<div class="decree-card ${law}">${seal(law, P)}${who}<b>lei ${law === 'L' ? 'liberal' : W.f}</b></div>`;
-  d.hidden = false; d.classList.remove('go'); void d.offsetWidth; d.classList.add('go');
-  clearTimeout(decreeTimer); decreeTimer = setTimeout(() => { d.hidden = true; }, 2200);
-}
-/** Public power announcement: names only, never a party, role or secret portrait. */
-let powerTimer: ReturnType<typeof setTimeout> | undefined;
-export function powerEffect(g: Game, target: number, kind: 'investigate' | 'execute'): void {
-  const d = part('power-effect');
-  const mark = '<g class="weapon"><path d="M5 9h29v9H19l-2 17H7l4-18H5z" fill="currentColor" stroke-width="1"/><path d="M20 19v6h-5" stroke-width="2"/></g><path class="muzzle" d="m35 8 5-3-1 7 3 3-5 1 3 5-6-3" stroke="#ffd678" stroke-width="2"/><path class="smoke" d="M35 8c-8-5 8-7 0-12" stroke-width="2"/>';
-  if (kind === 'investigate') {
-    // D64: the whole screen: an envelope opens, a gloved hand pulls out the slip with the name, a magnifier passes over
-    // it. Only the name: the party stays secret
-    d.innerHTML = `<div class="inv-scene"><div class="envelope"><div class="slip"><small>Investigação</small><b>${name(g, target)}</b><svg class="hand" viewBox="0 0 80 60" aria-hidden="true"><path d="M10 58 C8 40 12 30 22 26 L22 8 C22 2 30 2 30 8 L30 22 L34 4 C35 -1 43 0 42 6 L40 22 L46 6 C48 1 55 3 54 8 L50 24 L56 14 C59 10 65 13 63 18 L56 34 C52 46 46 54 40 58Z" fill="#f3e8d0" stroke="#15110e" stroke-width="3" stroke-linejoin="round"/></svg></div><div class="env-body"></div><div class="env-flap"></div></div><svg class="lens" viewBox="0 0 120 120" aria-hidden="true"><circle cx="48" cy="48" r="38" fill="rgba(255,255,255,.12)" stroke="#d9a520" stroke-width="8"/><path d="M76 76 L112 112" stroke="#d9a520" stroke-width="14" stroke-linecap="round"/></svg></div>`;
-    d.className = 'power-effect investigate'; d.hidden = false;
-    void d.offsetWidth; d.classList.add('go');
-    freeze(3400); clearTimeout(powerTimer); powerTimer = setTimeout(() => { d.hidden = true; }, 3400);
-    return;
-  }
-  d.innerHTML = `<div class="power-card"><svg class="power-mark" viewBox="0 0 42 42" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round">${mark}</svg><div><small>Eliminado da mesa</small><b>${name(g, target)}</b></div></div>`;
-  d.className = `power-effect ${kind}`; d.hidden = false;
-  void d.offsetWidth; d.classList.add('go');
-  clearTimeout(powerTimer); powerTimer = setTimeout(() => { d.hidden = true; }, 1600);
-}
-
-/** Confetti in the colour of the side that won. */
-export function confetti(winner: Party): void {
-  const c = part('confetti');
-  c.innerHTML = Array.from({ length: 48 }, (_, i) => `<i class="${winner}" style="left:${(i * 37) % 100}%;animation-delay:${(i % 12) * 0.08}s;animation-duration:${1.6 + (i % 5) * 0.25}s;--r:${(i * 53) % 360}deg"></i>`).join('');
-  setTimeout(() => { c.innerHTML = ''; }, 4200);
-}
-
-let toastTimer: ReturnType<typeof setTimeout> | undefined;
-/** A short message at the bottom of the screen. */
-export function toast(text: string): void {
-  const t = part('toast'); t.textContent = text; t.hidden = false;
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3500);
-}
-/** Lets go of the field with the focus, so the screen can be painted again. */
-export function blurField(): void { const a = document.activeElement as HTMLElement | null; if (a && a.blur && $('#view')?.contains(a)) a.blur(); }
-
-/** The answers to an accusation (D42), only those the record could back, each saying when it holds. */
-
-/** The votes at a little table (D44): every seat in its place around a green table, each vote turning over in turn,
- *  the count adding up in the middle, then ELEITO! or REJEITADO! (the table goes red when the hidden leader was just
- *  elected chancellor in the danger zone). It closes by itself and never takes a tap. With less motion asked, only the stamp shows. */
-export function ballot(g: Game, e: Extract<Event, { k: 'vote' }>, elected: boolean, step: number, hold = false): number {
-  const alive = g.players.map((p, i) => (p.alive ? i : -1)).filter(i => i >= 0), n = g.players.length, me = solo(g);
-  const order = [...alive.slice(alive.indexOf(e.pres)), ...alive.slice(0, alive.indexOf(e.pres))];
-  const calm = matchMedia('(prefers-reduced-motion: reduce)').matches, gap = step;
-  if (calm) return 0;   // with less motion asked, the stamp says it already
-  const danger = elected && g.players[e.chanc]?.role === 'lider' && g.laws.F >= Core.LEADER_ZONE;
-  const R = 112, seats = alive.map(i => {
-    const a = -Math.PI / 2 + (2 * Math.PI * i) / n, ja = e.ja.includes(i), k = order.indexOf(i);
-    return `<div class="b-seat${i === me ? ' me' : ''}" style="left:calc(50% + ${(R * Math.cos(a)).toFixed(0)}px);top:calc(50% + ${(R * Math.sin(a)).toFixed(0)}px)"><div class="b-card ${ja ? 'ja' : 'nein'}" style="animation-delay:${450 + k * gap}ms"><span>${ja ? '✔' : '✖'}<small>${ja ? W.ja : W.nein}</small></span></div>${av(g, i, 'm')}<b title="${esc(g.players[i].name)}">${esc(g.players[i].name.slice(0, 3).toUpperCase())}</b></div>`;
-  }).join('');
-  const el = document.createElement('div');
-  el.className = `ballot${danger && !hold ? ' danger' : ''}${hold ? ' hold' : ''}`; el.id = 'ballot'; el.style.setProperty('--danger-at', `${450 + alive.length * gap + 200}ms`);
-  el.innerHTML = themed(`<p class="b-q"><b>${name(g, e.pres)}</b> presidente + <b>${name(g, e.chanc)}</b> chanceler</p><div class="b-table"><div class="b-felt"></div>${seats}<div class="b-center"><b class="b-score"><span class="g">0</span> × <span class="r">0</span></b><b class="b-stamp ${elected ? 'L' : 'F'}" style="animation-delay:${450 + alive.length * gap + 200}ms">${elected ? 'Eleito!' : 'Rejeitado!'}</b></div></div>`, W as unknown as Record<string, string>);
-  document.getElementById('ballot')?.remove();
-  document.body.appendChild(el);
-  const g1 = el.querySelector<HTMLElement>('.b-score .g'), r1 = el.querySelector<HTMLElement>('.b-score .r');
-  let y = 0, no = 0;
-  order.forEach((i, k) => setTimeout(() => { if (e.ja.includes(i)) y++; else no++; if (g1) g1.textContent = String(y); if (r1) r1.textContent = String(no); }, 450 + k * gap + 250));
-  // the table comes in, the cards turn, the stamp lands and stays a moment, then the table leaves (D45)
-  const shown = 450 + alive.length * gap + 1100;
-  if (!hold) setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 450); }, shown);
-  return hold ? 450 + alive.length * gap + 300 : shown;
-}
-
-/** D55: the person's own plays, to defend with: the play the accusation points at (what it got, what it passed or
- *  enacted, what it said it got) and the plays that speak for it (liberal laws it made, investigations it told). Only
- *  the accused sees this on its own screen: the hands are its own. */
-function myPlays(g: Game, me: number, at: number): string {
-  const mini = (ls?: Law[]): string => (ls || []).map(l => `<i class="mini ${l}">${l === 'L' ? 'L' : W.F[0]}</i>`).join('');
-  const said = (n: number | undefined, of: number): string => n === undefined ? 'não disse nada' : n < 0 ? 'ficou calado' : `disse ${n} ${n === 1 ? W.f : W.fs} de ${of}`;
-  const gov = (e: Game['hist'][number], i: number): string => {
-    if (e.k !== 'gov' && e.k !== 'veto') return '';
-    const pres = e.pres === me, other = name(g, pres ? e.chanc : e.pres), out = e.k === 'veto' ? 'veto' : e.law === 'L' ? 'saiu liberal' : `saiu ${W.f}`;
-    const got = pres ? `tirou ${mini(e.drew)} · passou ${mini(e.got)}` : `recebeu ${mini(e.got)}`;
-    return `<li${i === at ? ' class="hit"' : ''}><b>${pres ? 'Presidente' : 'Chanceler'} com ${other}</b> · ${out}<small>Você ${got} · ${said(pres ? e.pc : e.cc, pres ? 3 : 2)}</small></li>`;
-  };
-  const target = at >= 0 ? g.hist[at] : undefined, rows: string[] = [];
-  if (target && (target.k === 'gov' || target.k === 'veto') && (target.pres === me || target.chanc === me)) rows.push(gov(target, at));
-  g.hist.forEach((e, i) => {
-    if (i === at || rows.length >= 4) return;
-    if ((e.k === 'gov' && e.law === 'L') && (e.pres === me || e.chanc === me)) rows.push(gov(e, i));
-    if (e.k === 'inv' && e.by === me) rows.push(`<li><b>Investigou ${name(g, e.target)}</b><small>Viu ${e.party === 'L' ? 'liberal' : W.f} · ${e.said === undefined ? 'não disse nada' : e.said === '-' ? 'ficou calado' : `disse ${e.said === 'L' ? 'liberal' : W.f}`}</small></li>`);
-  });
-  return rows.length ? `<div class="myplays"><b>Suas jogadas</b><ol>${rows.join('')}</ol></div>` : '';
-}
-/* D57: the debate on pages of a notebook, turned sideways: 1 the accusation and the first answer, 2 the reply and the
-   last word, 3 the table's verdict. The page where it is the person's turn offers its arguments. */
-export function debateSheet(g: Game, at: number): void {
-  const t = g.hist[at];
-  if (!t || t.k !== 'talk') return;
-  const me = solo(g), who = Core.debateNext(g, at), lines = t.deb || [];
-  const stars = (i: number): string => g.players[i]?.ai ? ` <span class="lab">${'★'.repeat(Core.eloq(g, i))}${'☆'.repeat(3 - Core.eloq(g, i))} lábia</span>` : '';
-  const who_ = (i: number): string => `${av(g, i, 'm')}${name(g, i)}${i === me ? ' (você)' : g.players[i].ai ? ` · ${PERSONA_W[g.players[i].persona || 'centrado'][0].toLowerCase()}` : ''}`;
-  const proof = t.proof !== undefined ? Core.evidence({ ...g, hist: g.hist.slice(0, at) }, t.about, t.by).find(x => x.at === t.proof) : undefined;
-  const say = (i: number, text: string, tag: string): string => `<div class="dsay ${i === t.by ? 'acc' : 'def'}"><b>${who_(i)} · ${tag}${stars(i)}</b><p>“${esc(text)}”</p></div>`;
-  const line = (k: number, tag: string): string => lines[k] ? say(lines[k].who, lines[k].text, tag).replace(/<\/div>$/, `${lines[k].roll ? diceHtml(lines[k].roll, `d${at}-${k}`, lines[k].who === me) : ''}</div>`) : '';
-  const args = (): string => who === me ? `<div class="dargs"><b>${lines.length === 0 ? 'Sua defesa' : lines.length === 1 ? 'Sua réplica' : 'Sua tréplica'}</b>${(() => { const all = Core.debateArgs(g, at), dp = (ui.dpick || []).filter(x => all.some(a => a.id === x)), comb = (a: { id: string }): boolean => a.id !== 'quiet' && a.id !== 'drop';
-    const pw = (p: number): string => `<i class="pw ${p >= 0.45 ? 'f' : p >= 0.25 ? 'm' : 'w'}">${p >= 0.45 ? 'forte' : p >= 0.25 ? 'média' : p > 0 ? 'fraca' : '—'}</i>`;
-    const sum = Math.min(0.95, 1 - all.filter(a => dp.includes(a.id)).reduce((m, a) => m * (1 - a.power), 1));
-    const SHOW = 4, shown = ui.dmore ? all : all.filter((a, k) => k < SHOW || dp.includes(a.id) || a.id === 'quiet'), hidden = all.length - shown.length;   // D103: the strongest four first
-    return `<p class="hint">Toque para dizer um só, ou marque ＋ em vários para um combo.</p>${shown.map(a => `<div class="darg-row${dp.includes(a.id) ? ' on' : ''}"><button data-act="darg" data-v="${esc(a.id)}"><span>${esc(a.label)}</span>${pw(a.power)}<small>“${esc(a.text)}”</small></button>${comb(a) ? `<button class="dplus" data-act="dcombo" data-v="${esc(a.id)}" aria-pressed="${dp.includes(a.id)}" aria-label="Juntar ao combo">${dp.includes(a.id) ? '✓' : '＋'}</button>` : ''}</div>`).join('')}${hidden > 0 ? `<button class="more" data-act="dmore" id="dmore">Mais argumentos (${hidden}) · mais fracos</button>` : ''}${dp.length ? `<button class="btn block go" data-act="dall" id="dall">${dp.length > 1 ? `Responder com tudo (${dp.length})` : 'Responder com isso'} ${pw(sum)}</button>` : ''}`; })()}</div>` : who >= 0 ? `<p class="dwait">${name(g, who)} está pensando no que dizer…</p>` : '';
-  const combo = t.proofs && t.proofs.length > 1 ? Core.evidence({ ...g, hist: g.hist.slice(0, at) }, t.about, t.by).filter(x => (t.proofs as number[]).includes(x.at)) : [];
-  const accLine = combo.length ? `${Core.comboText({ ...g, hist: g.hist.slice(0, at) }, combo)} ${name(g, t.about)}, explica isso.` : `${proof ? proof.text + '. ' : ''}${name(g, t.about)}, explica isso.`;
-  const p1 = `${say(t.by, accLine, t.hit ? 'acusação · Contradição!' : 'acusação')}${t.about === me ? myPlays(g, me, proof && proof.at < 100000 ? proof.at : -1) : ''}${line(0, t.about === me ? 'sua defesa' : 'defesa')}${lines.length === 0 ? args() : ''}${lines.length === 0 && who === me && t.about === me ? '<button class="more" data-act="dlater" id="dlater">Responder depois</button>' : ''}`;   // D88
-  // D84: the strength of each side so far (its best line), and on the person's turn what it takes to turn the debate
-  const best = (j: number): number => Math.max(0, ...lines.filter(l => l.who === j).map(l => l.power));
-  const force = lines.length ? `<div class="dforce" id="dforce"><span class="acc" style="--w:${Math.round(best(t.by) * 100)}%"><b>${name(g, t.by)}</b><i></i></span><span class="def" style="--w:${Math.round(best(t.about) * 100)}%"><b>${name(g, t.about)}</b><i></i></span>${who === me && who >= 0 ? `<small>Para virar, precisa de uma fala acima de ${Math.round(best(who === t.by ? t.about : t.by) * 100)}.</small>` : ''}</div>` : '';
-  const p2 = lines.length < 1 ? '<p class="dwait">A réplica vem depois da defesa.</p>' : `${force}${line(1, 'réplica')}${lines.length === 1 ? args() : ''}${line(2, 'tréplica')}${lines.length === 2 ? args() : ''}`;
-  const v = t.verdict || [], yes = v.filter(x => x[1] === 1).length, no = v.filter(x => x[1] === 0).length;
-  const mark = ['✖ não procede', '✔ procede', '? não sabe'];
-  const p3 = t.verdict ? `<ul class="dvotes">${v.map(([j, a], k) => `<li class="v${a}" style="--k:${k}"><b>${name(g, j)}</b><span>${mark[a]}</span><small>${WHY_V[a]}</small></li>`).join('')}</ul><div class="dres ${yes > no ? 'acc' : 'def'}"><b>Resultado</b><p>${yes} de ${v.length} acham que a acusação procede. ${yes > no ? `A acusação contra ${name(g, t.about)} pesa.` : `${name(g, t.about)} se defendeu: a acusação perdeu o peso.`}${t.backfire ? ` <b>A acusação era fraca e virou contra ${name(g, t.by)}, que perdeu reputação na mesa.</b>` : ''}</p></div><button class="btn block" data-act="dclose">Voltar ao jogo</button>` : '<p class="dwait">O veredito sai depois da tréplica.</p>';
-  const page = (n: number, title: string, body: string): string => `<section class="dpage"><div class="dcard"><header><span>${n}/3</span><b>${title}</b></header>${body}</div></section>`;
-  const cur = t.verdict ? 2 : lines.length >= 1 ? 1 : 0;
-  let el = document.getElementById('debate');
-  const keep = el ? (el.querySelector('.dpages') as HTMLElement | null)?.scrollLeft ?? 0 : 0;
-  if (!el) { el = document.createElement('div'); el.id = 'debate'; el.className = 'debate'; document.body.appendChild(el); }
-  const html = themed(`<div class="dpages">${page(1, 'Acusação', p1)}${page(2, 'Réplica e tréplica', p2)}${page(3, 'Veredito da mesa', p3)}</div><div class="ddots">${[0, 1, 2].map(k => `<i class="${k === cur ? 'on' : ''}"></i>`).join('')}</div>`, W as unknown as Record<string, string>);
-  // D93: a repaint that changes nothing leaves the buttons in place: replacing them under a finger (iPhone) lost the tap,
-  // so a single answer seemed not to work while a combo (several taps) did
-  if (el.isConnected && lastDebate === html && el.childElementCount) return;
-  lastDebate = html; el.innerHTML = html; rollDice(el); if (S.game) myRolls(S.game);   // D109
-  const pages = el.querySelector('.dpages') as HTMLElement, dots = [...el.querySelectorAll('.ddots i')];
-  pages.scrollLeft = keep;
-  const want = cur * pages.clientWidth;
-  if (Math.abs(pages.scrollLeft - want) > 4) pages.scrollTo({ left: want, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
-  pages.onscroll = () => { const k = Math.round(pages.scrollLeft / Math.max(1, pages.clientWidth)); dots.forEach((d, j) => d.classList.toggle('on', j === k)); };
-}
-
-/* D73: turning a vote. After the votes open, a short window: the votes of the app players can be tapped, and a sheet
-   offers what to say, each reason with its strength. One try per vote. */
-export function swayOpen(g: Game, cast: [number, boolean][], ms: number): void {
-  const el = document.getElementById('ballot');
-  if (!el) return;
-  const me = solo(g), alive = g.players.map((p, i) => (p.alive ? i : -1)).filter(i => i >= 0);
-  el.classList.add('sway-on');
-  el.querySelectorAll<HTMLElement>('.b-seat').forEach((s, k) => {
-    const i = alive[k];
-    if (i === undefined || i === me || !g.players[i].ai || i === g.pres || i === g.chanc) return;   // the government votes for itself
-    s.dataset.act = 'swayto'; s.dataset.i = String(i); s.classList.add('tap'); s.setAttribute('role', 'button'); s.setAttribute('aria-label', `Tentar virar o voto de ${g.players[i].name}`);
-  });
-  el.insertAdjacentHTML('beforeend', `<div class="sway" id="sway"><div class="sway-head"><b>Virar um voto</b><button class="sway-skip" data-act="swayskip" id="swayskip">Pular ›</button></div><div class="sway-bar"><i style="animation-duration:${ms}ms"></i></div><small>Toque no voto de uma IA para tentar convencer. Um por votação.</small><div id="swayopts"></div></div>`);
-  void cast;
-}
-export function swayReasonsShow(g: Game, to: number, reasons: { id: string; label: string; text: string; power: number }[]): void {
-  const box = document.getElementById('swayopts'), el = document.getElementById('ballot');
-  if (!box || !el) return;
-  el.querySelectorAll('.b-seat').forEach(s => s.classList.toggle('picked', (s as HTMLElement).dataset.i === String(to)));
-  el.classList.add('sway-paused');   // D93: the clock stops while the person picks a reason
-  const pw = (p: number): string => p >= 0.45 ? '<i class="pw f">forte</i>' : p >= 0.25 ? '<i class="pw m">média</i>' : '<i class="pw w">fraca</i>';
-  box.innerHTML = `<p class="sway-to">Convencer <b>${name(g, to)}</b>:</p>${reasons.map(r => `<button class="krow" data-act="swaysay" data-v="${r.id}"><span><b>${esc(r.label)}</b><small>“${esc(r.text)}”</small></span>${pw(r.power)}</button>`).join('')}`;
-}
-export function swayResult(g: Game, to: number, flipped: boolean, roll?: DiceRoll): void {
-  const box = document.getElementById('swayopts'), el = document.getElementById('ballot');
-  if (!box || !el) return;
-  const seat = el.querySelector<HTMLElement>(`.b-seat[data-i="${to}"] .b-card`);
-  if (seat && flipped) { const ja = seat.classList.contains('ja'); seat.classList.toggle('ja', !ja); seat.classList.toggle('nein', ja); const sp = seat.querySelector('span'); if (sp) sp.textContent = ja ? W.nein : W.ja; seat.classList.add('flipped'); const g1 = el.querySelector('.b-score .g'), r1 = el.querySelector('.b-score .r'); if (g1) g1.textContent = String(el.querySelectorAll('.b-card.ja').length); if (r1) r1.textContent = String(el.querySelectorAll('.b-card.nein').length); }
-  el.querySelectorAll('.b-seat').forEach(s => { s.removeAttribute('data-act'); s.classList.remove('tap'); });
-  box.innerHTML = `${roll ? diceHtml(roll, `s${g.hist.length}-${to}`) : ''}<p class="sway-res ${flipped ? 'ok' : 'no'}">${flipped ? `✔ ${name(g, to)} virou o voto.` : `✖ ${name(g, to)} manteve o voto.`}</p>`;
-  rollDice(box);
-}
-export function swayClose(): void { const el = document.getElementById('ballot'); if (el) { el.classList.add('out'); setTimeout(() => el.remove(), 450); } }
-
-const RANK_OK = (r: Roll): boolean => r.level !== 'fail' && r.level !== 'fumble';
-/** D109: the seat of the one person at a table with the app, or -1. */
-function soloSeat(g: Game): number {
-  const people = g.players.map((p, j) => (p.ai ? -1 : j)).filter(j => j >= 0);
-  return people.length === 1 ? people[0] : -1;
-}
-
-/* D109: the person's own rolls, big in the middle of the screen, like a tabletop RPG: the skill and the number to beat,
-   the bonus (or penalty) die with both tens, the die tumbling, and how it went. Each roll once; what was on the record
-   when the game was opened is not replayed. */
-let seenRolls: Set<string> | null = null, seenGame = '';
-/* D130: each roll of the person is told as a small scene: why it is rolled, what it takes, the die, and what it means;
-   it stays until "Seguir", one at a time, and the game waits for it. */
-type MyRoll = { key: string; r: Roll; title: string; why: string; sub: string; quiet?: boolean };
-function rollsOf(g: Game, me: number): MyRoll[] {
-  const out: MyRoll[] = [], nm = (i: number): string => g.players[i]?.name || '';
-  g.hist.forEach((e, k) => {
-    if (e.k === 'talk') (e.deb || []).forEach((l, n) => { if (l.who === me && l.roll) out.push({ key: `d${k}.${n}`, r: l.roll, title: 'Seu argumento no debate', why: `Você disse: “${l.text}”. O dado decide se isso convence a mesa.`, sub: RANK_OK(l.roll) ? 'Convenceu: o argumento pesa mais.' : 'Não convenceu: o argumento pesa menos.' }); });
-    if (e.k === 'steal' && (e.by === me || e.from === me)) out.push({ key: `s${k}`, r: e.by === me ? e.roll : e.vs, title: e.by === me ? `Roubar ${nm(e.from)}` : `${nm(e.by)} tentou te roubar`, why: e.by === me ? `Você tenta pegar o item de ${nm(e.from)} sem ele ver: sua Prestidigitação contra o Encontrar dele.` : `${nm(e.by)} tentou pegar o seu item: o seu Encontrar contra a Prestidigitação dele.`, sub: e.ok ? (e.by === me ? `Deu certo. Agora é seu: ${Core.ITEMS[e.got as ItemKey].name}.` : `Ele levou: ${Core.ITEMS[e.got as ItemKey].name}.`) : (e.by === me ? 'Ele percebeu. Nada feito.' : 'Você percebeu a tempo.') });
-    if (e.k === 'trap') { const x = e.rolls.find(y => y.seat === me); if (x && (e.healer === undefined || e.healer === me)) { const T = Core.TRAPS[e.id as TrapKey]; out.push({ key: `t${k}`, quiet: true, r: x.roll, title: `Armadilha: ${T.name}`, why: `${T.text} Cada um rola para escapar.`, sub: RANK_OK(x.roll) ? 'Você escapou.' : `Você não escapou${x.loss ? `: perde ${x.loss} de sanidade` : ''}${x.state ? ` e fica ${x.state}` : ''}.` }); } }
-    if (e.k === 'exec' && e.by === me && e.atk) out.push({ key: `x${k}`, r: e.atk, title: `Eliminar ${nm(e.target)}`, why: `Você eliminou ${nm(e.target)}. O dado só diz se foi rápido ou feio; a eliminação acontece de qualquer jeito.`, sub: RANK_OK(e.atk) ? 'Rápido e limpo.' : 'Foi feio: a mesa toda perde mais sanidade.' });
-    if (e.k === 'sense' && e.by === me && e.boss !== undefined) out.push({ key: `o${k}`, quiet: true, r: e.roll, title: `Ocultismo em ${nm(e.about)}`, why: `Seu Ocultismo procura algo de errado em ${nm(e.about)}.`, sub: e.boss ? `Algo em ${nm(e.about)} te arrepia. Cuidado.` : `Nada de estranho em ${nm(e.about)}.` });
-    if (e.k === 'psy' && e.by === me && e.roll && e.read) out.push({ key: `p${k}`, quiet: true, r: e.roll, title: `Você lê ${nm(e.about)}`, why: `${nm(e.about)} disse à mesa o que viu. Sua Psicologia contra a ${e.vs?.label || 'Persuasão'} dele${e.vs ? ` (ele tirou ${e.vs.d}, precisava de ${e.vs.val})` : ''}: se você vencer, sabe se é verdade.`, sub: e.lie ? `Você percebeu: ${nm(e.about)} está mentindo.` : `Você percebeu: ${nm(e.about)} disse a verdade.` });
-  });
-  return out;
-}
-function myRolls(g: Game): void {
-  const me = soloSeat(g);
-  if (me < 0 || !g.sheets) return;
-  const all = rollsOf(g, me), id = String(g.players.map(p => p.name)) + g.deck.length;
-  if (!seenRolls || seenGame !== (g.hist[0] ? id : '')) { seenRolls = new Set(all.map(x => x.key)); seenGame = g.hist[0] ? id : ''; return; }
-  const fresh = all.filter(x => !(seenRolls as Set<string>).has(x.key));
-  fresh.forEach(x => (seenRolls as Set<string>).add(x.key));
-  // D112: never over what the table is watching (the envelope of an investigation, a law coming out): after it
-  // D132: only what the person did, or what was done to the person, is shown big; the automatic rolls (traps, reading
-  // someone, sensing something) are a short note that does not hold the game
-  const big = fresh.filter(x => !x.quiet), quiet = fresh.filter(x => x.quiet);
-  if (quiet.length) toast(quiet.map(x => `🎲 ${x.r.label} ${String(x.r.d).padStart(2, '0')}: ${x.sub}`).join(' '));
-  if (big.length) whenClear(() => big.forEach(x => bigRoll(x.r, x.title, x.sub, x.why)));
-}
-/** Run once nothing the table watches is on the screen (checked a beat later, so what starts with this same move counts). */
-function whenClear(run: () => void, waited = 0): void {
-  setTimeout(() => (waited < 6000 && (frozenFor() > 0 || document.querySelector('.claim-fx, .fxl:not(.big-roll)')) ? whenClear(run, waited + 250) : run()), 250);
-}
-/* D117, D130: the rolls wait their turn, one at a time; each stays until "Seguir", and the game waits under it. */
-const ROLL_SPIN = 30;
-const rollQueue: [Roll, string, string, string][] = [];
-export function bigRoll(r: Roll, title: string, sub = '', why = ''): void {
-  rollQueue.push([r, title, sub, why]);
-  if (!document.querySelector('.big-roll')) nextRoll();
-}
-function nextRoll(): void {
-  const item = rollQueue.shift();
-  if (item) showRoll(...item);
-}
-function showRoll(r: Roll, title: string, sub = '', why = ''): void {
-  const good = RANK_OK(r), need = r.hard ? Math.floor(r.val / 2) : r.val;
-  const notes = [
-    r.hard ? 'Teste difícil: vale metade da perícia.' : '',
-    r.base !== undefined && r.base !== r.val ? `Ficha ${r.base}, +${r.val - r.base} da mesa.` : '',
-    r.mod === 1 ? 'Dado de bônus: rola duas dezenas e fica com a menor.' : r.mod === -1 ? 'Dado de penalidade: rola duas dezenas e fica com a maior.' : '',
-    r.shaken ? 'Abalado: a sanidade baixa atrapalha.' : '',
-    r.helped ? `${Core.CHAR_NAME[r.helped] || r.helped} alta ajuda.` : ''
-  ].filter(Boolean).map(x => `<li>${esc(x)}</li>`).join('');
-  const tens = r.tens ? `<div class="br-tens">Dezenas: ${r.tens.map(t => `<i class="${t * 10 + ((r.d - 1) % 10) + 1 === r.d ? 'kept' : ''}">${String(t * 10).padStart(2, '0')}</i>`).join('')}</div>` : '';
-  const el = document.createElement('div');
-  el.className = `fxl big-roll ${r.level} ${good ? 'good' : 'bad'}`; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', title);
-  el.innerHTML = `<div class="br-card"><small class="br-title">${esc(title)}</small>${why ? `<p class="br-why">${esc(why)}</p>` : ''}<div class="br-test"><b class="br-skill">${esc(r.label)} <span>${r.val}</span></b><span class="br-need">Precisa tirar <b>${need}</b> ou menos no d100</span>${notes ? `<ul class="br-notes">${notes}</ul>` : ''}</div>${tens}<div class="br-die"><span class="br-num">??</span></div><div class="br-after"><b class="br-res">Tirou ${String(r.d).padStart(2, '0')}: ${Core.ROLL_NAME[r.level]}</b>${r.luck ? `<p class="br-luck">🍀 Gastou ${r.luck} de Sorte para passar.</p>` : ''}${sub ? `<p class="br-sub">${esc(sub)}</p>` : ''}<button class="btn primary block" id="rollok">Seguir ▸</button></div></div>`;
-  document.body.appendChild(el);
-  el.querySelector('#rollok')?.addEventListener('click', e => { e.stopPropagation(); el.remove(); nextRoll(); });
-  const num = el.querySelector('.br-num') as HTMLElement;
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { num.textContent = String(r.d).padStart(2, '0'); el.classList.add('land'); return; }
-  let n = 0;
-  const t = setInterval(() => { num.textContent = String(1 + ((r.d * 31 + n * 47) % 100)).padStart(2, '0'); if (++n >= ROLL_SPIN) { clearInterval(t); num.textContent = String(r.d).padStart(2, '0'); el.classList.add('land'); } }, 60);
-}
-
-/* D118, D129: the narrator's lines (📜 and 📄 in the log) are told once, on a page over the whole screen, in the
-   keeper's voice: the opening, each act and the end. The game waits under it until "Seguir". Lines already on the
-   record when the game was opened are not told again. */
-let toldKey = '', told = 0;
-function tellStory(g: Game): void {
-  const lines = g.log.filter(l => l.startsWith('📜 ') || l.startsWith('📄 ')), key = String(g.players.map(p => p.name)) + (g.scene || '');
-  if (key !== toldKey) { document.querySelectorAll('.narrator').forEach(x => x.remove()); toldKey = key; told = g.hist.length || g.log.length > lines.length + 2 ? lines.length : 0; }
-  if (lines.length <= told) return;
-  const fresh = lines.slice(told); told = lines.length;
-  document.querySelectorAll('.narrator').forEach(x => x.remove());
-  const el = document.createElement('div');
-  el.className = 'fxl narrator'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'A história');
-  el.innerHTML = `<div class="nar-page">${fresh.map(l => l.startsWith('📄') ? `<p class="nar-doc">${esc(l.slice(3))}</p>` : `<p>${esc(l.slice(3))}</p>`).join('')}</div><button class="btn primary block" id="storyok">Seguir ▸</button>`;
-  document.body.appendChild(el);
-  el.querySelector('#storyok')?.addEventListener('click', e => { e.stopPropagation(); el.remove(); });
-}
-
-/** D138: the login page; the demo account (a pedestrian) is shown on purpose, for whoever looks at the portfolio. */
-function vLogin(): string {
-  return `<section class="card login" id="login"><h1 class="login-title">Painel</h1><p class="hint">Entre para jogar os outros temas: o Secret Cultist e a expansão.</p>
-    <div class="field"><label for="loginemail">E-mail</label><input id="loginemail" type="email" autocomplete="username" inputmode="email" autocapitalize="off" spellcheck="false" value="${esc(ui.loginEmail || '')}"></div>
-    <div class="field"><label for="loginpass">Senha</label><input id="loginpass" type="password" autocomplete="current-password"></div>
-    ${ui.loginErr ? `<p class="hint err" id="loginerr" role="alert">${esc(ui.loginErr)}</p>` : ''}
-    <button class="btn primary block" data-act="login" id="logingo"${ui.loginBusy ? ' disabled' : ''}>${ui.loginBusy ? 'Entrando…' : 'Entrar'}</button>
-    <p class="hint">Sem login, a página pública tem o Secret Leônidas.</p></section>`;
-}
-
-/** D122: the setup of a Secret Cultist game, right above "Jogar agora": one game or a campaign, your investigator's
- *  stereotype, and the horror's weight. */
-function cultSetup(): string { const st = S.stereo ? Core.STEREOTYPES[S.stereo] : null;
-      // D116: the person picks the stereotype of their own investigator (the app's players are drawn)
-      // D120: how heavy the horror is
-      const hz = (S.horror || 'classico') as keyof typeof Core.HORROR;
-      const horror = `<div class="horror" id="horror"><span class="label">Peso do horror</span><div class="seg quick-mode">${(Object.keys(Core.HORROR) as (keyof typeof Core.HORROR)[]).map(k => `<button data-act="horror" data-v="${k}" aria-pressed="${hz === k}" class="${hz === k ? 'on' : ''}">${Core.HORROR[k].name}</button>`).join('')}</div><p class="hint">${esc(Core.HORROR[hz].text)}</p></div>`;
-      const pm = ui.playMode || 'avulsa';   // D121: one game or a campaign of three chapters
-      const camp = `<div class="play-mode" id="playmode"><span class="label">Modo</span><div class="seg quick-mode" role="tablist">${([['avulsa', '🎲 Partida avulsa'], ['campanha', '📖 Campanha (3 capítulos)']] as const).map(([v, l]) => `<button role="tab" data-act="playmode" data-v="${v}" aria-selected="${pm === v}" class="${pm === v ? 'on' : ''}">${l}</button>`).join('')}</div>${pm === 'campanha' ? '<p class="hint">Três capítulos no mesmo cenário e com a mesma mesa. Sua ficha, sanidade, item e Mitos seguem; se o culto vencer um capítulo, o próximo começa pior.</p>' : ''}</div>`;
-      const stereo = `<div class="stereo" id="stereo"><span class="label">Seu investigador</span><button class="btn ghost block stereo-cur" data-act="stereoopen" aria-expanded="${!!ui.stereoOpen}">${st ? `🕵️ ${esc(st.name)} <small>${esc(st.good)}</small>` : '🎲 Sorteado <small>a API escolhe o estereótipo</small>'}</button>${ui.stereoOpen ? `<div class="stereo-list" role="listbox"><button data-act="stereo" data-v="" class="${!S.stereo ? 'on' : ''}"><b>🎲 Sorteado</b></button>${Object.entries(Core.STEREOTYPES).map(([k, v]) => `<button data-act="stereo" data-v="${k}" class="${S.stereo === k ? 'on' : ''}"><b>${esc(v.name)}</b><small>${esc(v.good)}</small></button>`).join('')}</div>` : ''}</div>`;
-      return `<div class="cult-setup" id="cultsetup">${camp}${stereo}${horror}</div>`;
-}
+export * from './home';
+export * from './overlay';

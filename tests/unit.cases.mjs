@@ -738,5 +738,20 @@ export default function cases(Core, pre) {
   eq('source: an entry read', Core.normEntry({ id: 7, name: ' Um ', value: '2.5', extra: true }), { id: '7', name: 'Um', value: 2.5 });
   eq('source: what is not an entry reads as null', [null, 'x', {}, { id: 1 }, { id: 1, name: 'x', value: 'abc' }, { name: 'x', value: 1 }].map(Core.normEntry), [null, null, null, null, null, null]);
   eq('source: a list, leaving out what cannot be read', [Core.normEntries({ items: [{ id: 1, name: 'a', value: 1 }, { id: 2 }] }), Core.normEntries({}), Core.normEntries(null)], [[{ id: '1', name: 'a', value: 1 }], [], []]);
+  {   // D144: Secret Leônidas with gods and oracles
+    const sp = Core.newGame(['Eu', 'Bento', 'Caio', 'Dora', 'Elisa', 'Fabio', 'Gil'], Core.seeded(144), { ai: [false, true, true, true, true, true, true], pack: 'esparta' }).game;
+    const swap = sp.players.findIndex(p => p.role === 'liberal'), lib = { ...sp, players: sp.players.map((p, i) => i === 0 ? { ...p, role: 'liberal' } : i === swap && swap !== 0 ? { ...p, role: sp.players[0].role } : p) };
+    const off = Core.olympus(lib, Core.seeded(1), false), on = Core.olympus(lib, Core.seeded(1), true);
+    eq('D144: the gods only when asked for, and only in Secret Leônidas', [off === lib, !!on.olymp && on.log.at(-1).includes('oráculo'), Core.olympus({ ...lib, pack: 'culto' }, Core.seeded(1), true).olymp], [true, true, undefined]);
+    eq('D144: the oracle waits for the second decree', Core.canConsult(on), false);
+    const two = { ...on, laws: { L: 1, F: 1 }, hist: [...on.hist, { k: 'gov', pres: 1, chanc: 2, law: 'L' }] };
+    const told = Core.olympusTell(two), asked = Core.consult(two, Core.seeded(3));
+    const named = asked.oracle ? two.players.map((p, i) => i).filter(i => asked.oracle.text.includes(two.players[i].name) && i !== 0) : [];
+    eq('D144: the patron tells each decree; the oracle answers once, true, to the person alone', [told.log.at(-1).startsWith('🏛 '), Core.canConsult(two), !!asked.oracle, Core.canConsult(asked), Core.consult(asked, Core.seeded(3)) === asked, named.length === 2 && named.some(i => two.players[i].role !== 'liberal'), Object.keys(Core.OLYMPIANS).length], [true, true, true, false, true, true, 6]);
+    const fas = { ...two, players: two.players.map((p, i) => i === 0 ? { ...p, role: 'cultista' } : p) };
+    eq('D144: to one of the hidden side, the oracle says who is watching them', /Os olhos de|silêncio/.test(Core.consult(fas, Core.seeded(4)).oracle.text), true);
+    const said = { ...sp, hist: [{ k: 'talk', by: 1, about: 2, say: 'trust' }, { k: 'gov', pres: 2, chanc: 3, law: 'F' }] };
+    eq('D145: an app player that turns on someone it defended owns it, from what the table saw', [Core.mindChange(said, 1, 2, 'acc').startsWith('Eu defendi Caio, e errei'), Core.mindChange(said, 1, 2, 'trust'), Core.mindChange(said, 4, 2, 'acc'), Core.mindChange({ ...said, hist: [{ k: 'talk', by: 1, about: 2, say: 'acc' }] }, 1, 2, 'trust')], [true, '', '', 'Retiro o que disse de Caio. Não tenho mais certeza.']);
+  }
   return { n, fails };
 }
