@@ -49,6 +49,7 @@ function play(ended: Game, msg?: string, undo: Game | null = null): void {
     const n2 = Core.botStep(ended, rand); if (!n2 || n2 === ended) break; ended = n2;
   }
   // the notebook goes with the game when it ends (D28): scored at the end, and kept in the export
+  ended = Core.olympusTell(Core.olympus(ended, rand, S.oracles));   // D144: the gods of Secret Leônidas
   ended = Core.chronicle(Core.aiFaith(Core.narrate(Core.tend(Core.springTrap(Core.sense(Core.giveStake(Core.setScene(ended, rand, S.horror as 'pulp' | 'classico' | 'purista' | undefined), rand)))))));   // D134: the chronicle   // D114: the person's Occult; D115: a trap at a key moment; D118: the story
   const next = ended.phase === 'over' && S.game?.phase !== 'over' ? { ...ended, ...(S.notes ? { notes: S.notes } : {}), ...(S.noteDetails ? { noteDetails: S.noteDetails } : {}) } : ended;
   const before = S.game, changed = next !== before;
@@ -366,6 +367,9 @@ export function initEvents(): void {
     else if (a === 'faith' && S.game) { const me = S.game.players.findIndex(p => !p.ai); if (me >= 0 && Core.canFaith(S.game, me)) { ui.sheet = null; play(Core.faith(S.game, me, d.k === 'reza' ? 'reza' : 'estudo')); } }   // D126
     else if (a === 'steal' && S.game) { const g = S.game, me = g.players.findIndex(p => !p.ai), i = Number(d.i); if (Core.canSteal(g, me, i)) { ui.sheet = null; play(Core.steal(g, me, i, rand)); } }   // D115
     else if (a === 'stereo') { setS({ ...S, stereo: d.v && Core.STEREOTYPES[d.v] ? d.v : undefined }); saveS(); ui.stereoOpen = false; render(); }   // D116
+    else if (a === 'oracles') { setS({ ...S, oracles: S.oracles ? undefined : true }); saveS(); render(); }   // D144
+    else if (a === 'oracle' && S.game) { const g2 = Core.consult(S.game, rand); if (g2 !== S.game) { play(g2); if (g2.oracle) toast(g2.oracle.text); } }   // D144: Delphi
+    else if (a === 'hurry') { const was = ui.think; ui.think = 0; tick(); ui.think = was; }   // D145: the person does not want to wait
     else if (a === 'horror') { setS({ ...S, horror: d.v === 'pulp' || d.v === 'purista' ? d.v : undefined }); saveS(); render(); }   // D120
     else if (a === 'playmode') { ui.playMode = d.v === 'campanha' ? 'campanha' : 'avulsa'; render(); }   // D122
     else if (a === 'nextch' && g) { const c = Core.chapterAfter(g); if (c) quickGame(g, 'culto', c); }
