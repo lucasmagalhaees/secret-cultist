@@ -990,3 +990,7 @@ O Lucas pediu o Leônidas com conteúdo, no liga e desliga combinado no D139. Fi
 ## D145. IA mais humana e menos espera (2026-11-11)
 
 Uma IA que diz o contrário do que disse antes sobre o mesmo jogador agora assume: "Eu defendi X, e errei: depois daquela lei com X no governo, não dá mais", ou "Retiro o que disse de X". O motivo vem só do que a mesa viu (`mindChange`). E, enquanto uma IA pensa, o botão "⏩ Não esperar" faz ela jogar na hora, para quem já entendeu o lance.
+
+## D146. CI em Ubuntu 24.04 (2026-11-11)
+
+O `ubuntu-latest` do GitHub passou a ser o 26.04, e o `playwright install --with-deps` falha nele (código 100 no apt), derrubando o e2e e a cobertura de todo PR. O CI fica fixo no `ubuntu-24.04` até o Playwright suportar o 26.04; conferir de novo antes de soltar.

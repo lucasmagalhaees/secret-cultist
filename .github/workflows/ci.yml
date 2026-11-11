@@ -15,7 +15,7 @@ concurrency:
 jobs:
   checks:
     name: checks
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # D146: ubuntu-latest became 26.04, where playwright install --with-deps fails (2026-11-11)
     env:
       DLC_KEY: ${{ secrets.DLC_KEY }}   # D138: the expansion's key (not in the repository)
     timeout-minutes: 10
@@ -38,7 +38,7 @@ jobs:
 
   coverage:
     name: coverage
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # D146: ubuntu-latest became 26.04, where playwright install --with-deps fails (2026-11-11)
     env:
       DLC_KEY: ${{ secrets.DLC_KEY }}   # D138: the expansion's key (not in the repository)
     timeout-minutes: 15
@@ -61,7 +61,7 @@ jobs:
 
   e2e:
     name: e2e (${{ matrix.theme }})
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04   # D146: ubuntu-latest became 26.04, where playwright install --with-deps fails (2026-11-11)
     env:
       DLC_KEY: ${{ secrets.DLC_KEY }}   # D138: the expansion's key (not in the repository)
     timeout-minutes: 20
