@@ -74,13 +74,13 @@ with sync_playwright() as p:
     # a driver: the key comes from Supabase and opens the expansion (when Supabase fails to give it, the game still opens)
     pg.fill('#loginemail', 'motorista@exemplo.com'); pg.fill('#loginpass', 'certa'); pg.click('#logingo'); pg.wait_for_selector('[data-act=quickgame]')
     assert pg.evaluate('window.__APP.Core.dlcData()') is None, 'no key, no expansion'
-    pg.click('#user [data-act=logout]'); pg.wait_for_selector('[data-act=quickgame]'); pg.click('#painel'); pg.wait_for_selector('#login')
+    cov.keep(pg); pg.click('#user [data-act=logout]'); pg.wait_for_selector('[data-act=quickgame]'); pg.click('#painel'); pg.wait_for_selector('#login')
     pg.fill('#loginemail', 'motorista@exemplo.com'); pg.fill('#loginpass', 'certa'); pg.click('#logingo'); pg.wait_for_selector('[data-act=quickgame]')
     pg.wait_for_function('window.__APP.Core.dlcData() !== null')
     assert 'driver' in pg.inner_text('#user').lower() and pg.locator('[data-act=region][data-v=brasil]').count() == 1 and pg.locator('#dlcon').count() == 1
     cov.reload(pg); pg.wait_for_function('window.__APP'); pg.wait_for_function('window.__APP.Core.dlcData() !== null')   # kept for offline, opened at start
     pg.screenshot(path=str(ROOT / 'tests/shots/auth-driver.png'))
-    pg.click('[data-act=logout]'); pg.wait_for_selector('#painel')
+    cov.keep(pg); pg.click('[data-act=logout]'); pg.wait_for_selector('#painel')   # logout reloads by itself: read the counters first
     assert pg.evaluate("localStorage.getItem('secretcultist.dlc.v1')") is None and pg.evaluate('window.__APP.Core.dlcData()') is None, 'leaving forgets the key'
     assert not errs, errs
     cov.stop(pg, 'auth')
