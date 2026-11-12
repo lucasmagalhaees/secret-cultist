@@ -1031,3 +1031,7 @@ O Lucas decidiu: tudo que for de design do jogo (retratos, rostos, símbolos, te
 ## D153. Rostos da mesa e símbolos das leis pelo Fable (2026-11-12)
 
 Redesenhados pelo Claude Fable 5.1 e aprovados pelo Lucas. Os rostos continuam sem olhos e boca (D92), com cabeça, ombros, cabelo, chapéus e roupas melhores e um fundo mais claro, para cartola, bicorne e boina não sumirem; os 25 gregos ganharam visual próprio (`GREEK` em `src/app/art.ts`: elmo levantado nos generais, coroa de folhas nos poetas, diadema e véu na Gorgo), em vez do genérico sorteado. Os sete símbolos das leis ficaram mais cheios e limpos, recortados com `evenodd` onde há vazado, o que também acaba com os detalhes avermelhados na carta azul (o `--halo` das leis é sempre o do lado escondido). A documentação dizia caveira e estrela; o código sempre teve feixe com machado e foice e martelo, e a documentação foi corrigida.
+
+## D154. CI mais rápido (2026-11-12)
+
+Cada job do CI baixava o Chromium do Playwright (uns 150 MB) e reinstalava os pacotes do Python a cada rodada. Agora o navegador fica em cache por versão do Playwright (`~/.cache/ms-playwright`, `actions/cache`) e o pip usa o cache do `setup-python`. As dependências do sistema (`install-deps`) continuam rodando, com o limite de 150 s do D146, porque o apt não é guardado entre rodadas.

@@ -24,14 +24,26 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip   # D154
+          cache-dependency-path: tests/requirements.txt
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
-      - name: Install Playwright and the build tools
+      - name: Install the Python test tools
         run: |
           pip install -r tests/requirements.txt
-          playwright install chromium && (timeout 150 playwright install-deps chromium || echo 'apt do Ubuntu fora do ar: segue com o que a imagem já tem')   # D146
+          echo "PW_VERSION=$(pip show playwright | awk '/^Version/{print $2}')" >> "$GITHUB_ENV"
+      - name: Cache the Playwright browser   # D154: ~150 MB, downloaded once per Playwright version
+        id: pwcache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ env.PW_VERSION }}
+      - name: Install the browser and the build tools
+        run: |
+          if [ "${{ steps.pwcache.outputs.cache-hit }}" != 'true' ]; then playwright install chromium; fi
+          timeout 150 playwright install-deps chromium || echo 'apt do Ubuntu fora do ar: segue com o que a imagem já tem'   # D146
           npm ci
       - name: Types, build, docs, core, unit and contract checks
         run: scripts/verify.sh --quick
@@ -47,14 +59,26 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip   # D154
+          cache-dependency-path: tests/requirements.txt
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
-      - name: Install Playwright and the build tools
+      - name: Install the Python test tools
         run: |
           pip install -r tests/requirements.txt
-          playwright install chromium && (timeout 150 playwright install-deps chromium || echo 'apt do Ubuntu fora do ar: segue com o que a imagem já tem')   # D146
+          echo "PW_VERSION=$(pip show playwright | awk '/^Version/{print $2}')" >> "$GITHUB_ENV"
+      - name: Cache the Playwright browser   # D154: ~150 MB, downloaded once per Playwright version
+        id: pwcache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ env.PW_VERSION }}
+      - name: Install the browser and the build tools
+        run: |
+          if [ "${{ steps.pwcache.outputs.cache-hit }}" != 'true' ]; then playwright install chromium; fi
+          timeout 150 playwright install-deps chromium || echo 'apt do Ubuntu fora do ar: segue com o que a imagem já tem'   # D146
           npm ci
       - name: Everything, with the coverage minimums
         run: scripts/verify.sh
@@ -74,14 +98,26 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip   # D154
+          cache-dependency-path: tests/requirements.txt
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
-      - name: Install Playwright
+      - name: Install the Python test tools
         run: |
           pip install -r tests/requirements.txt
-          playwright install chromium && (timeout 150 playwright install-deps chromium || echo 'apt do Ubuntu fora do ar: segue com o que a imagem já tem')   # D146
+          echo "PW_VERSION=$(pip show playwright | awk '/^Version/{print $2}')" >> "$GITHUB_ENV"
+      - name: Cache the Playwright browser   # D154: ~150 MB, downloaded once per Playwright version
+        id: pwcache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ env.PW_VERSION }}
+      - name: Install the browser
+        run: |
+          if [ "${{ steps.pwcache.outputs.cache-hit }}" != 'true' ]; then playwright install chromium; fi
+          timeout 150 playwright install-deps chromium || echo 'apt do Ubuntu fora do ar: segue com o que a imagem já tem'   # D146
       - name: Build the page the test opens
         run: |
           npm ci
