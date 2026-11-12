@@ -355,7 +355,7 @@ export function initEvents(): void {
     else if (a === 'addbot') addBots(S.names.length + (valOf('#name').trim() ? 2 : 1));
     else if (a === 'fill') addBots(Number(d.n));
     else if (a === 'level') { setS({ ...S, level: d.v as Level }); saveS(); render(); }
-    else if (a === 'pack') setPack(d.v === 'classico' || d.v === 'vermelho' ? d.v : undefined);
+    else if (a === 'pack') setPack(packsOpen().includes(d.v as Pack) ? d.v as Pack : undefined);   // every theme open to this login, Leônidas too
     else if (a === 'login') {   // D138
       const email = valOf('#loginemail'), pw = valOf('#loginpass');
       ui.loginEmail = email;   // kept on the page when it repaints with an error
@@ -468,7 +468,12 @@ export function initEvents(): void {
     }
     else if (a === 'pick' || a === 'pickp') { ui.pick = Number(d.k ?? d.i); render(); }
     else if (a === 'pdiscard' && ui.pick !== null) { const k = ui.pick; discard(() => play(Core.presidentDiscard(g, k))); }
-    else if (a === 'cdiscard' && ui.pick !== null) { const k = ui.pick; discard(() => { const next = Core.chancellorDiscard(g, k, rand); gavelIf(g, next); play(next, lawMsg(g, next)); }); }
+    else if (a === 'enact') {   // one tap: the chancellor taps the law to enact, the other one goes to the bin
+      const k = Number(d.k) === 0 ? 1 : 0;
+      document.querySelector(`#phase .law[data-k="${k}"]`)?.classList.add('on');
+      document.querySelector(`#phase .law[data-k="${1 - k}"]`)?.classList.add('kept');
+      discard(() => { const next = Core.chancellorDiscard(g, k, rand); gavelIf(g, next); play(next, lawMsg(g, next)); });
+    }
     else if (a === 'askveto') play(Core.askVeto(g));
     else if (a === 'veto') { const next = Core.answerVeto(g, d.v === '1', rand); gavelIf(g, next); play(next, d.v === '1' ? `Veto aceito.${lawMsg(g, next) ? ' ' + lawMsg(g, next) : ''}` : 'Veto recusado.'); }
     else if (a === 'investigate') play(Core.investigate(g, i));

@@ -152,13 +152,18 @@ with sync_playwright() as p:
         """Through the gate, the president or the chancellor throws away a law that is not `keep` if there is one."""
         assert pg.locator('#phase .law').count() == 0 and 'Passe o celular para' in txt('#phase'), 'the laws are not on screen before the tap'
         pg.click('[data-act=open]')
-        h = G()['hand']; k = next((j for j, l in enumerate(h) if l != keep), 0)
+        h = G()['hand']
+        if role == 'c':   # one tap: the chancellor taps the law to enact, the other one goes to the bin
+            k = next((j for j, l in enumerate(h) if l == keep), 1)
+            assert pg.locator('#phase .law').count() == len(h) and pg.locator('[data-act=cdiscard]').count() == 0, 'no confirm button for the chancellor'
+            pg.click(f'#phase [data-act=enact][data-k="{k}"]'); return
+        k = next((j for j, l in enumerate(h) if l != keep), 0)
         assert pg.locator('#phase .law').count() == len(h) and pg.locator(f'[data-act={role}discard]').is_disabled()
         pg.click(f'#phase [data-act=pick][data-k="{k}"]')
     def govern(chanc, law):
         nominate(chanc); votes(True); assert G()['phase'] == 'president', G()['log'][-1]
         hand('p', law); pg.click('[data-act=pdiscard]'); assert G()['phase'] == 'chancellor'
-        g0 = G(); hand('c', law); pg.click('[data-act=cdiscard]')
+        g0 = G(); hand('c', law)
         assert pg.locator('#board .slot.new').count() == (0 if G()['phase'] == 'over' else 1), 'the new law stamps onto the board'
         made = 'relíquia' if G()['laws']['L'] > g0['laws']['L'] else 'página do Necronomicon'   # D115: the laws of Secret Cultist
         who = f"{g0['players'][g0['pres']]['name']} e {g0['players'][g0['chanc']]['name']}"
@@ -214,8 +219,8 @@ with sync_playwright() as p:
     hand('p', 'L'); pg.click('[data-act=pdiscard]')
     pg.click('[data-act=open]'); pg.click('[data-act=askveto]'); assert G()['phase'] == 'veto' and 'quer vetar' in txt('#phase')
     pg.click('[data-act=veto][data-v="0"]'); assert G()['phase'] == 'chancellor' and 'Veto recusado' in txt('#toast')
-    hand('c', 'L'); assert pg.locator('[data-act=askveto]').count() == 0 and 'recusou o veto' in txt('#phase')
-    pg.click('[data-act=cdiscard]'); assert G()['laws'] == {'L': 2, 'F': 5} and G()['pres'] == 6
+    pg.click('[data-act=open]'); assert pg.locator('[data-act=askveto]').count() == 0 and 'recusou o veto' in txt('#phase')
+    pg.click('#phase [data-act=enact][data-k="1"]' if G()['hand'][1] == 'L' else '#phase [data-act=enact][data-k="0"]'); assert G()['laws'] == {'L': 2, 'F': 5} and G()['pres'] == 6
     # veto: accepted, and it counts as a failed government
     stack('LLFLLF'); nominate(3); votes(True)
     hand('p', 'L'); pg.click('[data-act=pdiscard]'); pg.click('[data-act=open]'); pg.click('[data-act=askveto]')
@@ -261,7 +266,7 @@ with sync_playwright() as p:
     pg.evaluate('() => { const g = window.__APP.S.game; g.pack = undefined; }')
     pg.evaluate(f'localStorage.setItem("{KEY}", JSON.stringify(window.__APP.S))'); cov.reload(pg); wait()
     stack('FFLFFL')
-    nominate(4); votes(True); hand('p', 'F'); pg.click('[data-act=pdiscard]'); hand('c', 'F'); pg.click('[data-act=cdiscard]')
+    nominate(4); votes(True); hand('p', 'F'); pg.click('[data-act=pdiscard]'); hand('c', 'F')
     assert G()['phase'] == 'execute'
     pg.click('#phase [data-act=pickp][data-i="0"]'); pg.click('[data-act=execute]')
     assert G()['winner'] == 'L' and 'investigadores venceram' in txt('#phase')
@@ -411,7 +416,7 @@ with sync_playwright() as p:
     pg.evaluate('window.__APP.ui.think = 0')
     pg.click('[data-act=help]'); assert 'IA no nível extremo' in txt('#helptext'); pg.click('[data-act=help]')
     me, seen, reloaded = 6, set(), False
-    ORDER = ['#debate [data-act=darg]', '#debate [data-act=dclose]', '[data-act=open]', '[data-act=hiderole]', '[data-act=say]', '#phase [data-act=nominate]', '[data-act=myvote]', '[data-act=pdiscard]:not([disabled])', '[data-act=cdiscard]:not([disabled])', '#phase [data-act=pick]', '[data-act=veto]', '#phase [data-act=investigate]', '#phase [data-act=special]', '[data-act=execute]:not([disabled])', '#phase [data-act=pickp]', '[data-act=endpower]']
+    ORDER = ['#debate [data-act=darg]', '#debate [data-act=dclose]', '[data-act=open]', '[data-act=hiderole]', '[data-act=say]', '#phase [data-act=nominate]', '[data-act=myvote]', '[data-act=pdiscard]:not([disabled])', '#phase [data-act=enact]', '#phase [data-act=pick]', '[data-act=veto]', '#phase [data-act=investigate]', '#phase [data-act=special]', '[data-act=execute]:not([disabled])', '#phase [data-act=pickp]', '[data-act=endpower]']
     for step in range(900):
         g = G()
         if g['phase'] == 'over': break

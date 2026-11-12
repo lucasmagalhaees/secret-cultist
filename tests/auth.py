@@ -103,6 +103,10 @@ with sync_playwright() as p:
     assert 'driver' in pg.inner_text('#user').lower() and pg.locator('[data-act=region][data-v=brasil]').count() == 1 and pg.locator('#dlcon').count() == 1
     cov.reload(pg); pg.wait_for_function('window.__APP'); pg.wait_for_function('window.__APP.Core.dlcData() !== null')   # kept for offline, opened at start
     pg.screenshot(path=str(ROOT / 'tests/shots/auth-driver.png'))
+    # logged in, Secret Leônidas can still be picked, and it stays after a reload (it used to fall back to Cthulhu)
+    pg.click('#pack [data-act=pack][data-v=esparta]'); assert pg.evaluate('window.__APP.S.pack') == 'esparta' and pg.text_content('#boss') == 'Leônidas', pg.evaluate('window.__APP.S.pack')
+    cov.reload(pg); pg.wait_for_function('window.__APP'); assert pg.evaluate('window.__APP.S.pack') == 'esparta', 'the theme survives the reload'
+    pg.click('#pack [data-act=pack][data-v=culto]'); assert pg.evaluate('window.__APP.S.pack') == 'culto'
     cov.keep(pg); pg.click('[data-act=logout]'); pg.wait_for_selector('#painel')   # logout reloads by itself: read the counters first
     assert pg.evaluate("localStorage.getItem('secretcultist.dlc.v1')") is None and pg.evaluate('window.__APP.Core.dlcData()') is None, 'leaving forgets the key'
     assert not errs, errs

@@ -150,7 +150,7 @@ with sync_playwright() as p:
     pg.evaluate('window.__APP.ui.think = 50')
     for _ in range(80):   # D137: the game goes on by itself; at the next move the lore API's line takes the chronicle's place
         if pg.evaluate("(document.getElementById('chron')?.textContent || '').startsWith('Vocês chegam a um teatro')"): break
-        pg.evaluate("for (const s of ['#storyok', '#rollok', '#tut [data-act=tutok]', '[data-act=open]', '[data-act=hiderole]', '[data-act=myvote]', '#phase [data-act=nominate]', '[data-act=pdiscard]:not([disabled])', '[data-act=cdiscard]:not([disabled])', '[data-act=say]', '#debate [data-act=dclose]']) { const b = document.querySelector(s); if (b) { b.click(); break; } }")
+        pg.evaluate("for (const s of ['#storyok', '#rollok', '#tut [data-act=tutok]', '[data-act=open]', '[data-act=hiderole]', '[data-act=myvote]', '#phase [data-act=nominate]', '[data-act=pdiscard]:not([disabled])', '#phase [data-act=enact]', '[data-act=say]', '#debate [data-act=dclose]']) { const b = document.querySelector(s); if (b) { b.click(); break; } }")
         pg.wait_for_timeout(250)
     assert pg.evaluate("(document.getElementById('chron')?.textContent || '').startsWith('Vocês chegam a um teatro')"), pg.evaluate("JSON.stringify([window.__APP.S.game.phase, window.__APP.S.game.hist.slice(-3).map(e => e.k), window.__APP.S.game.log.slice(-3), localStorage.getItem('secretcultist.lore.v1')])")
     pg.evaluate("(() => { const g = window.__APP.S.game; g.phase = 'over'; g.winner = 'F'; document.querySelector('#view [data-act]').click(); })()"); pg.wait_for_timeout(300)

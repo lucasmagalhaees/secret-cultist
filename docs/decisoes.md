@@ -1043,3 +1043,7 @@ Depois do oráculo (D144), da IA que muda de ideia (D145) e do voto confirmado (
 ## D156. Suítes do CI em paralelo (2026-11-12)
 
 O job `coverage` rodava o `verify.sh` inteiro em sequência (unit, e2e, iphone, social, auth, pwa), uns 4 minutos, e o `e2e (dark)` rodava o e2e de novo à parte. Agora um job `build` gera o `dist/` uma vez, as seis suítes rodam lado a lado sobre esse mesmo build (job `suites`, cada uma com `APP_COVERAGE=1` e o próprio arquivo de cobertura), e o `coverage` junta os arquivos e aplica os mínimos. A entrada do e2e continua se chamando `e2e (dark)`, o check que a proteção da `main` exige. O `verify.sh` local não mudou.
+
+## D157. A lei do chanceler num toque só, e o Leônidas logado (2026-11-12)
+
+O Lucas pediu: aprovar a lei levava dois toques (escolher a carta e confirmar). Agora o chanceler toca na lei que vai ser aprovada e pronto: a outra cai no lixo com a mesma animação de antes, e os toques esperam ela cair. O presidente continua com escolher e confirmar, porque descarta 1 de 3 e passa as outras. Na mesma leva: logado, tocar no Secret Leônidas não fazia nada (o botão do tema só aceitava os dois temas da expansão e voltava para o Secret Cultist), e recarregar a página esquecia o tema e jogava fora a partida do Leônidas guardada. Agora todo tema aberto para o login pode ser escolhido e fica guardado.
