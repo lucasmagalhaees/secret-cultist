@@ -3,7 +3,7 @@ import type { Ask, Game, Law, Level, NoteDetail, Pack, Region, Role, Theme } fro
 import { $, valOf } from './format';
 import { buzz, later, reactions, sound } from './fx';
 import { askLore, loadSheets, warmSheets } from './api';
-import { tutTip, bigRoll, ballot, beat, blurField, bossWin, claimFx, freeze, swayOpen, swayReasonsShow, swayResult, swayClose, debateSheet, confetti, decree, clearFlash, flash, frozenFor, render, stamp, toast, powerEffect } from './render';
+import { tutTip, bigRoll, ballot, beat, blurField, claimFx, finale, freeze, swayOpen, swayReasonsShow, swayResult, swayClose, debateSheet, confetti, decree, clearFlash, flash, frozenFor, render, stamp, toast, powerEffect } from './render';
 import { exportGames, keep, shareResult, wipe } from './history';
 import { CLAIM_HOLD, S, dlcOn, packNow, packsOpen, SPEEDS, applyTheme, saveS, setS, ui } from './state';
 import { login, logout, openKept, session } from './auth';
@@ -77,7 +77,14 @@ function play(ended: Game, msg?: string, undo: Game | null = null): void {
   if (changed && next.phase === 'over' && before?.phase !== 'over' && next.winner) {
     keep(next);                                                              // kept on the device for export (D23)
     // D85: the end waits for the elimination screen: the fanfare told who it was before the card turned
-    setTimeout(() => setTimeout(() => { const w = next.winner as Law; confetti(w); bossWin(next); sound(w === 'L' ? 'win' : 'lose'); buzz([60, 80, 60, 80, 200]); }, Math.max(0, frozenFor())), 0);
+    // D157: the scene of the end, then the confetti over the result. It waits for whatever is still playing, and looks
+    // again instead of counting the time once: a tap that skips the elimination screen brings the end at once
+    const end = (): void => {
+      if (S.game?.phase !== 'over') return;
+      if (frozenFor() > 0) { setTimeout(end, 100); return; }
+      const w = next.winner as Law; finale(next, () => confetti(w)); sound(w === 'L' ? 'win' : 'lose'); buzz([60, 80, 60, 80, 200]);
+    };
+    setTimeout(end, 0);
   }
   tick();
 }

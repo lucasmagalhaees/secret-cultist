@@ -160,13 +160,6 @@ export function claimFx(g: Game, by: number, target: number, said: 'L' | 'F' | '
   const face = said === '-' ? '<div class="cf-front q"><span>?</span><small>Ficou calado</small></div>' : `<div class="cf-front ${said}">${portrait(role, P, R)}<span>${said === 'L' ? 'Liberal' : esc(W.F)}</span></div>`;
   layer(`claim-fx ${said === '-' ? 'q' : said}${quick ? ' quick' : ''}`, `<div class="cf-card"><small>${name(g, by)} investigou</small><div class="cf-env"><div class="cf-flip"><div class="cf-back"></div>${face}</div><div class="cf-body"><b>${name(g, target)}</b></div><div class="cf-flap"></div></div><em>${said === '-' ? 'Não disse o que viu.' : `${name(g, by)} diz que é ${said === 'L' ? 'liberal' : esc(W.f)}. Pode estar mentindo.`}</em></div>`, quick ? 1400 : 2400);
 }
-/** The hidden leader was elected chancellor in the danger zone and the game is over: red screen and the leader yelling.
- *  The game is over: every role is open by then. */
-export function bossWin(g: Game): void {
-  if (still() || g.winner !== 'F' || g.laws.F >= Core.WIN.F) return;
-  layer('boss-win', `<div class="boss-yell">${portrait('lider', P, R)}<b>${esc(W.boss)} chanceler!</b></div>`, 2600);
-}
-
 /** The words of the theme of what is on screen (D12): the game's, or before a game the one chosen at the table. */
 export let P: Pack = 'culto', R: Region = 'mundo', W = Core.words();
 export const role = (r: Role): string => (r === 'liberal' ? 'Liberal' : r === 'lider' ? W.boss : W.F);
@@ -885,8 +878,9 @@ function vPhase(g: Game): string {
     case 'investigated':
       return gated(g, 'Investigação', () => {
         const p = Core.investigated(g) as Law;
-        // a confidential file (D38): the cover with the name lifts, the lens sweeps, the party is stamped
-        return `<div class="dossier${flipping ? ' go' : ''}"><div class="cover" aria-hidden="true"><small>Confidencial</small><b>${name(g, g.target as number)}</b></div>${turn(`<div class="role-card ${p}" id="party">${portrait(p === 'L' ? 'liberal' : 'cultista', P, R)}<small>${name(g, g.target as number)} é</small><b>${party(p)}</b><span class="inv-stamp ${p}" aria-hidden="true">${party(p)}</span><span class="lens" aria-hidden="true"></span></div>`)}</div><p class="hint">Contar a verdade ou não é com você.</p><button class="btn block" data-act="endpower">Esconder e seguir</button>`;
+        // a confidential file (D38, D157): the cover with the name lifts, the lens hunts over the card still face down,
+        // stops, and only then the card turns and the party is stamped on it
+        return `<div class="dossier${flipping ? ' go' : ''}"><div class="cover" aria-hidden="true"><small>Confidencial</small><b>${name(g, g.target as number)}</b></div>${turn(`<div class="role-card ${p}" id="party">${portrait(p === 'L' ? 'liberal' : 'cultista', P, R)}<small>${name(g, g.target as number)} é</small><b>${party(p)}</b><span class="inv-stamp ${p}" aria-hidden="true">${party(p)}</span></div>`)}<i class="inv-glow ${p}" aria-hidden="true"></i><span class="lens" aria-hidden="true"><i></i></span></div><p class="hint">Contar a verdade ou não é com você.</p><button class="btn block" data-act="endpower">Esconder e seguir</button>`;
       });
     case 'peek':
       return gated(g, 'Poder: espiar', () => `<p>As próximas 3 leis, na ordem:</p><div class="hand" id="peek">${g.deck.slice(0, 3).map(l => law(l)).join('')}</div><button class="btn block" data-act="endpower">Esconder e seguir</button>`);
