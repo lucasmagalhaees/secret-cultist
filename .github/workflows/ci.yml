@@ -24,74 +24,128 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip   # D154
+          cache-dependency-path: tests/requirements.txt
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
-      - name: Install Playwright and the build tools
+      - name: Install the Python test tools
         run: |
           pip install -r tests/requirements.txt
-          playwright install chromium && (timeout 150 playwright install-deps chromium || echo 'apt do Ubuntu fora do ar: segue com o que a imagem já tem')   # D146
+          echo "PW_VERSION=$(pip show playwright | awk '/^Version/{print $2}')" >> "$GITHUB_ENV"
+      - name: Cache the Playwright browser   # D154: ~150 MB, downloaded once per Playwright version
+        id: pwcache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ env.PW_VERSION }}
+      - name: Install the browser and the build tools
+        run: |
+          if [ "${{ steps.pwcache.outputs.cache-hit }}" != 'true' ]; then playwright install chromium; fi
+          timeout 150 playwright install-deps chromium || echo 'apt do Ubuntu fora do ar: segue com o que a imagem já tem'   # D146
           npm ci
       - name: Types, build, docs, core, unit and contract checks
         run: scripts/verify.sh --quick
 
-  coverage:
-    name: coverage
-    runs-on: ubuntu-24.04   # D146: fixed, so an image change does not surprise the CI
-    env:
-      DLC_KEY: ${{ secrets.DLC_KEY }}   # D138: the expansion's key (not in the repository)
-    timeout-minutes: 15
+  build:
+    name: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
           cache: npm
-      - name: Install Playwright and the build tools
+      - name: Build the page every suite tests   # D156: one build, so every coverage file measures the same page
         run: |
-          pip install -r tests/requirements.txt
-          playwright install chromium && (timeout 150 playwright install-deps chromium || echo 'apt do Ubuntu fora do ar: segue com o que a imagem já tem')   # D146
           npm ci
-      - name: Everything, with the coverage minimums
-        run: scripts/verify.sh
+          npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
 
-  e2e:
-    name: e2e (${{ matrix.theme }})
+  suites:
+    # D156: the browser suites run side by side, each on the same build, each leaving its coverage file.
+    # The e2e entry keeps the name `e2e (dark)`, the check the branch protection requires.
+    name: ${{ matrix.suite == 'e2e' && 'e2e (dark)' || format('suite ({0})', matrix.suite) }}
+    needs: build
     runs-on: ubuntu-24.04   # D146: fixed, so an image change does not surprise the CI
     env:
       DLC_KEY: ${{ secrets.DLC_KEY }}   # D138: the expansion's key (not in the repository)
+      APP_COVERAGE: '1'
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        theme: [dark]  # the light theme e2e left CI on 2026-10-30 (D47): slow and flaky
+        include:
+          - { suite: unit, cmd: python3 tests/unit.py }
+          - { suite: e2e, cmd: python3 tests/e2e.py dark }   # the light theme e2e left CI on 2026-10-30 (D47)
+          - { suite: iphone, cmd: python3 tests/iphone.py chromium }
+          - { suite: social, cmd: python3 tests/social.py }
+          - { suite: auth, cmd: python3 tests/auth.py }
+          - { suite: pwa, cmd: python3 tests/pwa.py }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-          cache: npm
-      - name: Install Playwright
+          cache: pip   # D154
+          cache-dependency-path: tests/requirements.txt
+      - name: Install the Python test tools
         run: |
           pip install -r tests/requirements.txt
-          playwright install chromium && (timeout 150 playwright install-deps chromium || echo 'apt do Ubuntu fora do ar: segue com o que a imagem já tem')   # D146
-      - name: Build the page the test opens
+          echo "PW_VERSION=$(pip show playwright | awk '/^Version/{print $2}')" >> "$GITHUB_ENV"
+      - name: Cache the Playwright browser   # D154: ~150 MB, downloaded once per Playwright version
+        id: pwcache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ env.PW_VERSION }}
+      - name: Install the browser
         run: |
-          npm ci
-          npm run build
-      - name: End to end
-        run: python tests/e2e.py ${{ matrix.theme }}
+          if [ "${{ steps.pwcache.outputs.cache-hit }}" != 'true' ]; then playwright install chromium; fi
+          timeout 150 playwright install-deps chromium || echo 'apt do Ubuntu fora do ar: segue com o que a imagem já tem'   # D146
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: ${{ matrix.suite }}
+        run: ${{ matrix.cmd }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cov-${{ matrix.suite }}
+          path: tests/.coverage/
+          include-hidden-files: true
+          if-no-files-found: error
       - name: Upload screenshots
-        if: always()
+        if: always() && matrix.suite == 'e2e'
         uses: actions/upload-artifact@v4
         with:
-          name: shots-${{ matrix.theme }}
+          name: shots-dark
           path: tests/shots/
           if-no-files-found: ignore
+
+  coverage:
+    name: coverage
+    needs: suites
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: cov-*
+          path: tests/.coverage/
+          merge-multiple: true
+      - name: Coverage of all the suites together, with the minimums
+        run: python3 tests/cov.py --min-functions 93 --min-chars 95
