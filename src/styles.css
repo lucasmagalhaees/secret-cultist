@@ -213,7 +213,7 @@ details.card .log{margin-top:12px}
 .flip #peek .law:nth-child(3){animation-delay:.3s}
 /* the discarded law falls away */
 @keyframes toss{to{opacity:0;transform:translate(30px,160px) rotate(38deg) scale(.6)}}
-button.law.toss{animation:toss .38s ease-in forwards}
+button.law.toss,.flip .hand button.law.toss{animation:toss .38s ease-in forwards}   /* one tap: the deal must not win over the toss */
 .track{overflow:hidden}
 .slot.new{animation:stamp .55s cubic-bezier(.2,.8,.2,1) both}
 .toast:not([hidden]){animation:toastIn .2s ease-out}
