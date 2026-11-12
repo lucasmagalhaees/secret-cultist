@@ -1035,3 +1035,7 @@ Redesenhados pelo Claude Fable 5.1 e aprovados pelo Lucas. Os rostos continuam s
 ## D154. CI mais rápido (2026-11-12)
 
 Cada job do CI baixava o Chromium do Playwright (uns 150 MB) e reinstalava os pacotes do Python a cada rodada. Agora o navegador fica em cache por versão do Playwright (`~/.cache/ms-playwright`, `actions/cache`) e o pip usa o cache do `setup-python`. As dependências do sistema (`install-deps`) continuam rodando, com o limite de 150 s do D146, porque o apt não é guardado entre rodadas.
+
+## D155. Equilíbrio das IAs medido de novo (2026-11-12)
+
+Depois do oráculo (D144), da IA que muda de ideia (D145) e do voto confirmado (D147), `node scripts/ai_bench.mjs` (200 partidas por célula, mesas de 5 a 10): com a mesa toda no mesmo nível, os liberais vencem 46% no fácil, 54% no médio, 48% no difícil e 56% no extremo. Continua perto de metade em todos os níveis (com 200 partidas, a margem é de uns 7 pontos), e o extremo segue no mesmo lugar do D10 (57–58%). Uma IA média no lugar da pessoa vence 49% a 59% como liberal e 42% a 57% como cultista, conforme o nível da mesa. Nada foi mudado.
