@@ -68,14 +68,15 @@ export function powerEffect(g: Game, target: number, kind: 'investigate' | 'exec
 /** Confetti in the colour of the side that won. */
 export function confetti(winner: Party): void {
   const c = part('confetti');
-  c.innerHTML = Array.from({ length: 48 }, (_, i) => `<i class="${winner}" style="left:${(i * 37) % 100}%;animation-delay:${(i % 12) * 0.08}s;animation-duration:${1.6 + (i % 5) * 0.25}s;--r:${(i * 53) % 360}deg"></i>`).join('');
+  c.innerHTML = Array.from({ length: 48 }, (_, i) => `<i class="${winner}" style="left:${(i * 37) % 100}%;animation-delay:${(i % 12) * 0.08}s;animation-duration:${1.6 + (i % 5) * 0.25}s;--r:${200 + (i * 53) % 520}deg;--sx:${(i * 29) % 44 - 22}px"></i>`).join('');
   setTimeout(() => { c.innerHTML = ''; }, 4200);
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
 /** A short message at the bottom of the screen. */
 export function toast(text: string): void {
-  const t = part('toast'); t.textContent = text; t.hidden = false;
+  const t = part('toast'); t.textContent = text;
+  t.hidden = true; void t.offsetWidth; t.hidden = false;   // D158: a new toast over an old one starts its coming and going again
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 3500);
 }
 /** Lets go of the field with the focus, so the screen can be painted again. */

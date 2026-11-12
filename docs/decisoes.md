@@ -1043,3 +1043,18 @@ Depois do oráculo (D144), da IA que muda de ideia (D145) e do voto confirmado (
 ## D156. Suítes do CI em paralelo (2026-11-12)
 
 O job `coverage` rodava o `verify.sh` inteiro em sequência (unit, e2e, iphone, social, auth, pwa), uns 4 minutos, e o `e2e (dark)` rodava o e2e de novo à parte. Agora um job `build` gera o `dist/` uma vez, as seis suítes rodam lado a lado sobre esse mesmo build (job `suites`, cada uma com `APP_COVERAGE=1` e o próprio arquivo de cobertura), e o `coverage` junta os arquivos e aplica os mínimos. A entrada do e2e continua se chamando `e2e (dark)`, o check que a proteção da `main` exige. O `verify.sh` local não mudou.
+
+## D158. Pente fino nas animações (2026-11-12)
+
+O Lucas pediu ao Fable (D152) um pente fino nas animações que já existem, sem efeito novo grande. A prévia (quadros de antes e depois) vai para ele aprovar antes do merge. O que mudou, tudo em `src/styles.css` e duas linhas de `src/app/overlay.ts`, sem mexer no tempo que os toques esperam (`later` de 380 ms, `ui.frozen`):
+
+- **Três pares de `@keyframes` tinham o mesmo nome, e o de baixo trocava o de cima calado.** `fall`: o confete usava a queda da lei do caos, descia um terço da tela e ficava parado; agora tem a sua (`confettiFall`), cai a tela toda balançando e some no fim. `tearL`/`tearR`: as cartas do veto usavam o rasgo do Líder e não sumiam; o rasgo do Líder virou `tbTearL`/`tbTearR`. `shake`: o marcador de rejeições voltou a ter o seu tremor (`bump`).
+- **Eliminação.** A tela ficava branca por meio segundo antes do tiro (o clarão valia desde o começo, pelo `both`), o rosto e o furo da bala apareciam antes do nome, e a sequência do CSS ainda era a de antes do D88: com a tela durando 3,6 s (4,8 s com o Líder), o veredito era cortado ao entrar e o amanhecer do Líder nunca chegava a aparecer. Agora o clarão só vem no tiro, o rosto entra com o nome, e nome, carimbo, veredito (ou a carta rasgada e o amanhecer) cabem no tempo da tela, que escurece e clareia em vez de cortar.
+- **Lei do chanceler (D157).** Com um toque só, nada repinta entre abrir a mão e o descarte, e a animação de distribuir ganhava da queda: a descartada não caía. Agora cai (com um pequeno recuo antes), e a mantida (`.kept`) sobe e brilha nos mesmos 380 ms.
+- **Investigação.** A lupa herdava a borda e o tamanho da lupa antiga da carta de papel (que não é mais desenhada) e saía como um anel oval; as regras antigas, que animavam `left`/`top`, saíram.
+- **Curvas por etapa.** O carimbo da votação, o decreto, o carimbo de "Eliminado"/"Eleito", a faixa da eleição especial e as cartas que viram na votação tinham uma curva só repetida em cada etapa (quicavam duas vezes ou paravam no meio); agora batem, assentam e saem acelerando.
+- **Lei voando.** Dá uma volta em vez de duas e some ao pousar; a casa do tabuleiro só aparece quando ela chega (antes já estava carimbada enquanto a carta voava).
+- **Avisos curtos** saem como entram, em vez de sumir de uma vez.
+- **Sem animar layout:** a barra do tempo de virar voto encolhe por `transform`, e o resultado da rolagem grande não usa mais `transition: all`.
+
+Com "reduzir movimento" continua como antes: nada se mexe e nada espera. Ficou de fora, de propósito: o narrador e a história (outra frente), o brilho do "sua vez" (`mine-glow`, que anima `box-shadow` sem parar; trocar pede mexer na moldura do cartão) e qualquer mudança nos tempos do D88, que ficaram apertados para ler o veredito da eliminação.
