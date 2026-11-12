@@ -133,7 +133,7 @@ check('a new version waits for the tap', "event.data === 'activate'" in sw and '
 main = read('src/main.ts')
 check('window.__APP is what the spec says', 'window.__APP = { Core, ui, get S() { return S; } };' in main and '`{Core, ui, S}`' in spec)
 ci = read('.github/workflows/ci.yml')
-check('the checks the main branch requires exist in CI', 'name: checks' in ci and "name: e2e (${{ matrix.theme }})" in ci and 'theme: [dark]' in ci and '`checks` e `e2e (dark)`' in spec)
+check('the checks the main branch requires exist in CI', 'name: checks' in ci and "'e2e (dark)'" in ci and "suite: e2e, cmd: python3 tests/e2e.py dark" in ci and '`checks` e `e2e (dark)`' in spec)   # D156: the e2e is one entry of the suites matrix
 
 for f in fails:
     print('FAIL', f)
