@@ -144,7 +144,9 @@ with sync_playwright() as p:
     c1 = G(); assert c1['campaign']['ch'] == 1 and c1['campaign']['scene'] == c1['scene'] and c1['log'][-1].startswith('📜') or any(l.startswith('📜 Capítulo 1') for l in c1['log'])
     pg.wait_for_selector('.narrator', timeout=5000)   # D118: the narrator tells the opening
     assert pg.locator('.narrator .nar-page p').count() >= 1, 'D129: the story takes the whole screen and the game waits'
-    pg.click('#storyok'); pg.evaluate('window.__KEEP_STORY = false'); assert pg.locator('.narrator').count() == 0, 'Seguir closes it and the game goes on'
+    assert pg.locator('.narrator .nar-head .nar-title').count() == 1 and pg.locator('.narrator .nar-s').count() >= 2, 'D159: the head of the act, and the lines a sentence at a time'
+    pg.locator('.narrator .nar-page').click(position={'x': 5, 'y': 5}); assert pg.locator('.narrator.all').count() == 1, 'D159: a tap shows the whole page, and it stays open'
+    pg.click('#storyok'); pg.evaluate('window.__KEEP_STORY = false'); pg.wait_for_selector('.narrator', state='detached', timeout=2000)   # D159: Seguir closes it once the page has left (this suite runs with motion), and the game goes on
     pg.evaluate("(() => { const A = window.__APP, g = A.S.game; A.S.game = A.Core.chronicle({ ...A.Core.chronicle(g), hist: [...g.hist, { k: 'rej', pres: 1, chanc: 2 }] }); document.querySelector('#view [data-act]').click(); })()"); pg.wait_for_timeout(300)
     assert pg.locator('#chron').count() == 1, 'D134: the narrator tells the last move under the seats'
     pg.evaluate('window.__APP.ui.think = 50')

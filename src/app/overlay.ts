@@ -6,6 +6,7 @@ import type { Roll } from '../core/dice';
 import type { ItemKey, TrapKey } from '../core/index';
 import { face, portrait, seal } from './art';
 import { $, esc, part, themed } from './format';
+import { later } from './fx';
 import { S, ui } from './state';
 import { P, PERSONA_W, R, W, WHY_V, av, diceHtml, freeze, frozenFor, name, rollDice, solo } from './render';
 import type { DiceRoll } from './render';
@@ -284,21 +285,69 @@ function showRoll(r: Roll, title: string, sub = '', why = ''): void {
   const t = setInterval(() => { num.textContent = String(1 + ((r.d * 31 + n * 47) % 100)).padStart(2, '0'); if (++n >= ROLL_SPIN) { clearInterval(t); num.textContent = String(r.d).padStart(2, '0'); el.classList.add('land'); } }, 60);
 }
 
-/* D118, D129: the narrator's lines (📜 and 📄 in the log) are told once, on a page over the whole screen, in the
-   keeper's voice: the opening, each act and the end. The game waits under it until "Seguir". Lines already on the
-   record when the game was opened are not told again. */
+/* D118, D129, D159: the narrator's lines (📜 and 📄 in the log) are told once, on a page over the whole screen, as the
+   turn of a chapter: the head of the act comes in (Ato I with the place, Ato II and III with their names, Fim), the
+   keeper's lines come sentence by sentence, and each document is a paper of its own kind. The game waits under it
+   until "Seguir"; a tap anywhere else shows the whole page at once. Lines already on the record when the game was
+   opened are not told again. Only the looks: the words are the ones in the log. */
 export let toldKey = '', told = 0;
+/** The kind of paper of a document, by how its line names it (DOCS in src/core/horror.ts): the first that fits. */
+const PAPERS: [RegExp, string][] = [
+  [/^telegrama/i, 'nar-wire'],
+  [/^(recorte|cartaz|programa|folheto|convite)/i, 'nar-press'],
+  [/^(relatório|ata |nota fiscal|extrato|contrato|nota do)/i, 'nar-typed'],
+  [/^(diário|canção)|caderno/i, 'nar-diary'],
+  [/^(página|folha|tábua|tabuleta|tradução|inscrição|poema|mapa)/i, 'nar-tome']
+];
+const ORN = '<svg class="nar-orn" viewBox="0 0 240 24" aria-hidden="true"><path class="nar-rule" d="M6 12H92M148 12H234"/><path d="M96 12l7-4v8zM144 12l-7-4v8z"/><path class="nar-gem" d="M120 2l10 10-10 10-10-10z"/><circle cx="120" cy="12" r="2.6"/></svg>';
+/** One step of the telling: what comes in, and how long the next one waits for it. */
+let narAt = 0;
+const step = (ms: number): string => { const d = narAt; narAt += ms; return `style="animation-delay:${d}ms"`; };
+/** The head of a chapter: the ornament, the act over the title, and the place under it. */
+function narHead(over: string, title: string, where: string, mark: string): string {
+  return `<header class="nar-head">${mark ? `<b class="nar-mark" aria-hidden="true" ${step(0)}>${mark}</b>` : ''}<span ${step(250)}>${ORN}</span>${over ? `<small class="nar-over" ${step(250)}>${esc(over)}</small>` : ''}<h2 class="nar-title" ${step(350)}>${esc(title)}</h2>${where ? `<small class="nar-where" ${step(350)}>${esc(where)}</small>` : ''}</header>`;
+}
+/** A line of the keeper, a sentence at a time. */
+function narLine(t: string): string {
+  const parts = t.match(/[^.!?…]+(?:[.!?…]+["”’)]*|$)\s*/g) || [t];
+  return `<p class="nar-line">${parts.map(x => `<span class="nar-s" ${step(220 + x.length * 14)}>${esc(x)}</span>`).join('')}</p>`;
+}
+/** A document: the paper of its kind, with what the line calls it on top and what is written on it. */
+function narDoc(t: string, n: number): string {
+  const m = /^(.{3,70}?): "(.*)"$/.exec(t), label = m ? m[1] : '', body = m ? m[2] : t;
+  const kind = (PAPERS.find(([re]) => re.test(t)) || [0, 'nar-note'])[1];
+  return `<figure class="nar-doc ${kind} ${n % 2 ? 'odd' : ''}" ${step(800 + body.length * 8)}><div class="nar-sheet">${label ? `<figcaption>${esc(label)}</figcaption>` : ''}<blockquote>${esc(body)}</blockquote></div></figure>`;
+}
 export function tellStory(g: Game): void {
   const lines = g.log.filter(l => l.startsWith('📜 ') || l.startsWith('📄 ')), key = String(g.players.map(p => p.name)) + (g.scene || '');
   if (key !== toldKey) { document.querySelectorAll('.narrator').forEach(x => x.remove()); toldKey = key; told = g.hist.length || g.log.length > lines.length + 2 ? lines.length : 0; }
   if (lines.length <= told) return;
   const fresh = lines.slice(told); told = lines.length;
   document.querySelectorAll('.narrator').forEach(x => x.remove());
+  const place = Core.sceneOf(g)?.place || '', end = fresh.some(l => l.startsWith('📜 Fim. '));
+  let docs = 0; narAt = 300;
+  const html = fresh.map(l => {
+    const t = l.slice(3);
+    if (l.startsWith('📄')) return narDoc(t, docs++);
+    const act = /^Ato (III|II), ([^.]+)\. (.*)$/.exec(t);
+    if (act) return narHead(`Ato ${act[1]}`, act[2].charAt(0).toUpperCase() + act[2].slice(1), place, act[1]) + narLine(act[3]);
+    if (t.startsWith('Fim. ')) return narHead(place, 'Fim', '', '') + narLine(t.slice(5));
+    const at = place ? t.indexOf(`${place}. `) : -1;   // the opening names the place: it becomes the title of Act I
+    if (at >= 0) return narHead('Ato I', place, '', 'I') + narLine(t.slice(0, at) + t.slice(at + place.length + 2));
+    return narLine(t);
+  }).join('');
   const el = document.createElement('div');
-  el.className = 'fxl narrator'; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'A história');
-  el.innerHTML = `<div class="nar-page">${fresh.map(l => l.startsWith('📄') ? `<p class="nar-doc">${esc(l.slice(3))}</p>` : `<p>${esc(l.slice(3))}</p>`).join('')}</div><button class="btn primary block" id="storyok">Seguir ▸</button>`;
+  el.className = `fxl narrator ${end ? `end won-${g.winner || ''}` : `act-${Core.actOf(g)}`}`; el.setAttribute('role', 'dialog'); el.setAttribute('aria-label', 'A história');
+  el.innerHTML = `<div class="nar-page">${html}</div><button class="btn primary block" id="storyok" ${step(0)}>Seguir ▸</button>`;
   document.body.appendChild(el);
-  el.querySelector('#storyok')?.addEventListener('click', e => { e.stopPropagation(); el.remove(); });
+  // a tap anywhere shows the whole page; what comes in below the screen is brought into view
+  el.addEventListener('click', () => el.classList.add('all'));
+  el.addEventListener('animationstart', e => { if (!el.classList.contains('all') && e.target !== el) (e.target as HTMLElement).scrollIntoView?.({ block: 'nearest', behavior: 'smooth' }); });
+  el.querySelector('#storyok')?.addEventListener('click', e => {
+    e.stopPropagation();
+    if (el.classList.contains('out')) return;
+    el.classList.add('out'); later(() => el.remove(), 380);   // the page leaves; with less motion, at once
+  });
 }
 
 /** D138: the login page; the demo account (a pedestrian) is shown on purpose, for whoever looks at the portfolio. */
