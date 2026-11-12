@@ -1,0 +1,45 @@
+name: PRs em conflito
+
+# After every merge to the default branch, look at the other open pull requests: the ones that now conflict get the
+# `conflito` label and one comment; the ones that no longer conflict lose the label. A scheduled Claude session picks
+# up the labelled ones and resolves them (the /conflito shortcut). Nothing here pushes to any branch.
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Label the open PRs that conflict with the new default branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          gh label create conflito --repo "$REPO" --color B60205 --description "Conflita com a branch principal" 2>/dev/null || true
+          for n in $(gh pr list --repo "$REPO" --state open --json number --jq '.[].number'); do
+            state=UNKNOWN
+            for try in 1 2 3 4 5 6; do   # GitHub computes mergeability in the background after a push
+              state=$(gh pr view "$n" --repo "$REPO" --json mergeable --jq .mergeable)
+              [ "$state" != UNKNOWN ] && break
+              sleep 10
+            done
+            labels=$(gh pr view "$n" --repo "$REPO" --json labels --jq '[.labels[].name] | join(",")')
+            if [ "$state" = CONFLICTING ]; then
+              if ! echo "$labels" | grep -q conflito; then
+                gh pr edit "$n" --repo "$REPO" --add-label conflito
+                gh pr comment "$n" --repo "$REPO" --body "Este PR passou a conflitar com a branch principal depois do merge de ${GITHUB_SHA::7}. Marcado com \`conflito\` para ser resolvido."
+              fi
+              echo "#$n: conflita"
+            else
+              echo "$labels" | grep -q conflito && gh pr edit "$n" --repo "$REPO" --remove-label conflito
+              echo "#$n: $state"
+            fi
+          done
