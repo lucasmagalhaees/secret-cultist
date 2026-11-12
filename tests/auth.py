@@ -75,17 +75,18 @@ with sync_playwright() as p:
     pg.evaluate("window.__APP.S.game = { ...window.__APP.S.game, laws: { L: 1, F: 1 } }"); pg.click('#view [data-act=help]')
     pg.wait_for_selector('#oracleask'); pg.wait_for_function('!(window.__APP.ui.frozen > Date.now())'); pg.click('[data-act=oracle]')   # after the decree's animation
     pg.wait_for_selector('#oracle p'); assert 'Pítia' in pg.inner_text('#oracle') and pg.locator('#oracleask').count() == 0, pg.inner_text('#oracle')
-    pg.evaluate('window.__APP.S.game = null'); cov.reload(pg); pg.wait_for_function('window.__APP')
+    cov.reload(pg); pg.wait_for_function('window.__APP'); assert (pg.evaluate('window.__APP.S.game') or {}).get('pack') == 'esparta', 'D157: the saved Leônidas game comes back after a reload'
+    pg.evaluate("(() => { window.__APP.S.game = null; const k = 'secretcultist.v1', v = JSON.parse(localStorage.getItem(k)); v.game = null; localStorage.setItem(k, JSON.stringify(v)); })()"); cov.reload(pg); pg.wait_for_function('window.__APP')
     # D148: the daily challenge is the same table for everyone today; on a wide screen the board goes to its own column
     pg.set_viewport_size({'width': 1280, 'height': 800}); pg.click('[data-act=daily]'); pg.wait_for_function('window.__APP.S.game && window.__APP.S.game.daily')
     d1 = pg.evaluate('window.__APP.S.game.players.map(p => p.name + p.role).join()')
     pg.evaluate('window.__APP.ui.think = 1e9')
     if pg.locator('[data-act=open]').count(): pg.click('[data-act=open]'); pg.click('[data-act=hiderole]')
     pg.wait_for_selector('#view .col-side #board')
-    pg.evaluate('window.__APP.S.game = null'); cov.reload(pg); pg.wait_for_function('window.__APP'); pg.click('[data-act=daily]'); pg.wait_for_function('window.__APP.S.game && window.__APP.S.game.daily')
+    pg.evaluate("(() => { window.__APP.S.game = null; const k = 'secretcultist.v1', v = JSON.parse(localStorage.getItem(k)); v.game = null; localStorage.setItem(k, JSON.stringify(v)); })()"); cov.reload(pg); pg.wait_for_function('window.__APP'); pg.click('[data-act=daily]'); pg.wait_for_function('window.__APP.S.game && window.__APP.S.game.daily')
     assert pg.evaluate('window.__APP.S.game.players.map(p => p.name + p.role).join()') == d1, 'the same table and roles the same day'
     pg.set_viewport_size({'width': 393, 'height': 852}); pg.evaluate('window.__APP.ui.think = null')
-    pg.evaluate('window.__APP.S.game = null'); cov.reload(pg); pg.wait_for_function('window.__APP')
+    pg.evaluate("(() => { window.__APP.S.game = null; const k = 'secretcultist.v1', v = JSON.parse(localStorage.getItem(k)); v.game = null; localStorage.setItem(k, JSON.stringify(v)); })()"); cov.reload(pg); pg.wait_for_function('window.__APP')
     # the dashboard: #painel asks for the login
     pg.click('#painel'); pg.wait_for_selector('#login'); assert pg.locator('#user .who').count() == 0
     pg.click('[data-act=login]'); assert 'Preencha' in pg.inner_text('#loginerr')
@@ -103,6 +104,10 @@ with sync_playwright() as p:
     assert 'driver' in pg.inner_text('#user').lower() and pg.locator('[data-act=region][data-v=brasil]').count() == 1 and pg.locator('#dlcon').count() == 1
     cov.reload(pg); pg.wait_for_function('window.__APP'); pg.wait_for_function('window.__APP.Core.dlcData() !== null')   # kept for offline, opened at start
     pg.screenshot(path=str(ROOT / 'tests/shots/auth-driver.png'))
+    # logged in, Secret Leônidas can still be picked, and it stays after a reload (it used to fall back to Cthulhu)
+    pg.click('#pack [data-act=pack][data-v=esparta]'); assert pg.evaluate('window.__APP.S.pack') == 'esparta' and pg.text_content('#boss') == 'Leônidas', pg.evaluate('window.__APP.S.pack')
+    cov.reload(pg); pg.wait_for_function('window.__APP'); assert pg.evaluate('window.__APP.S.pack') == 'esparta', 'the theme survives the reload'
+    pg.click('#pack [data-act=pack][data-v=culto]'); assert pg.evaluate('window.__APP.S.pack') == 'culto'
     cov.keep(pg); pg.click('[data-act=logout]'); pg.wait_for_selector('#painel')   # logout reloads by itself: read the counters first
     assert pg.evaluate("localStorage.getItem('secretcultist.dlc.v1')") is None and pg.evaluate('window.__APP.Core.dlcData()') is None, 'leaving forgets the key'
     assert not errs, errs

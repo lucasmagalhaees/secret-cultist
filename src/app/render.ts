@@ -219,6 +219,8 @@ export const law = (l: Law, k?: number): string => {
   return k === undefined ? `<div class="law ${l}">${face}</div>`
     : `<button class="law ${l}${ui.pick === k ? ' on' : ''}" data-act="pick" data-k="${k}" aria-pressed="${ui.pick === k}">${face}</button>`;
 };
+/** The chancellor's card: one tap enacts it and throws the other away (no confirm button). */
+const enactable = (l: Law, k: number): string => `<button class="law ${l}" data-act="enact" data-k="${k}" aria-label="Aprovar esta lei"><span class="sym">${seal(l, P)}</span><span>${l === 'L' ? '{law}' : '{lawF}'}</span></button>`;
 
 /* ---------- the game ---------- */
 function vGame(g: Game): string {
@@ -316,7 +318,7 @@ const HELP: Record<string, string> = {
   nominate: 'O presidente escolhe quem vai ser o chanceler. O último governo eleito não pode voltar como chanceler.',
   vote: 'Todo mundo vota ao mesmo tempo, em voz alta: {ja} (sim) ou {nein} (não). Mais {ja} que {nein} elege. Marque o resultado aqui.',
   president: 'Só o presidente olha: ele tira 3 leis, descarta 1 e passa as outras 2 para o chanceler. Pode mentir sobre o que tirou.',
-  chancellor: 'Só o chanceler olha: das 2 leis, descarta 1 e a outra é aprovada. A partir da 5ª lei {f} dá para pedir veto.',
+  chancellor: 'Só o chanceler olha: das 2 leis, toque na que vai ser aprovada; a outra vai pro lixo. A partir da 5ª lei {f} dá para pedir veto.',
   veto: 'O chanceler quer descartar as duas leis. Se o presidente aceitar, nenhuma lei entra e conta como governo rejeitado.',
   investigate: 'O presidente escolhe alguém e vai ver, em segredo, o partido dessa pessoa. Depois conta (ou não) para a mesa.',
   investigated: 'Só o presidente olha o partido. O {boss} aparece como {f}.',
@@ -873,7 +875,7 @@ function vPhase(g: Game): string {
     case 'president':
       return gated(g, 'Presidente', () => `<p>Toque na lei que vai pro lixo. As outras duas vão pro chanceler.</p><div class="hand">${g.hand.map((l, k) => law(l, k)).join('')}</div><button class="btn block" data-act="pdiscard"${ui.pick === null ? ' disabled' : ''}>Descartar e passar</button>`);
     case 'chancellor':
-      return gated(g, 'Chanceler', () => `<p>Toque na lei que vai pro lixo. A outra vira lei.</p><div class="hand">${g.hand.map((l, k) => law(l, k)).join('')}</div><button class="btn block" data-act="cdiscard"${ui.pick === null ? ' disabled' : ''}>Descartar e aprovar a outra</button>${Core.canVeto(g) ? '<button class="btn ghost block" data-act="askveto">Pedir veto das duas</button>' : g.vetoed ? '<p class="hint">O presidente recusou o veto: uma das duas tem que virar lei.</p>' : ''}`);
+      return gated(g, 'Chanceler', () => `<p>Toque na lei que vai ser aprovada. A outra vai pro lixo.</p><div class="hand enact">${g.hand.map((l, k) => enactable(l, k)).join('')}</div>${Core.canVeto(g) ? '<button class="btn ghost block" data-act="askveto">Pedir veto das duas</button>' : g.vetoed ? '<p class="hint">O presidente recusou o veto: uma das duas tem que virar lei.</p>' : ''}`);
     case 'veto':
       return `<section class="card" id="phase"><span class="label">Veto</span><p class="big"><b>${name(g, g.chanc as number)}</b> (chanceler) quer vetar as duas leis. <b>${pres}</b>, aceita?</p><p class="hint">Se aceitar, nenhuma lei entra e conta como governo rejeitado.</p><div class="pick"><button class="btn" data-act="veto" data-v="1">Aceitar veto</button><button class="btn ghost" data-act="veto" data-v="0">Recusar</button></div></section>`;
     case 'investigate':

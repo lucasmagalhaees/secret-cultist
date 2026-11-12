@@ -2,7 +2,8 @@ import { STEREOTYPES } from './dice';
 /* What was saved on the device, read back. A saved game that does not hold together is dropped, so a damaged state
    never breaks the page: the names and the theme still come back. */
 import { LEVELS, MAX_PLAYERS, NAME_MAX, PERSONAS, REGIONS, WIN } from './game';
-import type { AppState, Event, Game, Law, Level, NoteDetail, Phase, Player, Region, Role, Saved, Trace } from './types';
+import type { AppState, Event, Game, Law, Level, Pack, NoteDetail, Phase, Player, Region, Role, Saved, Trace } from './types';
+import { PACKS } from './words';
 
 const ROLES: Role[] = ['liberal', 'cultista', 'lider'];
 const PHASES: Phase[] = ['reveal', 'nominate', 'vote', 'president', 'chancellor', 'veto', 'investigate', 'investigated', 'peek', 'special', 'execute', 'over'];
@@ -28,7 +29,7 @@ export function readGame(x: unknown): Game | null {
   if (!Array.isArray(g.log) || !g.log.every(l => typeof l === 'string')) return null;
   if ((g.phase === 'vote' || g.phase === 'chancellor' || g.phase === 'veto') && g.chanc === null) return null;
   if (g.phase === 'investigated' && g.target === null) return null;
-  if (!(g.drew === undefined || isLaws(g.drew)) || !(g.level === undefined || LEVELS.includes(g.level)) || !(g.train === undefined || ROLES.includes(g.train)) || !(g.pack === undefined || g.pack === 'classico' || g.pack === 'vermelho' || g.pack === 'culto') || !(g.region === undefined || (REGIONS.includes(g.region) && g.region !== 'mundo'))) return null;
+  if (!(g.drew === undefined || isLaws(g.drew)) || !(g.level === undefined || LEVELS.includes(g.level)) || !(g.train === undefined || ROLES.includes(g.train)) || !(g.pack === undefined || PACKS.includes(g.pack)) || !(g.region === undefined || (REGIONS.includes(g.region) && g.region !== 'mundo'))) return null;
   // the history came later: a game saved before it has none, and that is not damage
   const hist = g.hist === undefined ? [] : g.hist;
   if (!Array.isArray(hist) || !hist.every((e: Event) => !!e && typeof e === 'object' && typeof e.k === 'string')) return null;
@@ -80,7 +81,7 @@ export function readState(x: unknown): AppState {
   return { v: 1, names, game: readGame(o.game), ...(typeof o.stereo === 'string' && STEREOTYPES[o.stereo] ? { stereo: o.stereo } : {}),   // D116
     ...(o.horror === 'pulp' || o.horror === 'purista' ? { horror: o.horror } : {}),   // D120
     ...(o.oracles === true ? { oracles: true as const } : {}),   // D144
- ...(ai.some(Boolean) ? { ai } : {}), ...(LEVELS.includes(o.level as Level) ? { level: o.level as Level } : {}), ...(ROLES.includes(o.train as Role) ? { train: o.train as Role } : {}), ...(o.assist === true ? { assist: true as const } : {}), ...(o.pack === 'classico' || o.pack === 'vermelho' ? { pack: o.pack as 'classico' | 'vermelho' } : {}), ...readNotes(o.notes), ...readNoteDetails(o.noteDetails), ...(o.notesOpen === true ? { notesOpen: true as const } : {}), ...(o.coach === true ? { coach: true as const } : {}), ...(o.gauge === true || o.live === true ? { gauge: true as const } : {}), ...((o as { rep?: unknown }).rep === true ? { rep: true as const } : {}), ...(o.flip === true ? { flip: true as const } : {}), ...(o.dlc === true ? { dlc: true as const } : {}), ...(REGIONS.includes(o.region as Region) && o.region !== 'mundo' ? { region: o.region as Region } : {}), ...(o.speed === 'lenta' || o.speed === 'rapida' ? { speed: o.speed } : {}), ...(o.theme === 'light' || o.theme === 'dark' ? { theme: o.theme } : {}), ...(o.look === 'deco' ? { look: o.look } : {}), ...(o.quiet === true ? { quiet: true as const } : {}) };
+ ...(ai.some(Boolean) ? { ai } : {}), ...(LEVELS.includes(o.level as Level) ? { level: o.level as Level } : {}), ...(ROLES.includes(o.train as Role) ? { train: o.train as Role } : {}), ...(o.assist === true ? { assist: true as const } : {}), ...(PACKS.includes(o.pack as Pack) ? { pack: o.pack as Pack } : {}), ...readNotes(o.notes), ...readNoteDetails(o.noteDetails), ...(o.notesOpen === true ? { notesOpen: true as const } : {}), ...(o.coach === true ? { coach: true as const } : {}), ...(o.gauge === true || o.live === true ? { gauge: true as const } : {}), ...((o as { rep?: unknown }).rep === true ? { rep: true as const } : {}), ...(o.flip === true ? { flip: true as const } : {}), ...(o.dlc === true ? { dlc: true as const } : {}), ...(REGIONS.includes(o.region as Region) && o.region !== 'mundo' ? { region: o.region as Region } : {}), ...(o.speed === 'lenta' || o.speed === 'rapida' ? { speed: o.speed } : {}), ...(o.theme === 'light' || o.theme === 'dark' ? { theme: o.theme } : {}), ...(o.look === 'deco' ? { look: o.look } : {}), ...(o.quiet === true ? { quiet: true as const } : {}) };
 }
 
 /** D104: one line per kept game, newest first, for the screen of past games: when, the theme, who won, and, with one
