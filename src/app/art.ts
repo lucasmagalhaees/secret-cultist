@@ -479,16 +479,17 @@ export const portrait = (r: Role, pack: Pack = 'culto', region: Region = 'mundo'
 /** The seal of a party on law cards and on the board: a symbol, not a character (the scales and the theme's mark). */
 // D86: drawn, not emoji: the phone's emoji (a glossy skull, a coloured scale) clashed with the poster
 const SEALS: Record<'L' | 'F' | 'C' | 'K' | 'E' | 'O' | 'A', string> = {
-  // D139: Athens' decree carries the owl; Sparta's the lambda of its shields
-  O: '<path d="M14 28c0-12 8-20 18-20s18 8 18 20v14c0 8-8 14-18 14S14 50 14 42z" fill="currentColor" stroke-width="2.5"/><circle cx="25" cy="27" r="6" fill="var(--halo)" stroke-width="2"/><circle cx="39" cy="27" r="6" fill="var(--halo)" stroke-width="2"/><circle cx="25" cy="28" r="2.5" fill="currentColor" stroke="none"/><circle cx="39" cy="28" r="2.5" fill="currentColor" stroke="none"/><path d="M29 36l3 5 3-5z" fill="var(--halo)" stroke-width="1.5"/><path d="M14 16l6 6M50 16l-6 6" stroke-width="3"/>',
-  A: '<circle cx="32" cy="32" r="26" fill="currentColor" stroke-width="2.5"/><circle cx="32" cy="32" r="20" stroke="var(--halo)" stroke-width="2"/><path d="M20 46 32 16l12 30" stroke="var(--halo)" stroke-width="5" stroke-linejoin="round" stroke-linecap="round"/>',
+  // D139: Athens' decree carries the owl; Sparta's the lambda of its shields. Both are cut out of one shape (even-odd),
+  // so what shows through the eyes and the letter is the card itself, whatever its colour
+  O: '<path fill="currentColor" fill-rule="evenodd" stroke-width="1.5" stroke-linejoin="round" d="M32 59C20.5 59 12.5 50 12.5 37V23c0-5.5-1.8-10.5-4.5-15.5 6.5 1 11.5 3 15.5 6.5 5.5-2 11.5-2 17 0 4-3.5 9-5.5 15.5-6.5-2.7 5-4.5 10-4.5 15.5v14C51.5 50 43.5 59 32 59zM15.5 27.5a8 8 0 1 0 16 0a8 8 0 1 0-16 0zM32.5 27.5a8 8 0 1 0 16 0a8 8 0 1 0-16 0zM28 38.5h8L32 46zM19 42c1.3 5.5 4.3 9.5 8.5 12-2.6-3.5-4.4-7.5-5.3-12zM45 42c-1.3 5.5-4.3 9.5-8.5 12 2.6-3.5 4.4-7.5 5.3-12z"/><circle cx="23.5" cy="27.5" r="3.6" fill="currentColor" stroke="none"/><circle cx="40.5" cy="27.5" r="3.6" fill="currentColor" stroke="none"/>',
+  A: '<path fill="currentColor" fill-rule="evenodd" stroke="none" d="M32 4a28 28 0 1 0 0 56a28 28 0 1 0 0-56zM32 8.5a23.5 23.5 0 1 1 0 47a23.5 23.5 0 1 1 0-47zM32 12a20 20 0 1 0 0 40a20 20 0 1 0 0-40zM32 16.5 44 43.5h-7.6L32 32l-4.4 11.5H20z"/>',
   // D115: the cult's law is a page of the Necronomicon (an open book with an eye); the investigators' a relic, a piece of
   // the Spear of Longinus (a cracked spearhead)
-  K: '<path d="M10 14c8-3 15-2 22 3v38c-7-5-14-6-22-3z" fill="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M54 14c-8-3-15-2-22 3v38c7-5 14-6 22-3z" fill="currentColor" stroke-width="2.5" stroke-linejoin="round"/><circle cx="21" cy="32" r="5" stroke="var(--halo)" stroke-width="2"/><circle cx="21" cy="32" r="1.8" fill="var(--halo)" stroke="none"/><path d="M38 24h10M38 30h10M38 36h7M38 42h9" stroke="var(--halo)" stroke-width="1.6"/>',
-  E: '<path d="M32 4 42 26 36 31v19h-8V31l-6-5z" fill="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M38 17l-5 5 4 4-3 3" stroke="var(--halo)" stroke-width="2"/><path d="M23 50h18M26 56h12" stroke-width="3" stroke-linecap="round"/>',
-  L: '<path d="M32 9v40M18 15h28" stroke-width="4"/><circle cx="32" cy="10" r="3.5" fill="currentColor" stroke="none"/><path d="M18 15 10 33M18 15l8 18M46 15l-8 18M46 15l8 18" stroke-width="2.2"/><path d="M8 33h20c0 6-4.5 9-10 9s-10-3-10-9zM36 33h20c0 6-4.5 9-10 9s-10-3-10-9z" fill="currentColor" stroke-width="2"/><path d="M22 55h20l-3-6H25z" fill="currentColor" stroke-width="2"/>',
-  F: '<path class="sk" fill="currentColor" stroke-width="3" d="M38 8c11 0 19 6 21 16-8-3-14-3-21 0z"/><path d="M22 12h20v40H22z" fill="currentColor" stroke-width="2.5"/><path d="M27 12v40M32 12v40M37 12v40" stroke="var(--halo)" stroke-width="1.8"/><path class="sk" d="M19 20h26M19 44h26" stroke-width="7" stroke-linecap="round"/><path d="M19 20h26M19 44h26" stroke-width="4.5" stroke-linecap="round"/><path d="M29 6h6v6h-6z" fill="currentColor" stroke-width="2"/><path d="M26 52h12l3 7H23z" fill="currentColor" stroke-width="2"/>',
-  C: '<path fill="currentColor" stroke-width="1.5" d="M15.4 41A21 21 0 1 1 52.6 41L48.4 35A14 14 0 1 0 24 34z"/><path d="M18 39 9 52" stroke-width="6" stroke-linecap="round"/><path class="sk" d="M51 53 23 25" stroke-width="6.5" stroke-linecap="round"/><path d="M51 53 23 25" stroke-width="5" stroke-linecap="round"/><g transform="rotate(-45 21 23)"><rect class="sk" x="9" y="18" width="24" height="10" fill="currentColor" stroke-width="2.5"/></g>'
+  K: '<path d="M30.5 16C24 11.5 15.5 10.5 6 13v37.5c9.5-2.5 18-1.5 24.5 3zM33.5 16c6.5-4.5 15-5.5 24.5-3v37.5c-9.5-2.5-18-1.5-24.5 3z" fill="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M5 56c9.5-2.5 19.5-1.5 27 3.5 7.5-5 17.5-6 27-3.5" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M10 32.5c4-6.5 12.5-6.5 16.5 0-4 6.5-12.5 6.5-16.5 0z" fill="var(--halo)" stroke="none"/><ellipse cx="18.25" cy="32.5" rx="1.9" ry="4.3" fill="currentColor" stroke="none"/><path d="M11.5 24.5l1.8 2.6M18.25 22.5v3M25 24.5l-1.8 2.6" stroke="var(--halo)" stroke-width="1.8" stroke-linecap="round"/><path d="M38.5 23c4.5-1.5 9.5-1.5 14.5 0M38.5 30.5c4.5-1.5 9.5-1.5 14.5 0M38.5 38c4-1.3 7.5-1.4 10.5-.6" stroke="var(--halo)" stroke-width="2.2" stroke-linecap="round"/>',
+  E: '<path fill="currentColor" fill-rule="evenodd" stroke-width="2" stroke-linejoin="round" d="M32 2C36 10 41.5 19 43.5 28L37 34.5V43H27v-8.5L20.5 28C22.5 19 28 10 32 2zM34.5 11.5 30 19.5l4.5 4.5-4.2 8 2.6 1.4 5.7-9.9-4.3-4.3 3.2-6.2z"/><path d="M22.5 46.5h19" stroke-width="4.2" stroke-linecap="round"/><path d="M28.5 50.5h7v7l-2.2 3-2.3-2.8-2.5 3z" fill="currentColor" stroke-width="1.5" stroke-linejoin="round"/>',
+  L: '<path d="M32 13.5v37" stroke-width="4.5" stroke-linecap="round"/><circle cx="32" cy="9.5" r="4.2" fill="currentColor" stroke="none"/><path d="M11 20c7-3.5 14-3.7 21-.7 7-3 14-2.8 21 .7" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 20.5 5 37M11 20.5 17 37M53 20.5 47 37M53 20.5 59 37" stroke-width="2" stroke-linecap="round"/><path d="M2.5 37h17c0 5.5-3.7 9-8.5 9s-8.5-3.5-8.5-9zM44.5 37h17c0 5.5-3.7 9-8.5 9s-8.5-3.5-8.5-9z" fill="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M19.5 58c1-4.5 5.5-7.5 12.5-7.5s11.5 3 12.5 7.5z" fill="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+  F: '<path d="M13.5 26.5H20v9h-6.5z" fill="currentColor" stroke-width="2" stroke-linejoin="round"/><path class="sk" fill="currentColor" stroke-width="3" stroke-linejoin="round" d="M37 27.5h3.5C46 26 50 21.5 51 14.5c7.5 8 7.5 25 0 33-1-7-5-11.5-10.5-13H37z"/><path d="M20 12c0-3.3 4-5.5 9.5-5.5S39 8.7 39 12v42H20z" fill="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M26.3 8.5V54M32.7 8.5V54" stroke="var(--halo)" stroke-width="1.8"/><path class="sk" d="M18 17.5h23M18 46.5h23" stroke-width="7.5" stroke-linecap="round"/><path d="M18 17.5h23M18 46.5h23" stroke-width="4.5" stroke-linecap="round"/><path d="M22 54h15l3 5.5H19z" fill="currentColor" stroke-width="2" stroke-linejoin="round"/>',
+  C: '<path fill="currentColor" stroke-width="1.5" stroke-linejoin="round" d="M24 8.5A23 23 0 1 1 20.5 50.5L24.5 44.5A18 18 0 1 0 24 8.5z"/><path d="M22.5 47.5 11.5 57.5" stroke-width="7" stroke-linecap="round"/><path class="sk" d="M53 58 27 32" stroke-width="8" stroke-linecap="round"/><path d="M53 58 27 32" stroke-width="5.5" stroke-linecap="round"/><g transform="rotate(-45 22.5 27.5)"><rect class="sk" x="10.5" y="22" width="24" height="11" rx="1.5" fill="currentColor" stroke-width="2.5"/></g>'
 };
 const sealKey = (p: Law, pack: Pack): 'L' | 'F' | 'C' | 'K' | 'E' | 'O' | 'A' => pack === 'esparta' ? (p === 'L' ? 'O' : 'A') : pack === 'culto' ? (p === 'L' ? 'E' : 'K') : p === 'L' ? 'L' : pack === 'vermelho' ? 'C' : 'F';
 export const seal = (p: Law, pack: Pack = 'culto'): string => `<svg class="glyph seal-${sealKey(p, pack)}" viewBox="0 0 64 64" fill="none" stroke="currentColor" aria-hidden="true">${SEALS[sealKey(p, pack)]}</svg>`;
@@ -496,7 +497,9 @@ export const seal = (p: Law, pack: Pack = 'culto'): string => `<svg class="glyph
 /* D92: a face for each seat, flat and faceless (no eyes, no mouth: just the shape of a person), dressed the way people
  * dress where the names come from: coats, scarves and fur hats in Europe; bright patterned cloth, caps and head wraps in
  * Africa; ponchos, woven bands and wide hats in the Americas; high collars in Asia; flowered shirts and sun hats in
- * Oceania. Chosen by the name, always the same for a name, and never by the role. Drawn here: no outside art. */
+ * Oceania. Chosen by the name, always the same for a name, and never by the role. Drawn here: no outside art.
+ * Everything stays inside the round chip (the bust follows the circle), and is drawn to be read at 24 to 48 px: one big
+ * head, one loud hat or head of hair, two or three marks on the clothes. */
 /** D92: some of the expansion's names get the dress of their own country (fur hat and coat, keffiyeh and robe, a
  *  cleric's turban). */
 // D100: who they are comes with the expansion's key (src/core/dlc.ts); Secret Cultist's names are none of them
@@ -512,79 +515,218 @@ const CLOTH: Record<string, string[]> = {
 };
 const HAIR = ['#1a1310', '#2a1d15', '#4a3020', '#7a5a3a', '#9a9a9a'];
 const hashOf = (s: string): number => [...s].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7);
+
+/* ---- the pieces every face is made of (viewBox 0 0 64 64, everything inside the circle of radius 31) ---- */
+const FI = '#15110e';   // the ink of the faces
+const FK = `stroke="${FI}" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"`;
+const FD = `stroke="${FI}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"`;
+const FW = '#f2efe6', FG = '#d4ac0d', FR = '#c0392b', FB = '#1f6fb2', BRONZE = '#b98f4e', BRONZE2 = '#e0bd7a', BRONZE3 = '#8a6634';
+const DARK = '#26211d', DARK2 = '#5a5048';   // a black hat and its shine: pure ink would vanish on the dark chip
+/** The chip: a dark disc with a soft light behind the head, so a dark hat still has an edge. */
+const chip = `<circle cx="32" cy="32" r="31" fill="#3a3029"/><circle cx="32" cy="29" r="24" fill="#fff1d6" opacity=".1"/>`;
+const SHO = 'M10.4 52.5C11.5 48 17.5 45.6 25 44.6h14c7.5 1 13.5 3.4 14.6 7.9A29.75 29.75 0 0 1 10.4 52.5z';
+const SHADE = '<path d="M45 46.4c4.6 1.2 7.7 3.2 8.6 6.1A29.75 29.75 0 0 1 41 60.4c3.2-4.4 4.6-9 4-14z" fill="#000" opacity=".16"/>';
+const neckOf = (skin: string): string => `<path d="M27 39v7.4c3 2.4 7 2.4 10 0V39z" fill="${skin}" stroke="${FI}" stroke-width="2" stroke-linejoin="round"/><path d="M28 43.6c2.6 1.5 5.4 1.5 8 0v2.2c-2.6 1.6-5.4 1.6-8 0z" fill="#000" opacity=".2"/>`;
+/** Shoulders, what lies under the neck, the neck, and what lies over it (collars, necklaces). */
+const bust = (skin: string, fill: string, under = '', over = '', shape = SHO): string => `<path d="${shape}" fill="${fill}" ${FK}/>${SHADE}${under}${neckOf(skin)}${over}`;
+/** The head: ears, a jaw a little narrower than the skull, a shadow down one side. No eyes, no mouth (D92). */
+const headOf = (skin: string): string => `<path d="M20.4 27.6c-2.6-.4-3.4 1.4-3 3.4.4 2.2 1.8 3.2 3.6 2.8zM43.6 27.6c2.6-.4 3.4 1.4 3 3.4-.4 2.2-1.8 3.2-3.6 2.8z" fill="${skin}" ${FD}/><path d="M20 28c0-8 5-12 12-12s12 4 12 12c0 9-5 15.5-12 15.5S20 37 20 28z" fill="${skin}" ${FK}/><path d="M40.6 19.6c1.6 2.4 2.2 5.2 2.2 8.4 0 7.6-3.8 13.2-9.2 14.2 4.4-2.6 6.8-8 6.8-14.2 0-3 0-5.8.2-8.4z" fill="#000" opacity=".13"/>`;
+const shine = (d: string, op = '.28'): string => `<path d="${d}" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity="${op}"/>`;
+
+/* ---- hair ---- */
+const hairShort = (c: string): string => `<path d="M19.4 29C18 18 24 12.6 32 12.6S46 18 44.6 29c-.8-3-1.8-5-3.4-6.6-4.6 1.4-12 .8-16.4-2-2.2 2-4.2 5-5.4 8.6z" fill="${c}" ${FK}/>${shine('M25 16.6c2.8-1.6 6.4-2 9.6-1')}`;
+const hairFringe = (c: string): string => `<path d="M19.4 30C17.6 18 24 12.4 32 12.4S46.4 18 44.6 30c-.8-3.4-2-6-3.6-7.8-3.2-3.2-7.8-4.4-11.6-3.4-4 1.4-7.4 5-10 11.2z" fill="${c}" ${FK}/>${shine('M26 16.4c2.6-1.4 5.8-1.8 8.8-1')}`;
+const hairBack = (c: string): string => `<path d="M15.6 30C14 16.6 22 9.6 32 9.6S50 16.6 48.4 30l1 13.6c-3.4 2.2-7.4 2-9.4-.6V30H24v13c-2 2.6-6 2.8-9.4.6z" fill="${c}" ${FK}/>`;
+const hairCurly = (c: string): string => `<path d="M19.5 28C18 17 24 12.5 32 12.5S46 17 44.5 28c-1-2.5-2-4-3.5-5q-2 2.6-4.3 0-2.3 2.6-4.7 0-2.4 2.6-4.7 0-2.3 2.6-4.3 0c-1.5 1-2.5 2.5-3.5 5z" fill="${c}" ${FK}/>${shine('M25 16.4c2.6-1.6 6.4-2 9.6-1')}`;
+const hairRecede = (c: string): string => `<path d="M19.6 30C17.6 19 23.5 13 32 13s14.4 6 12.4 17c-.6-4-1.8-6.6-3.6-8.2-.4-2.4-2.2-3.8-4.4-3.4-1.6-1.6-7.2-1.6-8.8 0-2.2-.4-4 1-4.4 3.4-1.8 1.6-3 4.2-3.6 8.2z" fill="${c}" ${FK}/>${shine('M26 15.6c3.6-1.4 8.4-1.4 12 0', '.25')}`;
+const hairBald = (c: string): string => `<path d="M20.2 33c-3.6-1.6-4.8-7.6-1.8-11.8 2 1.6 2.8 3.8 2.6 6.2zM43.8 33c3.6-1.6 4.8-7.6 1.8-11.8-2 1.6-2.8 3.8-2.6 6.2z" fill="${c}" ${FD}/>${shine('M26 20c3.2-2 8.8-2 12 0', '.4')}`;
+/** A wreath of leaves round the head (laurel for a victor, ivy for a poet). */
+const wreath = (c: string, c2: string): string => {
+  let s = '';
+  for (let i = 0; i < 5; i++) {
+    const a = (172 - i * 17) * Math.PI / 180, r = i % 2 ? 14.2 : 12.6, x = 32 + r * Math.cos(a), y = 27.5 - r * Math.sin(a), rot = 90 - (172 - i * 17);
+    s += `<ellipse cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" rx="3.6" ry="1.9" transform="rotate(${rot} ${x.toFixed(1)} ${y.toFixed(1)})" fill="${i % 2 ? c2 : c}" stroke="${FI}" stroke-width="1.1"/>`;
+    s += `<ellipse cx="${(64 - x).toFixed(1)}" cy="${y.toFixed(1)}" rx="3.6" ry="1.9" transform="rotate(${-rot} ${(64 - x).toFixed(1)} ${y.toFixed(1)})" fill="${i % 2 ? c2 : c}" stroke="${FI}" stroke-width="1.1"/>`;
+  }
+  return s;
+};
+const fillet = (c: string): string => `<path d="M19.4 22.6c3.6-3 8-4.2 12.6-4.2s9 1.2 12.6 4.2l-.6 3c-3.4-2.8-7.6-4-12-4s-8.6 1.2-12 4z" fill="${c}" ${FD}/>`;
+
+/* ---- hats ---- */
+const peaked = (c: string, band: string, badge: string): string => `<path d="M16.5 15.5C17 8.5 24 6 32 6s15 2.5 15.5 9.5l-3 4.5h-25z" fill="${c}" ${FK}/>${shine('M22 10.5c3-1.6 6.4-2.2 10-2.2')}<path d="M19.5 16.4h25v4h-25z" fill="${band}" ${FD}/><path d="M20.5 20.4h23c-.5 3.2-4.5 4.8-11.5 4.8s-11-1.6-11.5-4.8z" fill="${DARK}" ${FD}/>${shine('M24.5 22.4c4.5 1.2 10.5 1.2 15 0', '.35')}<circle cx="32" cy="12.2" r="2.6" fill="${badge}" stroke="${FI}" stroke-width="1.2"/>`;
+const softCap = (c: string, star: string): string => `<path d="M19.5 19.4C19.5 11 25 8 32 8s12.5 3 12.5 11.4z" fill="${c}" ${FK}/>${shine('M24 12.5c2.4-1.6 5-2.2 8-2.2')}<path d="M21 19.4h22c0 3-4.4 4.4-11 4.4s-11-1.4-11-4.4z" fill="${c}" ${FK}/><path d="M21.6 20.6c5 1.6 15.8 1.6 20.8 0" fill="none" stroke="#000" stroke-width="1.4" opacity=".3"/>${star}`;
+const starAt = (x: number, y: number, r: number, c: string): string => {
+  const p: string[] = [];
+  for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, q = i % 2 ? r * .42 : r; p.push(`${(x + q * Math.cos(a)).toFixed(1)} ${(y + q * Math.sin(a)).toFixed(1)}`); }
+  return `<path d="M${p.join('L')}z" fill="${c}" stroke="${FI}" stroke-width=".9" stroke-linejoin="round"/>`;
+};
+const beret = (c: string, extra = ''): string => `<path d="M17.5 19.6C17 12 24 8 33 8.5s14.5 4.5 13 10.5c-6 2.6-21 2.8-28.5.6z" fill="${c}" ${FK}/>${shine('M23 12.5c3-1.8 7-2.4 11-2')}<path d="M19 19.2c7 1.8 19.5 1.6 26-.4" fill="none" stroke="#000" stroke-width="1.6" opacity=".35"/>${extra}`;
+const brimHat = (c: string, band: string, wide = 0): string => `<path d="M22.5 18C22 10 26 6.5 32 6.5S42 10 41.5 18z" fill="${c}" ${FK}/>${shine('M26 10.5c1.6-1.4 3.6-2 6-2')}<path d="M23 14.2h18v3.6H23z" fill="${band}" stroke="${FI}" stroke-width="1.2"/><path d="M${15.5 - wide} 18.5c.5-2 3.5-1.2 16.5-1.2s16-.8 16.5 1.2c-.5 3.2-8.5 3.4-16.5 3.4s-16-.2-16.5-3.4z" fill="${c}" ${FK}/>`;
+/** A Corinthian helmet pushed up on the head, the way the busts of the generals wear it: the helmet's own eye holes and
+ *  nose guard look out above the forehead. */
+const corinth = (crest = ''): string => `${crest}<path d="M18.4 23.4C16.8 11.5 23 5.5 32 5.5s15.2 6 13.6 17.9c-3.4-1.8-6.6-2.6-9.6-2.8l-4 3.2-4-3.2c-3 .2-6.2 1-9.6 2.8z" fill="${BRONZE}" ${FK}/><path d="M41.5 8.8c2.6 3 3.6 7 3.2 12.2-1-.5-2-.9-3-1.2.4-4.2.4-7.8-.2-11z" fill="#000" opacity=".16"/>${shine('M22.5 12c1.6-2.8 4.4-4.4 8-4.6', '.45')}<path d="M21.6 15.8c2.6-1.8 6.2-1.6 8.4.4-2.4 1.8-6 1.8-8.4-.4zM42.4 15.8c-2.6-1.8-6.2-1.6-8.4.4 2.4 1.8 6 1.8 8.4-.4z" fill="${FI}"/><path d="M32 13.5v9.5" stroke="${BRONZE2}" stroke-width="2.2" stroke-linecap="round"/><path d="M32 20.4v3" stroke="${FI}" stroke-width="1.3" stroke-linecap="round"/>`;
+const crestUp = (c: string): string => `<path d="M26.6 9.5C25.8 4.4 28.5 2 32 2s6.2 2.4 5.4 7.5z" fill="${c}" ${FK}/><path d="M29.5 4.5v4M32 3.6v5M34.5 4.5v4" stroke="#000" stroke-width="1" opacity=".35"/>`;
+const crestAcross = (c: string): string => `<path d="M15 21C12.5 9.5 21 2.2 32 2.2S51.5 9.5 49 21l-4.4-1.8C46 11.5 40 7 32 7s-14 4.5-12.6 12.2z" fill="${c}" ${FK}/><path d="M17.4 12.5l3.6 2.5M21.5 7.5l2.8 3.3M27.5 4.4l1.3 3.8M36.5 4.4l-1.3 3.8M42.5 7.5l-2.8 3.3M46.6 12.5 43 15" stroke="#000" stroke-width="1.1" opacity=".4" stroke-linecap="round"/>`;
+const temples = (c: string): string => `<path d="M19.8 30c-1-2.6-1-5.2.2-7.6l2.4.6c-.8 2.2-1.6 4.6-2.6 7zM44.2 30c1-2.6 1-5.2-.2-7.6l-2.4.6c.8 2.2 1.6 4.6 2.6 7z" fill="${c}" ${FD}/>`;
+const pilos = `<path d="M19 23.4C19.5 13 25.5 5.5 32 4c6.5 1.5 12.5 9 13 19.4-7.5-2-18.5-2-26 0z" fill="${BRONZE}" ${FK}/><path d="M39.5 8.5c3 3.4 4.8 8 5.3 14.3l-3-.6c-.2-5.2-1-9.8-2.3-13.7z" fill="#000" opacity=".16"/>${shine('M24 13.5c1.4-3.4 3.6-5.8 6.5-7', '.45')}<path d="M19.6 20.6c7.6-1.8 17.2-1.8 24.8 0" fill="none" stroke="${BRONZE3}" stroke-width="1.8"/>`;
+
+/* ---- beards (they go under the hat and over the collar) ---- */
+const beard = (c: string): string => `<path d="M20.3 30.5c.4 10 5 16.3 11.7 16.3s11.3-6.3 11.7-16.3c-2.7 4-6.9 5.7-11.7 5.7s-9-1.7-11.7-5.7z" fill="${c}" ${FK}/>`;
+const beardCurly = (c: string): string => `<path d="M20.3 30.5c.2 8 2.6 13.5 6.2 16q1.6 2.4 3.6.4 1.9 2.2 3.8 0 2 2 3.6-.4c3.6-2.5 6-8 6.2-16-2.7 4-6.9 5.7-11.7 5.7s-9-1.7-11.7-5.7z" fill="${c}" ${FK}/><path d="M26 41.5q1.5 1.6 3 0M32 43q1.5 1.6 3 0M35.5 40q1.5 1.6 3 0" fill="none" stroke="#000" stroke-width="1" opacity=".3" stroke-linecap="round"/>`;
+const beardLong = (c: string): string => `<path d="M20.3 30.5c0 11 3.7 19.5 11.7 23.5 8-4 11.7-12.5 11.7-23.5-2.7 4-6.9 5.7-11.7 5.7s-9-1.7-11.7-5.7z" fill="${c}" ${FK}/><path d="M26.5 41q2.7 2 5.5 0 2.8 2 5.5 0M28 46.5q2 1.6 4 0 2 1.6 4 0" fill="none" stroke="#fff" stroke-width="1.1" opacity=".28" stroke-linecap="round"/>`;
+const beardShort = (c: string): string => `<path d="M20.3 31c.6 8.5 5 13.7 11.7 13.7S43.1 39.5 43.7 31c-2.4 5.5-6.5 7.7-11.7 7.7S22.7 36.5 20.3 31z" fill="${c}" ${FK}/>`;
+
+/* ---- bodies: (skin, cloth) => the bust. The famous ones name a body; `cloth` recolours the Greek ones. ---- */
+const lapels = (c: string): string => `<path d="M25.3 44.6 32 55.5l6.7-10.9z" fill="${FW}" ${FD}/><path d="M25.3 44.6l-4.5 4.6 6.4 3.3 4.8 3zM38.7 44.6l4.5 4.6-6.4 3.3-4.8 3z" fill="${c}" ${FD}/>`;
+const wings = (c: string): string => `<path d="M26.4 44.8 31.5 49.6l-3.7 3-3.2-6zM37.6 44.8 32.5 49.6l3.7 3 3.2-6z" fill="${c}" ${FD}/>`;
+const epaulettes = (c: string): string => `<path d="M12.6 50.4c2.6-2.8 6.4-4.2 10.6-4.8l.8 3.2c-3.8.6-7 1.9-9.4 4.2zM51.4 50.4c-2.6-2.8-6.4-4.2-10.6-4.8l-.8 3.2c3.8.6 7 1.9 9.4 4.2z" fill="${c}" ${FD}/>`;
+const buttons = (c: string): string => `<path d="M32 50.5v11" stroke="${FI}" stroke-width="1.3"/><circle cx="32" cy="53.5" r="1.4" fill="${c}"/><circle cx="32" cy="58.5" r="1.4" fill="${c}"/>`;
+const suit = (fill: string, lap: string) => (skin: string): string => bust(skin, fill, lapels(lap), wings(FW));
+const tunic = (fill: string, tab: string, extra: string) => (skin: string): string => bust(skin, fill, extra, `<path d="M25.4 45 31.5 47.4v3.8L24.8 48.8zM38.6 45 32.5 47.4v3.8l6.7-2.4z" fill="${tab}" ${FD}/>${buttons(FG)}`);
+/** A cloak across the chest from one shoulder (the himation), with a border along its edge. */
+const drape = (c: string, edge: string, flip = false): string => `<g${flip ? ' transform="matrix(-1 0 0 1 64 0)"' : ''}><path d="M38.5 44.6c7.6 1 13.9 3.4 15.1 7.9A29.75 29.75 0 0 1 17 57.7c8-2.2 16-6.6 21.5-13.1z" fill="${c}" ${FK}/><path d="M21.5 58.3c7.5-2.6 14.5-6.8 19.3-12.4" fill="none" stroke="${edge}" stroke-width="1.8"/><path d="M45.5 48.5c-3 5-7.5 8.7-13 11M50.5 51.5c-2 3.2-4.8 5.8-8 7.8" fill="none" stroke="#000" stroke-width="1.3" opacity=".28" stroke-linecap="round"/></g>`;
+const cloakOn = (c: string): string => `<path d="M10.4 52.5C11.5 48.2 16.5 46 22.5 45L21 52.5c-2 2-4 3.3-6 3.9A29.75 29.75 0 0 1 10.4 52.5zM53.6 52.5C52.5 48.2 47.5 46 41.5 45L43 52.5c2 2 4 3.3 6 3.9A29.75 29.75 0 0 0 53.6 52.5z" fill="${c}" ${FK}/><circle cx="21.6" cy="47.6" r="2" fill="${FG}" stroke="${FI}" stroke-width="1.1"/>`;
+type Garb = (skin: string, cloth?: string) => string;
+const BODY: Record<string, Garb> = {
+  suit: suit('#2c3440', '#3d4756'),
+  suitblue: suit('#1f3a5f', '#2c4d7a'),
+  blazer: skin => bust(skin, FR, `<path d="M25.3 44.6 32 54l6.7-9.4z" fill="${FW}" ${FD}/><path d="M25.3 44.6l-4.3 5 6 3 5 3.4zM38.7 44.6l4.3 5-6 3-5 3.4z" fill="#d9503f" ${FD}/><circle cx="32" cy="59" r="1.4" fill="${FI}"/>`),
+  military: tunic('#4b5320', FR, `${epaulettes(FG)}<path d="M37.5 52.6h2.4v3h-2.4z" fill="${FR}"/><path d="M39.9 52.6h2.4v3h-2.4z" fill="${FG}"/><path d="M42.3 52.6h2.4v3h-2.4z" fill="${FB}"/><path d="M37.5 52.6h7.2v3h-7.2z" fill="none" stroke="${FI}" stroke-width="1"/>`),
+  imperial: skin => bust(skin, '#1f2f5f', `${epaulettes(FG)}<path d="M13.8 52.8l1.2 3M16.8 51l1.2 3.2M20 49.8l1 3.2M50.2 52.8l-1.2 3M47.2 51 46 54.2M44 49.8l-1 3.2" stroke="${FG}" stroke-width="1.5" stroke-linecap="round"/><circle cx="26.5" cy="57" r="1.3" fill="${FG}"/><circle cx="37.5" cy="57" r="1.3" fill="${FG}"/>`, `<path d="M25.6 44.8l6 2.6v3.6l-6.8-2.4zM38.4 44.8l-6 2.6v3.6l6.8-2.4z" fill="${FR}" ${FD}/><path d="M28 48.6c2.6 1.4 5.4 1.4 8 0l-1 5.4-3 3-3-3z" fill="${FW}" ${FD}/>`),
+  toga: skin => bust(skin, FW, `<path d="M25 44.6c1 6 3.6 10 7 12" fill="none" stroke="#000" stroke-width="1.2" opacity=".25"/><path d="M18 46.2c9 3.6 17 8.4 23.5 14l-7.5 1.2c-5.5-5-12.5-9.4-20.5-12.6z" fill="#7d1f4a" ${FD}/><path d="M44 47.5c2 3 3 6.5 3 10" fill="none" stroke="#000" stroke-width="1.2" opacity=".25" stroke-linecap="round"/>`),
+  egypt: skin => bust(skin, FW, '', `<path d="M17.5 47.2c3.4-1.4 6.6-2.2 8.4-2.5 2.2 4.6 10 4.6 12.2 0 1.8.3 5 1.1 8.4 2.5C45 55 39 59.5 32 59.5S19 55 17.5 47.2z" fill="${FG}" ${FK}/><path d="M21.2 48.8c1.6 4.8 5.8 7.6 10.8 7.6s9.2-2.8 10.8-7.6" fill="none" stroke="${FB}" stroke-width="2.3"/><path d="M24.8 47.6c1.2 3.4 3.8 5.4 7.2 5.4s6-2 7.2-5.4" fill="none" stroke="${FR}" stroke-width="1.7"/>`),
+  mongol: skin => bust(skin, '#7a3b2e', '', `<path d="M36.5 44.7l4.3 1.1L27.5 60.8l-4.3-1.6z" fill="${FG}" ${FD}/><path d="M25.2 44.7c1.6 3.6 4 5.6 6.8 6.4" fill="none" stroke="${FG}" stroke-width="2.2" stroke-linecap="round"/><circle cx="29.6" cy="55.5" r="1.2" fill="${FI}"/>`),
+  assyrian: skin => bust(skin, '#8b1e3f', `<path d="M12.5 54.5c12-3.6 27-3.6 39 0l-.8 3.4c-11.6-3.4-25.8-3.4-37.4 0z" fill="${FG}" ${FD}/><path d="M17 56.8v3M22 55.6v3.6M27 55v3.8M32 54.8v4M37 55v3.8M42 55.6v3.6M47 56.8v3" stroke="${FG}" stroke-width="1.5" stroke-linecap="round"/>`, `<path d="M24.6 45.2c2.4 4.4 12.4 4.4 14.8 0" fill="none" stroke="${FG}" stroke-width="2.4" stroke-linecap="round"/>`),
+  hanfu: skin => bust(skin, '#2d4a6b', '', `<path d="M38.6 44.7l-3.2-.1-6.6 9.4 2.2 3.2z" fill="${FW}" ${FD}/><path d="M25.4 44.7l3.2-.1L38.5 59.5l-3.7 1.5z" fill="${FW}" ${FD}/>`),
+  carthage: skin => bust(skin, BRONZE, `<path d="M24 52c2.5 2.4 5.5 2.4 8 0 2.5 2.4 5.5 2.4 8 0" fill="none" stroke="${BRONZE3}" stroke-width="1.6" stroke-linecap="round"/><path d="M32 53v7.5" stroke="${BRONZE3}" stroke-width="1.4"/>${cloakOn('#8b1e3f')}`, `<path d="M25.2 45c2 3.6 11.6 3.6 13.6 0" fill="none" stroke="${BRONZE2}" stroke-width="2" stroke-linecap="round"/>`),
+  shawl: skin => bust(skin, FW, `<path d="M13 50.5c9-1.5 20-.5 31.5 5.5M24 45c4 5 11 8.5 21 9.5M18 56.5c5-1.5 11-1.5 17 .5" fill="none" stroke="#000" stroke-width="1.3" opacity=".25" stroke-linecap="round"/>`, `<path d="M24.8 45c2.2 4.8 9 6.6 14.6 3.4" fill="none" stroke="#cfc8b6" stroke-width="2.2" stroke-linecap="round"/>`),
+  maosuit: skin => bust(skin, '#5b6260', `<path d="M15 53h8.5l-.7 3h-7zM40.5 53H49l-.8 3h-7z" fill="#6e7674" ${FD}/>`, `${wings('#6e7674')}<path d="M32 51v10.5" stroke="${FI}" stroke-width="1.3"/><circle cx="32" cy="54" r="1.3" fill="${FI}"/><circle cx="32" cy="58.6" r="1.3" fill="${FI}"/>`),
+  fatigue: skin => bust(skin, '#556b2f', `<path d="M25.3 44.6 32 53.5l6.7-8.9z" fill="#3c4a22" ${FD}/><path d="M15 53.5h8.5v4.5H15zM40.5 53.5H49V58h-8.5z" fill="#657d3a" ${FD}/><circle cx="19.2" cy="55.8" r=".9" fill="${FI}"/><circle cx="44.8" cy="55.8" r=".9" fill="${FI}"/>`, wings('#657d3a')),
+  gown: skin => bust(skin, '#23222c', '', `<path d="M22.5 45.5c1.5 6.5 5 9.5 9.5 9.5s8-3 9.5-9.5l-3.3-.9c-1 3.4-11.4 3.4-12.4 0z" fill="${FW}" ${FD}/><path d="M24.5 49.5l1.6-1M27.5 52.6l1-1.6M32 54v-2M36.5 52.6l-1-1.6M39.5 49.5l-1.6-1" stroke="${FI}" stroke-width="1" opacity=".5"/><circle cx="32" cy="57.5" r="1.8" fill="${FG}" stroke="${FI}" stroke-width="1"/>`),
+  regal: skin => bust(skin, '#5b2c6f', `<path d="M21 46.5 43.5 60l-5 1.5L17 49z" fill="${FB}" ${FD}/>`, `<path d="M16.5 47.5c3.6-1.6 7-2.5 9.3-2.8 2 4.4 10.4 4.4 12.4 0 2.3.3 5.7 1.2 9.3 2.8l-1.7 4.5c-4.4-2.2-9-3.2-13.8-3.2s-9.4 1-13.8 3.2z" fill="${FW}" ${FD}/><path d="M20.5 48.6v1.6M25 47.6v1.6M39 47.6v1.6M43.5 48.6v1.6" stroke="${FI}" stroke-width="1.4" stroke-linecap="round"/>`),
+  // the Greeks of Secret Leônidas
+  himation: (skin, c = FW) => bust(skin, '#efe9da', `<path d="M24.6 44.8c2 4 5 6 9 6.6" fill="none" stroke="#000" stroke-width="1.2" opacity=".25" stroke-linecap="round"/><circle cx="20.5" cy="47.4" r="1.9" fill="${FG}" stroke="${FI}" stroke-width="1.1"/>${drape(c, c === FW ? '#7d1f4a' : '#f2e6c0')}`),
+  barechest: (skin, c = '#9a8c78') => bust(skin, skin, `<path d="M22 52.5c2.5 2.2 5.5 2.6 8.5 1.2" fill="none" stroke="#000" stroke-width="1.2" opacity=".25" stroke-linecap="round"/>${drape(c, '#00000033')}`),
+  cuirass: (skin, c = '#8b1e3f') => bust(skin, BRONZE, `<path d="M23.5 52c2.6 2.6 5.9 2.6 8.5 0 2.6 2.6 5.9 2.6 8.5 0" fill="none" stroke="${BRONZE3}" stroke-width="1.7" stroke-linecap="round"/><path d="M32 53v7.6" stroke="${BRONZE3}" stroke-width="1.4"/>${shine('M24.5 48.5c1.5-.8 3-1.2 4.5-1.2', '.4')}${cloakOn(c)}`, `<path d="M25.2 45c2 3.6 11.6 3.6 13.6 0" fill="none" stroke="${BRONZE2}" stroke-width="2" stroke-linecap="round"/>`),
+  linothorax: (skin, c = '#b0762c') => bust(skin, '#ece4d0', `<path d="M14 53.5c11-2.6 25-2.6 36 0" fill="none" stroke="${c}" stroke-width="2.4"/><path d="M15.5 56.5c10.5-2.4 22.5-2.4 33 0" fill="none" stroke="${FI}" stroke-width="1" stroke-dasharray="2.5 2"/>`, `<path d="M17.5 46.2c2.6-.8 5.4-1.3 7.7-1.5l5 7-3.4 2.6-7.8-4.3zM46.5 46.2c-2.6-.8-5.4-1.3-7.7-1.5l-5 7 3.4 2.6 7.8-4.3z" fill="#fbf6e8" ${FD}/><circle cx="28.3" cy="52" r="1.2" fill="${c}"/><circle cx="35.7" cy="52" r="1.2" fill="${c}"/>`),
+  peplos: (skin, c = '#d9a326') => bust(skin, c, `<path d="M14.5 55c11-3 24-3 35 0" fill="none" stroke="#000" stroke-width="1.3" opacity=".28"/><path d="M22 50v9M42 50v9M32 52v9" stroke="#000" stroke-width="1.1" opacity=".2" stroke-linecap="round"/>`, `<path d="M22 46c3 5.5 17 5.5 20 0" fill="none" stroke="#f6ecd0" stroke-width="2.2" stroke-linecap="round"/><circle cx="21.5" cy="46.6" r="2.1" fill="${FG}" stroke="${FI}" stroke-width="1.1"/><circle cx="42.5" cy="46.6" r="2.1" fill="${FG}" stroke="${FI}" stroke-width="1.1"/>`),
+  exomis: (skin, c = '#8a5a34') => bust(skin, skin, `<path d="M40 52.5c-2.5 2.2-5.5 2.6-8.5 1.2" fill="none" stroke="#000" stroke-width="1.2" opacity=".25" stroke-linecap="round"/>${drape(c, '#00000040', true)}<path d="M22.5 45.4l3 1.6" stroke="${FI}" stroke-width="1.6" stroke-linecap="round"/>`)
+};
+
+const tufts = (c: string): string => `<path d="M19.6 21c-1.6 3.5-1.8 8 0 12l2-1.4c-1-3-1-6.4.4-9.8zM44.4 21c1.6 3.5 1.8 8 0 12l-2-1.4c1-3 1-6.4-.4-9.8z" fill="${c}" ${FD}/>`;
+type Crown = (hair?: string, crest?: string) => string;
+const TOP: Record<string, Crown> = {
+  short: (h = '#2a1d15') => hairShort(h),
+  grey: (h = '#b8b8b8') => hairShort(h),
+  blond: () => `<path d="M18.6 28.5C17 16.5 24 10.5 33 10.5s15 5 12.6 18c-.4-3-1.4-5-3-6.4-6.6 2-16.6.6-21.6-3.4-.6 3.8-1.2 7-2.4 9.8z" fill="#e8c26a" ${FK}/>${shine('M24 15.5c5 3 12 4.2 18 3.2', '.5')}`,
+  bald: () => `${shine('M25.5 20c3.5-2.4 9.5-2.4 13 0', '.45')}${shine('M24 23.5c.6-1 1.2-1.6 2-2.2', '.3')}`,
+  laurel: (h = '#3a2a1a') => `${hairCurly(h)}${wreath('#3f8f3f', '#5fae4f')}`,
+  bicorne: () => `<path d="M7.6 20.5C13 9.5 23 5 32 5s19 4.5 24.4 15.5C49 17.5 41 16.3 32 16.3S15 17.5 7.6 20.5z" fill="${DARK}" ${FK}/><path d="M11.5 17.6C17.5 14.5 24.5 13.3 32 13.3s14.5 1.2 20.5 4.3" fill="none" stroke="${FG}" stroke-width="1.7"/>${shine('M19 10.5c3.6-2 7.8-3 12-3.2', '.22')}<circle cx="32" cy="10.2" r="3.1" fill="${FB}" stroke="${FI}" stroke-width="1.1"/><circle cx="32" cy="10.2" r="1.9" fill="${FW}"/><circle cx="32" cy="10.2" r=".9" fill="${FR}"/>`,
+  nemes: () => `<path d="M22.5 46.5h-8c-2-9-1.5-17 4-25.5C17 10 24 5.5 32 5.5S47 10 45.5 21c5.5 8.5 6 16.5 4 25.5h-8L43 27c.4-2.6.2-4.4-.5-6-6.5-2-14.5-2-21 0-.7 1.6-.9 3.4-.5 6z" fill="${FG}" ${FK}/><path d="M21 12.5h22M19.5 17h25M16.5 27l4.3 1M15 33l5.5.8M14.6 39l6 .5M47.5 27l-4.3 1M49 33l-5.5.8M49.4 39l-6 .5M25.5 7.5l-1.5 5M38.5 7.5l1.5 5" stroke="${FB}" stroke-width="2.1"/><path d="M21.5 21c6.5-2 14.5-2 21 0" fill="none" stroke="${FI}" stroke-width="1.3"/><path d="M32 13.5c-2.2 1.6-2.2 5 0 6.5 2.2-1.5 2.2-4.9 0-6.5z" fill="${FR}" stroke="${FI}" stroke-width="1.1"/>`,
+  egyptcrown: () => `<path d="M20.4 21.5 19.5 6.2c7-2.2 18-2.2 25 0l-.9 15.3c-3.6-2-7.6-3-11.6-3s-8 1-11.6 3z" fill="${FB}" ${FK}/><path d="M40.5 5.4c1.4.2 2.8.5 4 .8l-.9 15.3c-1-.6-2-1-3-1.4z" fill="#000" opacity=".16"/><path d="M20 12.5c7 2.6 17 2.6 24 0M20.3 16.5c7.2 2.4 16.2 2.4 23.4 0" fill="none" stroke="${FG}" stroke-width="2"/>${shine('M23 8.5c2.6-.8 5.4-1.2 8-1.2', '.35')}<path d="M32 15c-1.8 1.3-1.8 4 0 5.3 1.8-1.3 1.8-4 0-5.3z" fill="${FG}" stroke="${FI}" stroke-width="1"/>`,
+  bob: () => `<path d="M17.5 44V25C17.5 15.5 24 11.5 32 11.5S46.5 15.5 46.5 25v19h-6.2V26c-3-2.6-13.6-2.6-16.6 0v18z" fill="#1a1512" ${FK}/><path d="M18.5 19.6c8-3.6 19-3.6 27 0v3.4c-8-3.4-19-3.4-27 0z" fill="${FG}" ${FD}/><path d="M17.8 39.5h5.6M40.6 39.5h5.6M17.8 42h5.6M40.6 42h5.6" stroke="${FG}" stroke-width="1.3"/><path d="M32 13.5c-2 1.4-2 4.4 0 5.8 2-1.4 2-4.4 0-5.8z" fill="${FB}" stroke="${FI}" stroke-width="1.1"/>${shine('M23 15.5c2-1.2 4.2-1.8 6.5-2', '.22')}`,
+  helmet: () => `${crestUp(FR)}<path d="M18.6 23.5C17.5 12.5 23.5 7.5 32 7.5s14.5 5 13.4 16c-8.4-2.4-18.4-2.4-26.8 0z" fill="${BRONZE}" ${FK}/>${shine('M23 13.5c1.6-2.4 4-3.8 7-4', '.45')}<path d="M19 20.5c8.4-2.2 17.6-2.2 26 0" fill="none" stroke="${BRONZE3}" stroke-width="1.8"/><path d="M19.3 23.3c1.3-.4 2.6-.7 3.9-.9-.2 4.6.6 8.6 2.3 12l-3.7 1.4c-2-3.8-2.9-8-2.5-12.5zM44.7 23.3c-1.3-.4-2.6-.7-3.9-.9.2 4.6-.6 8.6-2.3 12l3.7 1.4c2-3.8 2.9-8 2.5-12.5z" fill="${BRONZE}" ${FD}/>`,
+  mongol: () => `<path d="M22 17.5C22.5 10.5 26.5 6 32 4c5.5 2 9.5 6.5 10 13.5z" fill="#8b2f25" ${FK}/><path d="M32 4.5v11" stroke="${FG}" stroke-width="1.5"/><circle cx="32" cy="3.8" r="2" fill="${FG}" stroke="${FI}" stroke-width="1.1"/><path d="M16.5 22.5c-.6-3 1.4-5.2 4.6-6 6.6-1.6 15.2-1.6 21.8 0 3.2.8 5.2 3 4.6 6-.3 1.4-1.7 1.9-3.1 1.4-7.4-2.4-17.4-2.4-24.8 0-1.4.5-2.8 0-3.1-1.4z" fill="#a08660" ${FK}/><path d="M21 18.5l.8 3.6M26.5 17.3l.4 3.7M32 17v3.7M37.5 17.3l-.4 3.7M43 18.5l-.8 3.6" stroke="${FI}" stroke-width="1" opacity=".45" stroke-linecap="round"/>`,
+  assyrian: () => `<path d="M16.5 40.5V25c0-2 1.4-3.4 3.5-3.8l1.6 19.3zM47.5 40.5V25c0-2-1.4-3.4-3.5-3.8l-1.6 19.3z" fill="#1a1512" ${FD}/><path d="M29.5 6.5 32 2.6l2.5 3.9z" fill="${FG}" ${FD}/><path d="M20.6 21.5 23.5 7c5-1.6 12-1.6 17 0l2.9 14.5c-3.6-1.8-7.6-2.7-11.4-2.7s-7.8.9-11.4 2.7z" fill="#efe6cf" ${FK}/><path d="M22.6 11.5c6 1.6 12.8 1.6 18.8 0M21.5 16.6c6.8 2 14.2 2 21 0" fill="none" stroke="${FG}" stroke-width="2.1"/><path d="M40 6.8l.5.2 2.9 14.5c-1-.5-2-.9-3-1.3z" fill="#000" opacity=".16"/>`,
+  scholar: () => `${hairShort('#b8b8b8')}<path d="M18.5 11.5h27" stroke="${FI}" stroke-width="3.4" stroke-linecap="round"/><path d="M18.5 11.5h27" stroke="#8a6a3a" stroke-width="1.4" stroke-linecap="round"/><path d="M24.5 15.5 25.5 5.5c4-1.2 9-1.2 13 0l1 10c-5-1.4-10-1.4-15 0z" fill="${DARK}" ${FK}/>${shine('M27.5 8c1.4-.5 3-.7 4.5-.7', '.25')}`,
+  crown: () => `${hairShort('#b8b8b8')}<path d="M22 16 20.5 6l5.5 4L32 3.6 38 10l5.5-4L42 16c-6.5-1.6-13.5-1.6-20 0z" fill="${FG}" ${FK}/><path d="M22.3 13.3c6.3-1.4 13.1-1.4 19.4 0" fill="none" stroke="${FI}" stroke-width="1.1"/><circle cx="32" cy="9.5" r="1.8" fill="${FR}" stroke="${FI}" stroke-width="1"/><circle cx="25.3" cy="11.3" r="1.2" fill="${FB}"/><circle cx="38.7" cy="11.3" r="1.2" fill="${FB}"/>`,
+  tophat: () => `<path d="M24 17.5 23 4.5c5.6-1.6 12.4-1.6 18 0l-1 13z" fill="${DARK}" ${FK}/><path d="M23.8 12.6c5.4 1.2 11 1.2 16.4 0l-.3 3.8c-5.2 1-10.6 1-15.8 0z" fill="${DARK2}"/>${shine('M26.5 6.5v5', '.3')}<path d="M15.5 18.3c.4-1.8 3.5-1.1 16.5-1.1s16.1-.7 16.5 1.1c-.4 3-8.5 3.2-16.5 3.2s-16.1-.2-16.5-3.2z" fill="${DARK}" ${FK}/>`,
+  tricorne: () => `<path d="M19.3 22c-3 1-4.3 3.4-3.6 5.8.5 1.8-.5 3-.3 4.8.4 2.2 2.6 3 4.6 2.2zM44.7 22c3 1 4.3 3.4 3.6 5.8-.5 1.8.5 3 .3 4.8-.4 2.2-2.6 3-4.6 2.2z" fill="#e8e1cf" ${FD}/><path d="M10.5 19.5C16 12.5 22 13.5 26 10c2-2.6 10-2.6 12 0 4 3.5 10 2.5 15.5 9.5-6.5 1.8-13.5.3-21.5.3s-15 1.5-21.5-.3z" fill="${DARK}" ${FK}/><path d="M14 17.8c5-1.2 11-2.6 18-2.6s13 1.4 18 2.6" fill="none" stroke="${FG}" stroke-width="1.6"/>${shine('M27 10.8c1.4-1 3-1.4 5-1.4', '.25')}`,
+  homburg: () => `${brimHat(DARK, DARK2)}<path d="M32 7v6.5" stroke="#000" stroke-width="1.3" opacity=".5"/>`,
+  peaked: () => peaked('#4b5320', FR, FG),
+  peakedblue: () => peaked('#1f2f5f', FG, FG),
+  beret: () => `${tufts('#2a1d15')}${beret(DARK, starAt(32, 14.2, 5, FG))}`,
+  redberet: () => beret(FR),
+  fatigue: () => softCap('#556b2f', ''),
+  maocap: () => softCap('#5b6260', starAt(32, 14, 3.6, FR)),
+  sides: () => `<path d="M22.3 21.5C20.5 13 24.5 8.5 32.5 8.5c7 0 11.5 4 9.2 13-5.7-2.8-13.7-2.8-19.4 0z" fill="#1a1512" ${FK}/>${shine('M25.5 13c2-1.8 4.6-2.6 7.5-2.6', '.25')}<path d="M20.6 23.5v6M22.4 22.5v4M43.4 23.5v6M41.6 22.5v4" stroke="${FI}" stroke-width=".9" opacity=".35" stroke-linecap="round"/>`,
+  long: () => `<path d="M18.3 32C16 18.5 23 11.8 32 11.8S48 18.5 45.7 32c-.6-4-1.8-7.2-3.7-9.6-5 .4-10.6-1.4-14.2-4.8-2 4-5.2 7.2-8.3 9z" fill="#6b4426" ${FK}/>${shine('M25 15.8c2.6-1.6 6-2 9-1.2')}`,
+  // the Greeks
+  corinth: h => `${h ? temples(h) : ''}${corinth()}`,
+  corinthcrest: (h, c = '#8b1e3f') => `${h ? temples(h) : ''}${corinth(crestUp(c))}`,
+  corinthacross: (h, c = '#8b1e3f') => `${h ? temples(h) : ''}${corinth(crestAcross(c))}`,
+  pilos: h => `${h ? temples(h) : ''}${pilos}`,
+  curly: (h = '#2a1d15') => hairCurly(h),
+  fillet: (h = '#2a1d15', c = FW) => `${hairCurly(h)}${fillet(c)}`,
+  wreath: (h = '#2a1d15') => `${hairCurly(h)}${wreath('#3f8f3f', '#5fae4f')}`,
+  baldwreath: (h = '#b8b8b8') => `${hairBald(h)}${wreath('#3f8f3f', '#5fae4f')}`,
+  greekbald: (h = '#b8b8b8') => hairBald(h),
+  recede: (h = '#2a1d15') => hairRecede(h),
+  diadem: (h = '#2a1d15') => `<path d="M19.3 31C17.6 18 24 12.3 32 12.3S46.4 18 44.7 31c-1-5-4.7-9.6-12.7-11.5-8 1.9-11.7 6.5-12.7 11.5z" fill="${h}" ${FK}/><path d="M32 13v6.5" stroke="#000" stroke-width="1.1" opacity=".4"/><path d="M20 20.5c1.5-5.5 6-8.7 12-9.7 6 1 10.5 4.2 12 9.7-3.5-3.4-7.5-5-12-5s-8.5 1.6-12 5z" fill="${FG}" ${FD}/><circle cx="32" cy="13.3" r="1.7" fill="${FR}" stroke="${FI}" stroke-width="1"/>`,
+  bun: (h = '#2a1d15', c = FW) => `<circle cx="32" cy="9.8" r="5.6" fill="${h}" ${FK}/><path d="M27 12.5c3 1.4 7 1.4 10 0" fill="none" stroke="${c}" stroke-width="2"/><path d="M19.3 31C17.6 18 24 12.8 32 12.8S46.4 18 44.7 31c-1-5-4.7-9.4-12.7-11.3-8 1.9-11.7 6.3-12.7 11.3z" fill="${h}" ${FK}/><path d="M20.5 22.5c3-3.8 7-5.8 11.5-5.8s8.5 2 11.5 5.8" fill="none" stroke="${c}" stroke-width="2"/>`
+};
+const BACK: Record<string, (c?: string) => string> = {
+  longhair: (c = '#b8b8b8') => `<path d="M15.3 33.5C13 18 21 9.5 32 9.5S51 18 48.7 33.5c-.5 3.6-3.4 5.6-6.2 4.3V27h-21v10.8c-2.8 1.3-5.7-.7-6.2-4.3z" fill="${c}" ${FK}/>`,
+  veil: (c = '#efe9da') => `<path d="M16.5 27C15.5 15 22.5 9 32 9s16.5 6 15.5 18l3.5 20c-5 2.4-9.5 1.8-12-1.5V29H25v16.5c-2.5 3.3-7 3.9-12 1.5z" fill="${c}" ${FK}/><path d="M17.5 33l-1.8 12M46.5 33l1.8 12" stroke="#000" stroke-width="1.2" opacity=".22" stroke-linecap="round"/>`,
+  mane: (c = '#2a1d15') => `<path d="M16 29C14.5 16.5 22.5 9.8 32 9.8S49.5 16.5 48 29l1.5 16.5q-2.4 2.4-4.8 0-2.3 2.3-4.7 0V29H24v16.5q-2.4 2.3-4.7 0-2.4 2.4-4.8 0z" fill="${c}" ${FK}/>`
+};
+const tie = (c: string): string => `<path d="M30 48.8h4l-.9 3.2 2 8-3.1 2.8-3.1-2.8 2-8z" fill="${c}" stroke="${FI}" stroke-width="1.3" stroke-linejoin="round"/><path d="M30.9 52h2.2" stroke="${FI}" stroke-width="1"/>`;
+const EXTRA: Record<string, (hair?: string) => string> = {
+  glasses: () => `<circle cx="26.8" cy="29.5" r="3.7" fill="#fff" fill-opacity=".28" stroke="${FI}" stroke-width="1.8"/><circle cx="37.2" cy="29.5" r="3.7" fill="#fff" fill-opacity=".28" stroke="${FI}" stroke-width="1.8"/><path d="M30.5 29.2c1-.7 2-.7 3 0M23.1 29l-2.6-.8M40.9 29l2.6-.8" fill="none" stroke="${FI}" stroke-width="1.6" stroke-linecap="round"/>`,
+  beard: (h = '#2a1d15') => beard(h),
+  greybeard: (h = '#b8b8b8') => beard(h),
+  chinbeard: (h = '#2a1d15') => `<path d="M21 33c1.4 8.5 5.4 13.5 11 13.5S41.6 41.5 43 33c-1.6 5.8-5.6 8.6-11 8.6S22.6 38.8 21 33z" fill="${h}" ${FK}/>`,
+  longbeard: (h = '#1a1512') => beardLong(h),
+  curlybeard: (h = '#2a1d15') => beardCurly(h),
+  shortbeard: (h = '#2a1d15') => beardShort(h),
+  mustache: (h = '#1a1512') => `<path d="M25.5 36.5c1.5-2.8 4.5-3.3 6.5-1.5 2-1.8 5-1.3 6.5 1.5-2.2.9-4.5.6-6.5-.6-2 1.2-4.3 1.5-6.5.6z" fill="${h}" stroke="${FI}" stroke-width="1.3" stroke-linejoin="round"/>`,
+  tie: () => tie(FR),
+  bluetie: () => tie(FB),
+  bowtie: () => `<path d="M26.2 47.8l5.8 2.4 5.8-2.4v6l-5.8-2.4-5.8 2.4z" fill="${FB}" ${FD}/><circle cx="32" cy="50.8" r="1.5" fill="${FB}" stroke="${FI}" stroke-width="1.1"/>`,
+  pearls: () => `<path d="M24.3 46.3c2.4 4.6 13 4.6 15.4 0" fill="none" stroke="${FI}" stroke-width="3.6" stroke-linecap="round"/><path d="M24.3 46.3c2.4 4.6 13 4.6 15.4 0" fill="none" stroke="${FW}" stroke-width="2.2" stroke-linecap="round" stroke-dasharray=".2 2.7"/>`,
+  necklace: () => `<path d="M25 46.8c2.2 3.8 11.8 3.8 14 0" fill="none" stroke="${FG}" stroke-width="1.8" stroke-linecap="round"/><circle cx="32" cy="50.3" r="1.6" fill="${FR}" stroke="${FI}" stroke-width="1"/>`,
+  earrings: () => `<circle cx="19" cy="35.3" r="1.7" fill="${FG}" stroke="${FI}" stroke-width="1"/><circle cx="45" cy="35.3" r="1.7" fill="${FG}" stroke="${FI}" stroke-width="1"/>`
+};
+
 /* D92: the famous ones get their own look: an outfit made of parts (the body, what goes behind the head, the hat or
- * hair, extras), still faceless. Historical figures in the dress of their time; modern leaders in what they wore. */
-type Look = { skin?: string; body: string; back?: string; top: string; extra?: string[] };
-const FK = 'stroke="#15110e" stroke-width="2.5" stroke-linejoin="round"';
-const BODY: Record<string, string> = {
-  suit: `<path d="M6 64c1-14 11-20 26-20s25 6 26 20z" fill="#2c3440" ${FK}/><path d="M26 45l6 8 6-8" fill="#f2efe6" ${FK}/>`,
-  suitblue: `<path d="M6 64c1-14 11-20 26-20s25 6 26 20z" fill="#1f3a5f" ${FK}/><path d="M26 45l6 8 6-8" fill="#f2efe6" ${FK}/>`,
-  military: `<path d="M6 64c1-14 11-20 26-20s25 6 26 20z" fill="#4b5320" ${FK}/><path d="M32 46v18" stroke="#15110e" stroke-width="2"/><circle cx="35" cy="52" r="1.3" fill="#d4ac0d"/><circle cx="35" cy="58" r="1.3" fill="#d4ac0d"/>`,
-  imperial: `<path d="M6 64c1-14 11-20 26-20s25 6 26 20z" fill="#1f2f5f" ${FK}/><path d="M9 52c3-4 7-6 11-6l-1 5c-4 0-7 1-10 3zM55 52c-3-4-7-6-11-6l1 5c4 0 7 1 10 3z" fill="#d4ac0d" ${FK}/><path d="M26 44l6 6 6-6v4l-6 6-6-6z" fill="#f2efe6" ${FK}/>`,
-  toga: `<path d="M6 64c1-14 11-20 26-20s25 6 26 20z" fill="#f2efe6" ${FK}/><path d="M18 47c8 4 18 10 26 17h-8C30 58 24 53 16 50z" fill="#8b1e3f" ${FK}/>`,
-  egypt: `<path d="M6 64c1-14 11-20 26-20s25 6 26 20z" fill="#f2efe6" ${FK}/><path d="M14 50c5-5 11-7 18-7s13 2 18 7l-3 6c-4-3-9-5-15-5s-11 2-15 5z" fill="#d4ac0d" ${FK}/><path d="M17 52c4-3 9-4 15-4s11 1 15 4" fill="none" stroke="#1f6fb2" stroke-width="2.5"/>`,
-  mongol: `<path d="M6 64c1-14 11-20 26-20s25 6 26 20z" fill="#7a3b2e" ${FK}/><path d="M24 45l16 19" stroke="#d4ac0d" stroke-width="3"/>`,
-  assyrian: `<path d="M6 64c1-14 11-20 26-20s25 6 26 20z" fill="#8b1e3f" ${FK}/><path d="M10 58h44" stroke="#d4ac0d" stroke-width="3" stroke-dasharray="3 2"/>`,
-  hanfu: `<path d="M6 64c1-14 11-20 26-20s25 6 26 20z" fill="#2d4a6b" ${FK}/><path d="M24 45l12 19M40 45 30 58" stroke="#f2efe6" stroke-width="3"/>`,
-  carthage: `<path d="M6 64c1-14 11-20 26-20s25 6 26 20z" fill="#9a7b4f" ${FK}/><path d="M6 64c2-8 6-14 12-17l4 17zM58 64c-2-8-6-14-12-17l-4 17z" fill="#8b1e3f" ${FK}/>`,
-  shawl: `<path d="M6 64c1-14 11-20 26-20s25 6 26 20z" fill="#f2efe6" ${FK}/><path d="M12 54c8-6 22-8 34-2l4 12H8z" fill="#e8e1cf" ${FK}/>`,
-  maosuit: `<path d="M6 64c1-14 11-20 26-20s25 6 26 20z" fill="#5b6260" ${FK}/><path d="M26 43h12v5c-4 2-8 2-12 0zM32 48v16" fill="#5b6260" ${FK}/>`,
-  fatigue: `<path d="M6 64c1-14 11-20 26-20s25 6 26 20z" fill="#556b2f" ${FK}/><path d="M24 45l8 7 8-7" fill="#556b2f" ${FK}/>`,
-  gown: `<path d="M6 64c1-14 11-20 26-20s25 6 26 20z" fill="#2a2a3a" ${FK}/><path d="M24 46c5 3 11 3 16 0" fill="none" stroke="#f2efe6" stroke-width="2.5" stroke-dasharray="1.5 2.5"/>`,
-  blazer: `<path d="M6 64c1-14 11-20 26-20s25 6 26 20z" fill="#c0392b" ${FK}/><path d="M27 45l5 6 5-6" fill="#f2efe6" ${FK}/>`,
-  regal: `<path d="M6 64c1-14 11-20 26-20s25 6 26 20z" fill="#5b2c6f" ${FK}/><path d="M12 56c6-4 13-6 20-6s14 2 20 6" fill="none" stroke="#f2efe6" stroke-width="4" stroke-dasharray="1 3"/><path d="M22 46l20 18" stroke="#1f6fb2" stroke-width="3"/>`
+ * hair, extras), still faceless. Historical figures in the dress of their time; modern leaders in what they wore.
+ * `hair`, `cloth` and `crest` recolour the parts that take a colour. */
+type Look = { skin?: string; body: string; back?: string; top: string; extra?: string[]; hair?: string; cloth?: string; crest?: string };
+const DK = '#2a1d15', BR = '#5a3a22', GY = '#b8b8b8', WH = '#e6e2d8', AU = '#8a4a2a', BL = '#c9a35a';
+/* D139: the Greeks of Secret Leônidas, in the dress of the fifth century: the generals with a Corinthian helmet pushed
+ * up (the way their busts wear it), the Spartans with the pilos or the crest across and long hair, the poets wreathed,
+ * the statesmen and historians with a band on the hair and a himation, the philosopher bald and bare-chested. The
+ * colours do not follow the city: the face says nothing of the side (D92). */
+const GREEK: Record<string, Look> = {
+  'Péricles': { body: 'himation', top: 'corinth', extra: ['curlybeard'], hair: DK },
+  'Temístocles': { skin: '#d9a27a', body: 'cuirass', cloth: '#b0762c', top: 'corinthcrest', crest: '#1a1512', extra: ['shortbeard'], hair: DK },
+  'Alcibíades': { skin: '#ecc19c', body: 'himation', cloth: '#6b3a7a', back: 'mane', top: 'wreath', hair: BL },
+  'Címon': { body: 'cuirass', cloth: '#2f5f5a', back: 'mane', top: 'corinthcrest', crest: WH, extra: ['curlybeard'], hair: DK },
+  'Nícias': { skin: '#ecc19c', body: 'linothorax', cloth: '#556b2f', top: 'corinth', extra: ['curlybeard'], hair: GY },
+  'Cléon': { skin: '#d9a27a', body: 'exomis', cloth: '#8a5a34', top: 'curly', extra: ['shortbeard'], hair: AU },
+  'Sócrates': { skin: '#d9a27a', body: 'barechest', cloth: '#8c8272', top: 'greekbald', extra: ['curlybeard'], hair: GY },
+  'Aspásia': { skin: '#ecc19c', body: 'peplos', cloth: '#d9a326', top: 'bun', crest: '#7d1f4a', extra: ['earrings', 'necklace'], hair: BR },
+  'Sólon': { body: 'himation', cloth: '#efe9da', top: 'fillet', crest: '#7d1f4a', extra: ['longbeard'], hair: WH },
+  'Clístenes': { skin: '#d9a27a', body: 'himation', cloth: '#2f6f6a', top: 'fillet', extra: ['shortbeard'], hair: DK },
+  'Tucídides': { body: 'himation', cloth: '#4a5568', top: 'recede', extra: ['curlybeard'], hair: DK },
+  'Heródoto': { skin: '#d9a27a', body: 'himation', cloth: '#c98a2b', top: 'fillet', crest: '#2f6f6a', extra: ['longbeard'], hair: BR },
+  'Brásidas': { skin: '#d9a27a', body: 'cuirass', cloth: '#7a3b2e', back: 'mane', top: 'pilos', extra: ['shortbeard'], hair: BR },
+  'Lisandro': { body: 'cuirass', cloth: '#3d3d5a', back: 'mane', top: 'fillet', crest: FG, extra: ['longbeard'], hair: DK },
+  'Arquidamo': { skin: '#d9a27a', body: 'cuirass', cloth: '#8b1e3f', back: 'mane', top: 'corinthacross', crest: '#8b1e3f', extra: ['curlybeard'], hair: GY },
+  'Pausânias': { body: 'linothorax', cloth: '#7a3b2e', back: 'mane', top: 'corinthacross', crest: '#1a1512', extra: ['curlybeard'], hair: DK },
+  'Gorgo': { skin: '#ecc19c', body: 'peplos', cloth: '#7d1f4a', back: 'veil', top: 'diadem', extra: ['necklace'], hair: DK },
+  'Demóstenes': { skin: '#ecc19c', body: 'barechest', cloth: '#efe9da', top: 'recede', extra: ['shortbeard'], hair: BR },
+  'Xenofonte': { body: 'linothorax', cloth: '#2f5f8a', top: 'fillet', crest: '#b0762c', extra: ['curlybeard'], hair: BR },
+  'Aristides': { skin: '#d9a27a', body: 'himation', cloth: '#efe9da', top: 'fillet', crest: '#2f5f8a', extra: ['curlybeard'], hair: GY },
+  'Milcíades': { skin: '#d9a27a', body: 'cuirass', cloth: '#556b2f', top: 'corinthcrest', crest: '#b0762c', extra: ['longbeard'], hair: DK },
+  'Fídias': { skin: '#d9a27a', body: 'exomis', cloth: '#b9b0a0', top: 'greekbald', extra: ['shortbeard'], hair: BR },
+  'Sófocles': { body: 'himation', cloth: '#efe9da', top: 'wreath', extra: ['curlybeard'], hair: BR },
+  'Ésquilo': { skin: '#d9a27a', body: 'himation', cloth: '#7a3b2e', top: 'baldwreath', extra: ['longbeard'], hair: GY },
+  'Eurípides': { skin: '#ecc19c', body: 'himation', cloth: '#4a5568', back: 'mane', top: 'wreath', extra: ['curlybeard'], hair: WH }
 };
-const TOP: Record<string, string> = {
-  short: `<path d="M21 26c0-9 5-13 11-13s11 4 11 13c-3-4-6-6-11-6s-8 2-11 6z" fill="#2a1d15" ${FK}/>`,
-  grey: `<path d="M21 26c0-9 5-13 11-13s11 4 11 13c-3-4-6-6-11-6s-8 2-11 6z" fill="#b8b8b8" ${FK}/>`,
-  blond: `<path d="M20 25c0-9 6-14 12-14s13 3 13 12c-6-3-14-4-25 2z" fill="#e8c26a" ${FK}/>`,
-  bald: `<path d="M21 24c1-5 5-9 11-9s10 4 11 9" fill="none" stroke="#15110e" stroke-width="1.5" opacity=".5"/>`,
-  laurel: `<path d="M21 26c0-9 5-13 11-13s11 4 11 13c-3-4-6-6-11-6s-8 2-11 6z" fill="#3a2a1a" ${FK}/><path d="M19 22c4-5 9-7 13-7s9 2 13 7" fill="none" stroke="#3f8f3f" stroke-width="4" stroke-dasharray="3 1.5"/>`,
-  bicorne: `<path d="M10 20c6-9 15-13 22-13s16 4 22 13c-6-2-14-3-22-3s-16 1-22 3z" fill="#15110e" ${FK}/><circle cx="32" cy="12" r="2.5" fill="#c0392b"/>`,
-  nemes: `<path d="M18 22c0-10 6-15 14-15s14 5 14 15l4 22c-4 1-7 0-9-3l-1-14H24l-1 14c-2 3-5 4-9 3z" fill="#d4ac0d" ${FK}/><path d="M20 14h24M19 19h26M47 26l2 10M17 26l-2 10" stroke="#1f6fb2" stroke-width="2.5"/>`,
-  egyptcrown: `<path d="M20 20 18 3h28l-2 17c-3-2-7-3-12-3s-9 1-12 3z" fill="#1f6fb2" ${FK}/><path d="M19 13h26" stroke="#d4ac0d" stroke-width="3"/>`,
-  bob: `<path d="M18 28c0-11 7-16 14-16s14 5 14 16v12h-6V24H24v16h-6z" fill="#15110e" ${FK}/><path d="M20 18h24" stroke="#d4ac0d" stroke-width="3"/>`,
-  helmet: `<path d="M19 24c0-9 6-14 13-14s13 5 13 14v4h-5v-6H24v6h-5z" fill="#b08d57" ${FK}/><path d="M24 10c2-6 14-6 16 0l-8 2z" fill="#c0392b" ${FK}/>`,
-  mongol: `<path d="M17 22c2-3 8-5 15-5s13 2 15 5l-2 4c-3-2-8-3-13-3s-10 1-13 3z" fill="#8a7458" ${FK}/><path d="M22 18c0-7 4-12 10-14 6 2 10 7 10 14z" fill="#7a3b2e" ${FK}/>`,
-  assyrian: `<path d="M21 21 23 5h18l2 16c-3-2-7-3-11-3s-8 1-11 3z" fill="#f2efe6" ${FK}/><path d="M22 12h20" stroke="#d4ac0d" stroke-width="2.5"/>`,
-  scholar: `<path d="M21 26c0-9 5-13 11-13s11 4 11 13c-3-4-6-6-11-6s-8 2-11 6z" fill="#b8b8b8" ${FK}/><path d="M23 15V7h18v8z" fill="#15110e" ${FK}/><path d="M19 15h26" stroke="#15110e" stroke-width="3"/>`,
-  crown: `<path d="M21 26c0-9 5-13 11-13s11 4 11 13c-3-4-6-6-11-6s-8 2-11 6z" fill="#b8b8b8" ${FK}/><path d="M23 15l-1-8 5 4 5-6 5 6 5-4-1 8z" fill="#d4ac0d" ${FK}/>`,
-  tophat: `<path d="M23 15V1h18v14z" fill="#15110e" ${FK}/><path d="M17 16h30v3H17z" fill="#15110e" ${FK}/>`,
-  tricorne: `<path d="M21 26c0-9 5-13 11-13s11 4 11 13" fill="#e8e1cf" ${FK}/><path d="M14 18c6-8 12-10 18-10s12 2 18 10l-7 2c-3-2-7-3-11-3s-8 1-11 3z" fill="#15110e" ${FK}/>`,
-  homburg: `<path d="M22 18c0-7 4-10 10-10s10 3 10 10z" fill="#2c2c2c" ${FK}/><path d="M17 18h30v3H17z" fill="#2c2c2c" ${FK}/>`,
-  peaked: `<path d="M19 18c0-6 6-9 13-9s13 3 13 9z" fill="#4b5320" ${FK}/><path d="M20 18h24v3H20z" fill="#4b5320" ${FK}/><path d="M22 21h20l-3 3H25z" fill="#15110e"/><circle cx="32" cy="14" r="2" fill="#d4ac0d"/>`,
-  peakedblue: `<path d="M19 18c0-6 6-9 13-9s13 3 13 9z" fill="#1f2f5f" ${FK}/><path d="M20 18h24v3H20z" fill="#1f2f5f" ${FK}/><path d="M22 21h20l-3 3H25z" fill="#15110e"/><circle cx="32" cy="14" r="2" fill="#d4ac0d"/>`,
-  beret: `<path d="M18 19c2-6 8-9 15-8s12 4 12 9c-8 1-18 1-27-1z" fill="#15110e" ${FK}/><path d="M30 13l1.5 3 3 .5-2 2 .5 3-3-1.5-3 1.5.5-3-2-2 3-.5z" fill="#d4ac0d"/>`,
-  redberet: `<path d="M18 19c2-6 8-9 15-8s12 4 12 9c-8 1-18 1-27-1z" fill="#c0392b" ${FK}/>`,
-  fatigue: `<path d="M20 20c0-7 5-10 12-10s12 3 12 10z" fill="#556b2f" ${FK}/><path d="M30 20h18l-2 3H30z" fill="#556b2f" ${FK}/>`,
-  maocap: `<path d="M19 18c0-6 6-9 13-9s13 3 13 9z" fill="#5b6260" ${FK}/><path d="M20 18h24v3H20z" fill="#5b6260" ${FK}/><path d="M22 21h20l-3 3H25z" fill="#15110e"/><circle cx="32" cy="14" r="2" fill="#c0392b"/>`,
-  sides: `<path d="M21 22c0-7 5-10 11-10s11 3 11 10c-4-2-7-3-11-3s-7 1-11 3z" fill="#15110e" ${FK}/>`,
-  long: `<path d="M21 25c1-8 5-12 11-12s10 4 11 12c-5-1-9-4-11-7-2 3-6 6-11 7z" fill="#5a3a22" ${FK}/>`
-};
-const BACK: Record<string, string> = { longhair: `<path d="M17 28c0-12 8-17 15-17s15 5 15 17v16c-4 2-8 2-10 0H27c-2 2-6 2-10 0z" fill="#b8b8b8" ${FK}/>`, veil: `<path d="M16 26c0-12 8-17 16-17s16 5 16 17l2 22c-6 2-11 1-14-3l-1-15H27l-1 15c-3 4-8 5-14 3z" fill="#2a2a3a" ${FK}/>` };
-const EXTRA: Record<string, string> = {
-  glasses: '<circle cx="27" cy="28" r="3.2" fill="none" stroke="#15110e" stroke-width="1.8"/><circle cx="37" cy="28" r="3.2" fill="none" stroke="#15110e" stroke-width="1.8"/><path d="M30 28h4" stroke="#15110e" stroke-width="1.8"/>',
-  beard: '<path d="M21 31c1 8 5 11 11 11s10-3 11-11c-3 3-7 4-11 4s-8-1-11-4z" fill="#2a1d15" stroke="#15110e" stroke-width="2"/>',
-  greybeard: '<path d="M21 31c1 8 5 11 11 11s10-3 11-11c-3 3-7 4-11 4s-8-1-11-4z" fill="#b8b8b8" stroke="#15110e" stroke-width="2"/>',
-  chinbeard: '<path d="M22 34c2 5 5 8 10 8s8-3 10-8" fill="none" stroke="#2a1d15" stroke-width="4"/>',
-  longbeard: '<path d="M22 32c0 10 4 16 10 18 6-2 10-8 10-18-3 3-6 4-10 4s-7-1-10-4z" fill="#15110e" stroke="#15110e" stroke-width="2"/><path d="M26 38h12M27 43h10" stroke="#3a3a3a" stroke-width="1.5"/>',
-  mustache: '<path d="M26 33c2-1 4-1 6 0 2-1 4-1 6 0" fill="none" stroke="#15110e" stroke-width="2.5"/>',
-  tie: '<path d="M30 49h4l1 15h-6z" fill="#c0392b" stroke="#15110e" stroke-width="1.5"/>',
-  bluetie: '<path d="M30 49h4l1 15h-6z" fill="#1f6fb2" stroke="#15110e" stroke-width="1.5"/>',
-  bowtie: '<path d="M27 47l5 2 5-2v5l-5-2-5 2z" fill="#1f6fb2" stroke="#15110e" stroke-width="1.5"/>',
-  pearls: '<path d="M24 47c5 3 11 3 16 0" fill="none" stroke="#f2efe6" stroke-width="3" stroke-dasharray="1 2"/>'
-};
-const LOOKS: Record<string, Look> = {};
+const LOOKS: Record<string, Look> = { ...GREEK };
 /** D100: the expansion's faces and dress, from the data the key unlocks. */
 export function dlcLooks(d: { looks: Record<string, unknown>; female: string[]; russian: string[]; arab: string[]; cleric: string[] }): void {
   Object.assign(LOOKS, d.looks as Record<string, Look>);
   d.female.forEach(n => FEMALE.add(n)); d.russian.forEach(n => RUSSIAN.add(n)); d.arab.forEach(n => ARAB.add(n)); d.cleric.forEach(n => CLERIC.add(n));
 }
+const wrap = (body: string): string => `<svg class="face" viewBox="0 0 64 64" aria-hidden="true">${chip}${body}</svg>`;
+const hairy = (x: string): boolean => x.includes('beard') || x === 'mustache';
 function famous(nameOf: string, skin0: string): string | null {
   const l = LOOKS[nameOf];
   if (!l) return null;
-  const skin = l.skin || skin0;
-  return `<svg class="face" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="31" fill="#2b241f"/>${BODY[l.body] || BODY.suit}<path d="M27 40h10v7c-3 2-7 2-10 0z" fill="${skin}" stroke="#15110e" stroke-width="2"/>${l.back ? BACK[l.back] : ''}<ellipse cx="32" cy="28" rx="11" ry="13" fill="${skin}" ${FK}/>${(l.extra || []).filter(x => x.includes('beard') || x === 'mustache').map(x => EXTRA[x]).join('')}${TOP[l.top] || TOP.short}${(l.extra || []).filter(x => !(x.includes('beard') || x === 'mustache')).map(x => EXTRA[x]).join('')}</svg>`;
+  const skin = l.skin || skin0, extra = (l.extra || []).filter(x => EXTRA[x]);
+  return wrap(`${(BODY[l.body] || BODY.suit)(skin, l.cloth)}${l.back && BACK[l.back] ? BACK[l.back](l.back === 'veil' ? undefined : l.hair) : ''}${headOf(skin)}${extra.filter(hairy).map(x => EXTRA[x](l.hair)).join('')}${(TOP[l.top] || TOP.short)(l.hair, l.crest)}${extra.filter(x => !hairy(x)).map(x => EXTRA[x]()).join('')}`);
 }
 const faceCache = new Map<string, string>();
 /** D92: drawn once per name, then taken from memory: the screen is repainted often. */
@@ -601,40 +743,42 @@ function drawFace(nameOf: string, region = 'mundo', me = false): string {
   const h = hashOf(nameOf), pick = <T>(xs: T[], k: number): T => xs[(h >>> k) % xs.length];
   const reg0 = region === 'mundo' ? pick(['europa', 'africa', 'americas', 'asia', 'oceania'], 3) : region, fem = FEMALE.has(nameOf);
   const own = RUSSIAN.has(nameOf) ? 'russo' : ARAB.has(nameOf) ? 'arabe' : CLERIC.has(nameOf) ? 'clerigo' : '', reg = own === 'russo' ? 'europa' : own ? 'asia' : reg0;
-  const skin = pick(SKINS[reg] || SKINS.mundo, 1), cloth = me ? '#5b5b5b' : pick(CLOTH[reg] || CLOTH.mundo, 5), hair = pick(HAIR, 9), alt = pick(CLOTH[reg] || CLOTH.mundo, 13);
-  const id = `fp${h.toString(36)}`, S = 'stroke="#15110e" stroke-width="2.5" stroke-linejoin="round"';
-  const v = own === 'russo' ? 0 : (h >>> 17) % 3, out: string[] = ['<circle cx="32" cy="32" r="31" fill="#2b241f"/>'];
+  const skin = pick(SKINS[reg] || SKINS.mundo, 1), cloth = me ? '#6a6660' : pick(CLOTH[reg] || CLOTH.mundo, 5), hair = pick(HAIR, 9), alt = pick(CLOTH[reg] || CLOTH.mundo, 13);
+  const id = `fp${h.toString(36)}`, v = own === 'russo' ? 0 : (h >>> 17) % 3, out: string[] = [];
   // the pattern of the cloth, by region
   const pat = reg === 'africa' ? `<pattern id="${id}" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="${cloth}"/><path d="M0 8 4 2 8 8" fill="none" stroke="${alt}" stroke-width="2"/><circle cx="4" cy="1.5" r="1" fill="#f7e9c4"/></pattern>`
     : reg === 'americas' ? `<pattern id="${id}" width="64" height="7" patternUnits="userSpaceOnUse"><rect width="64" height="7" fill="${cloth}"/><rect y="3" width="64" height="2" fill="${alt}"/><path d="M0 3 2 1 4 3 6 1 8 3" stroke="#f7e9c4" stroke-width="1" fill="none"/></pattern>`
     : reg === 'oceania' ? `<pattern id="${id}" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="${cloth}"/><circle cx="3" cy="3" r="2" fill="#f7e9c4"/><circle cx="8" cy="8" r="1.5" fill="${alt}"/></pattern>` : '';
   if (pat) out.push(`<defs>${pat}</defs>`);
-  const fill = own === 'arabe' ? '#f2efe6' : own === 'clerigo' ? '#3a3a3a' : pat ? `url(#${id})` : cloth;
-  if (own === 'arabe') out.push(`<defs><pattern id="${id}k" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="#f2efe6"/><path d="M0 0h3v3H0zM3 3h3v3H3z" fill="#b8322a"/></pattern></defs>`);
-  if (reg === 'americas' && v === 0 && !fem) out.push(`<path d="M4 64 16 44h32l12 20z" fill="${fill}" ${S}/>`);   // a poncho
-  else out.push(`<path d="M6 64c1-14 11-20 26-20s25 6 26 20z" fill="${fill}" ${S}/>`);
-  out.push(`<path d="M27 40h10v7c-3 2-7 2-10 0z" fill="${skin}" stroke="#15110e" stroke-width="2"/>`);
-  // collars
-  if (reg === 'europa') out.push(v === 1 ? `<path d="M22 44c6 5 14 5 20 0l1 5c-7 5-15 5-22 0z" fill="${alt}" ${S}/>` : `<path d="M14 50c6-5 12-6 18-6s12 1 18 6l-4 4c-4-3-9-4-14-4s-10 1-14 4z" fill="#d8c4a0" ${S}/>`);
-  if (reg === 'asia' && !own) out.push(`<path d="M25 42h14v5c-4 2-10 2-14 0z" fill="${cloth}" ${S}/><path d="M32 47v17" stroke="#15110e" stroke-width="2"/>`);
-  if (own === 'arabe' || own === 'clerigo') out.push(`<path d="M28 46l4 6 4-6" fill="none" stroke="#15110e" stroke-width="2"/>`);
-  if (own === 'clerigo') out.push(`<path d="M14 64c2-10 6-16 10-19l8 19zM50 64c-2-10-6-16-10-19l-8 19z" fill="#2a2420" ${S}/>`);
-  if (reg === 'africa' && v !== 0) out.push(`<path d="M23 45c5 4 13 4 18 0" fill="none" stroke="#f1c40f" stroke-width="3"/><path d="M23 45c5 4 13 4 18 0" fill="none" stroke="#15110e" stroke-width="1" stroke-dasharray="2 2"/>`);
-  if (reg === 'brasil' || reg === 'mundo') out.push(`<path d="M26 45l6 7 6-7" fill="none" stroke="#15110e" stroke-width="2"/>`);
+  const fill = own === 'arabe' ? FW : own === 'clerigo' ? '#3a3a3a' : pat ? `url(#${id})` : cloth;
+  if (own === 'arabe') out.push(`<defs><pattern id="${id}k" width="6" height="6" patternUnits="userSpaceOnUse"><rect width="6" height="6" fill="${FW}"/><path d="M0 0h3v3H0zM3 3h3v3H3z" fill="#b8322a"/></pattern></defs>`);
+  // what goes under the neck and over it, by region
+  let under = '', over = '', shape = SHO;
+  const vneck = `<path d="M25.3 44.6 32 53l6.7-8.4z" fill="${skin}" ${FD}/>`;
+  if (reg === 'americas' && v === 0 && !fem) { shape = 'M12 54 25 44.4h14L52 54A29.75 29.75 0 0 1 12 54z'; over = `<path d="M25.5 45 32 51.5 38.5 45" fill="none" stroke="${FI}" stroke-width="1.6" stroke-linejoin="round"/>`; }   // a poncho
+  else if (reg === 'europa') over = v === 1 ? `<path d="M23.5 44.5c3 3.6 14 3.6 17 0l1.5 4.3c-4.5 4-15.5 4-20 0z" fill="${alt}" ${FK}/><path d="M35 49.5l5.5-1 2 10-5.5 1.5z" fill="${alt}" ${FD}/><path d="M38 55.5l4.5-1.2M37.3 52.5l4.5-1.2" stroke="#000" stroke-width="1.1" opacity=".3"/>`
+    : `<path d="M25.3 44.6c-4.5.8-8.5 2.2-11.3 4.4l5 6.5c3.5-2.6 7.8-4 13-4s9.5 1.4 13 4l5-6.5c-2.8-2.2-6.8-3.6-11.3-4.4L32 51.5z" fill="#d8c4a0" ${FK}/><path d="M18 50.5l1.3 2M22 48.5l1 2.2M46 50.5l-1.3 2M42 48.5l-1 2.2" stroke="${FI}" stroke-width="1" opacity=".4" stroke-linecap="round"/>`;
+  else if (reg === 'asia' && !own) over = `<path d="M25.2 44.5h13.6l-.8 4.7c-3.8 1.6-8.2 1.6-12 0z" fill="${cloth}" ${FK}/><path d="M32 45.5v4M32 50v11.5" stroke="${FI}" stroke-width="1.4"/><path d="M29.5 53.5h5M29.5 57.5h5" stroke="${alt}" stroke-width="1.8" stroke-linecap="round"/>`;
+  else if (own === 'arabe') over = `<path d="M26.5 45 32 53l5.5-8M32 53v8.5" fill="none" stroke="${FI}" stroke-width="1.4" stroke-linejoin="round"/>`;
+  else if (own === 'clerigo') { under = `<path d="M10.4 52.5C11.5 48.2 17 45.8 24 44.8L30.5 61A29.75 29.75 0 0 1 10.4 52.5zM53.6 52.5C52.5 48.2 47 45.8 40 44.8L33.5 61A29.75 29.75 0 0 0 53.6 52.5z" fill="#2a2420" ${FK}/>`; over = `<path d="M26.5 45 32 52l5.5-7" fill="none" stroke="${FW}" stroke-width="1.8" stroke-linejoin="round"/>`; }
+  else if (reg === 'africa') { under = v !== 0 ? '' : vneck; over = v !== 0 ? `<path d="M23.3 45.6c3 5 14.4 5 17.4 0" fill="none" stroke="${FI}" stroke-width="4.4" stroke-linecap="round"/><path d="M23.3 45.6c3 5 14.4 5 17.4 0" fill="none" stroke="#f1c40f" stroke-width="2.8" stroke-linecap="round" stroke-dasharray="2.4 1.6"/>` : ''; }
+  else if (reg === 'oceania') { under = vneck; over = wings(alt); }
+  else { under = vneck; over = `<path d="M25.3 44.6 21.5 49l6 2.5M38.7 44.6 42.5 49l-6 2.5" fill="none" stroke="${FI}" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>`; }
+  out.push(bust(skin, fill, under, over, shape));
   // long hair goes behind the head
-  if (fem && !(reg === 'africa' && v !== 2)) out.push(`<path d="M17 28c0-12 8-17 15-17s15 5 15 17v16c-4 2-8 2-10 0H27c-2 2-6 2-10 0z" fill="${hair}" ${S}/>`);
-  if (own === 'arabe') out.push(`<path d="M17 22c0-9 7-14 15-14s15 5 15 14l3 24c-5 2-9 1-12-2V30H26v14c-3 3-7 4-12 2z" fill="url(#${id}k)" ${S}/>`);
-  out.push(`<ellipse cx="32" cy="28" rx="11" ry="13" fill="${skin}" ${S}/>`);
+  if (fem && !(reg === 'africa' && v !== 2)) out.push(hairBack(hair));
+  if (own === 'arabe') out.push(`<path d="M16.5 23C15.5 12.5 23 7.5 32 7.5S48.5 12.5 47.5 23l3 23c-4.5 2.4-9 1.8-11.5-1.5V30H25v14.5c-2.5 3.3-7 3.9-11.5 1.5z" fill="url(#${id}k)" ${FK}/>`);
+  out.push(headOf(skin));
   // hair and hats
-  const short = `<path d="M21 26c0-9 5-13 11-13s11 4 11 13c-3-4-6-6-11-6s-8 2-11 6z" fill="${hair}" ${S}/>`;
-  const fringe = `<path d="M21 25c1-8 5-12 11-12s10 4 11 12c-5-1-9-4-11-7-2 3-6 6-11 7z" fill="${hair}" ${S}/>`;
-  if (own === 'arabe') out.push(`<path d="M19 21c0-8 6-12 13-12s13 4 13 12c-4-2-9-3-13-3s-9 1-13 3z" fill="url(#${id}k)" ${S}/><path d="M19 15c4-2 22-2 26 0" fill="none" stroke="#15110e" stroke-width="3.5"/>`);
-  else if (own === 'clerigo') out.push(`<path d="M18 20c0-9 6-14 14-14s14 5 14 14c-4-3-9-4-14-4s-10 1-14 4z" fill="#15110e" ${S}/><path d="M20 15c6-3 18-3 24 0" fill="none" stroke="#3a3a3a" stroke-width="1.5"/>`);
-  else if (reg === 'europa') out.push(own === 'russo' ? `<path d="M14 23c0-11 8-17 18-17s18 6 18 17v10c0 3-6 3-6 0v-9c-3-2-7-3-12-3s-9 1-12 3v9c0 3-6 3-6 0z" fill="#8a7458" ${S}/><path d="M21 13c2-4 6-6 11-6s9 2 11 6c-3-1-7-2-11-2s-8 1-11 2z" fill="#4a3a2a" stroke="#15110e" stroke-width="1.5"/><circle cx="32" cy="9" r="1.8" fill="#c0392b"/>` : v === 0 && !fem ? `<path d="M22 19c0-7 4-10 10-10s10 3 10 10z" fill="#222" ${S}/><path d="M17 19h30v3H17z" fill="#222" ${S}/>` : fem ? fringe : v === 1 ? `<path d="M20 20c2-6 7-8 13-8s10 2 11 6c-6 2-15 3-24 2z" fill="${alt}" ${S}/><circle cx="33" cy="11" r="1.6" fill="#15110e"/>` : short);
-  else if (reg === 'africa') out.push(fem ? `<path d="M18 22c0-9 6-14 14-14s14 5 14 14c-2 0-3-2-5-2-3 2-15 2-18 0-2 0-3 2-5 2z" fill="${fill}" ${S}/><path d="M38 9c5-1 9 2 9 6-3-1-6-1-9 0z" fill="${alt}" ${S}/>` : v === 0 ? short : `<path d="M21 20c0-6 5-8 11-8s11 2 11 8z" fill="${fill}" ${S}/>`);
-  else if (reg === 'americas') out.push(v === 1 ? `<path d="M14 21h36v3H14z" fill="#8b5a2b" ${S}/><path d="M22 21c0-7 4-10 10-10s10 3 10 10z" fill="#8b5a2b" ${S}/>` : `${fem ? fringe : short}<path d="M20 22h24v4H20z" fill="url(#${id})" ${S}/>`);
-  else if (reg === 'asia') out.push(fem ? `${fringe}<circle cx="32" cy="12" r="4.5" fill="${hair}" ${S}/><path d="M26 10 40 13" stroke="#c0392b" stroke-width="2"/>` : v === 2 ? `<path d="M20 21c0-7 5-10 12-10s12 3 12 10z" fill="#3d3d3d" ${S}/><path d="M18 21h28v3H18z" fill="#3d3d3d" ${S}/>` : short);
-  else if (reg === 'oceania') out.push(v !== 2 ? `<path d="M15 23c3-2 8-3 17-3s14 1 17 3l-2 3c-4-1-9-2-15-2s-11 1-15 2z" fill="#d8b66a" ${S}/><path d="M22 21c0-7 4-10 10-10s10 3 10 10z" fill="#d8b66a" ${S}/>` : fem ? fringe : short);
-  else out.push(fem ? fringe : v === 0 ? `<path d="M20 22c0-8 5-11 12-11s12 3 12 11z" fill="${alt}" ${S}/><path d="M30 22h20l-2 3H30z" fill="${alt}" ${S}/>` : short);
-  return `<svg class="face" viewBox="0 0 64 64" aria-hidden="true">${out.join('')}</svg>`;
+  const short = hairShort(hair), fringe = hairFringe(hair);
+  if (own === 'arabe') out.push(`<path d="M18.6 22.5C17.5 12.5 24 8 32 8s14.5 4.5 13.4 14.5c-4.4-2.2-9-3.2-13.4-3.2s-9 1-13.4 3.2z" fill="url(#${id}k)" ${FK}/><path d="M19 15.5c4.5-2.4 21.5-2.4 26 0" fill="none" stroke="${FI}" stroke-width="3.8" stroke-linecap="round"/>`);
+  else if (own === 'clerigo') out.push(`<path d="M17.5 21.5C16.5 11 23.5 5.5 32 5.5S47.5 11 46.5 21.5c-4.5-3-9.5-4.3-14.5-4.3s-10 1.3-14.5 4.3z" fill="${DARK}" ${FK}/><path d="M20 14.5c7-4 17-4 24 0M22.5 10.5c6-3 13-3 19 0" fill="none" stroke="${DARK2}" stroke-width="1.5" stroke-linecap="round"/>`);
+  else if (reg === 'europa') out.push(own === 'russo' ? `<path d="M14.5 24C13.5 12 21.5 5.5 32 5.5S50.5 12 49.5 24v9.5c0 3.6-6.2 3.6-6.2 0V24.5c-3.4-2-7.3-3-11.3-3s-7.9 1-11.3 3v9c0 3.6-6.2 3.6-6.2 0z" fill="#8a7458" ${FK}/><path d="M20.5 14.5c2-5 6.5-7.5 11.5-7.5s9.5 2.5 11.5 7.5c-3.5-1.5-7.5-2.3-11.5-2.3s-8 .8-11.5 2.3z" fill="#5a4632" ${FD}/><circle cx="32" cy="9.8" r="2" fill="${FR}" stroke="${FI}" stroke-width="1"/><path d="M17 20v9M47 20v9" stroke="#000" stroke-width="1.2" opacity=".25" stroke-linecap="round"/>`
+    : v === 0 && !fem ? brimHat(DARK, DARK2) : fem ? fringe : v === 1 ? `${temples(hair)}${beret(alt, `<path d="M33 8.5v-2.5" stroke="${FI}" stroke-width="2" stroke-linecap="round"/>`)}` : short);
+  else if (reg === 'africa') out.push(fem ? `<path d="M17.5 23C16 11.5 23 6 32 6s16 5.5 14.5 17c-2.5-.5-3.5-2.5-5.5-2.8-4 1.6-14 1.6-18 0-2 .3-3 2.3-5.5 2.8z" fill="${fill}" ${FK}/><path d="M37 7.5c5.5-2.5 11 .5 11.5 6-3.5-1.5-7-1.5-10.5 0z" fill="${alt}" ${FK}/>` : v === 0 ? short : `<path d="M20 21.5C20 12.5 25 9 32 9s12 3.5 12 12.5c-8-2-16-2-24 0z" fill="${fill}" ${FK}/><path d="M20.3 18c7.8-1.8 15.6-1.8 23.4 0" fill="none" stroke="${FI}" stroke-width="1.1" opacity=".5"/>`);
+  else if (reg === 'americas') out.push(v === 1 ? brimHat('#8b5a2b', alt, 3) : `${fem ? fringe : short}<path d="M19.6 21.5c8-3 16.8-3 24.8 0l.4 4c-8.4-3-17.2-3-25.6 0z" fill="url(#${id})" ${FD}/>`);
+  else if (reg === 'asia') out.push(fem ? `${fringe}<circle cx="32" cy="10.5" r="5" fill="${hair}" ${FK}/><path d="M24.5 8 39.5 12.5" stroke="${FR}" stroke-width="2.2" stroke-linecap="round"/>` : v === 2 ? softCap('#3d3d3d', '') : short);
+  else if (reg === 'oceania') out.push(v !== 2 ? brimHat('#d8b66a', alt, 2) : fem ? fringe : short);
+  else out.push(fem ? fringe : v === 0 ? `<path d="M19.5 20.5C19.5 11.5 25 8.5 32 8.5s12.5 3 12.5 12z" fill="${alt}" ${FK}/>${shine('M24 13c2.4-1.6 5-2.2 8-2.2')}<path d="M29 20.5h20.5c-.3 2.6-2.5 3.8-6 3.8H29z" fill="${alt}" ${FK}/>` : short);
+  return wrap(out.join(''));
 }

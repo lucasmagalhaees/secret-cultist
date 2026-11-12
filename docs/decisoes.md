@@ -1027,3 +1027,7 @@ O modelo Claude Fable 5.1 redesenhou seis retratos que eram corpo inteiro pequen
 ## D152. Todo design do jogo passa pelo Fable (2026-11-11)
 
 O Lucas decidiu: tudo que for de design do jogo (retratos, rostos, símbolos, telas) passa pelo modelo Claude Fable 5.1 antes de entrar, e ele aprova a prévia. Com os 30 retratos de continente redesenhados inteiros, saiu do `art.ts` o código que montava os bichos por partes (`member`, `leader`, as cabeças e os corpos), que não era mais chamado.
+
+## D153. Rostos da mesa e símbolos das leis pelo Fable (2026-11-12)
+
+Redesenhados pelo Claude Fable 5.1 e aprovados pelo Lucas. Os rostos continuam sem olhos e boca (D92), com cabeça, ombros, cabelo, chapéus e roupas melhores e um fundo mais claro, para cartola, bicorne e boina não sumirem; os 25 gregos ganharam visual próprio (`GREEK` em `src/app/art.ts`: elmo levantado nos generais, coroa de folhas nos poetas, diadema e véu na Gorgo), em vez do genérico sorteado. Os sete símbolos das leis ficaram mais cheios e limpos, recortados com `evenodd` onde há vazado, o que também acaba com os detalhes avermelhados na carta azul (o `--halo` das leis é sempre o do lado escondido). A documentação dizia caveira e estrela; o código sempre teve feixe com machado e foice e martelo, e a documentação foi corrigida.
