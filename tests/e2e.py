@@ -641,6 +641,34 @@ with sync_playwright() as p:
     assert mp.evaluate("getComputedStyle(document.querySelector('.fxl')).pointerEvents") == 'none' and mp.locator('#seats .seat.pres-sash.sash').count() == 1
     mp.wait_for_selector('#board .slot.lit.thud', state='attached', timeout=3000)
     mp.screenshot(path=str(SHOTS / f'fx-{THEME}.png'))
+    # D157: the end has a scene of its own for each theme and each side, with the winners' drawing in the middle; the
+    # result waits under it, a tap ends it, and only then the confetti falls. The majority wins by eliminating the hidden
+    # leader (the elimination screen first, skipped with a tap), the hidden side by electing it chancellor
+    for pack in ('culto', 'esparta', 'classico', 'vermelho'):
+        for side in ('L', 'F'):
+            _mwait()
+            mp.evaluate("""([pack, side]) => { const g = window.__APP.S.game, boss = g.players.findIndex(p => p.role === 'lider'), other = g.players.findIndex(p => p.role !== 'lider');
+                g.pack = pack; delete g.winner; delete g.why; g.players.forEach(p => { p.alive = true; }); g.pres = other; g.chanc = null; g.target = null; g.lastPres = null; g.lastChanc = null; g.tracker = 0;
+                g.laws = { L: 0, F: 3 }; g.phase = side === 'L' ? 'execute' : 'nominate'; window.__APP.ui.pick = null; document.getElementById('confetti').innerHTML = ''; }""", [pack, side])
+            mp.click('[data-act=endtab] >> nth=0' if mp.locator('[data-act=endtab]').count() else '[data-act=help]')   # any tap repaints the screen with the game as set
+            boss = mp.evaluate("window.__APP.S.game.players.findIndex(p => p.role === 'lider')")
+            if side == 'L':
+                mp.click(f'#phase [data-act=pickp][data-i="{boss}"]'); mp.click('[data-act=execute]')
+                mp.wait_for_function("Number(getComputedStyle(document.querySelector('#flash')).opacity) > .9"); assert mp.locator('#flash .tear-boss').count() == 1 and mp.locator('#finale').count() == 0, 'the elimination screen plays before the end'
+                assert mp.evaluate("(() => { const m = document.querySelector('#flash .muzzle'); return Number(getComputedStyle(m).opacity) < .05 || m.getAnimations()[0].currentTime >= 1050; })()"), 'the screen is not white before the shot'
+                assert mp.locator('#flash.shard').count() == (1 if pack == 'esparta' else 0), 'Athens sends away with a potsherd, not a gun'
+                _mclick('#flash')                                                    # a tap skips it, and the end comes at once
+            else:
+                mp.click(f'#phase [data-act=nominate][data-i="{boss}"]'); mp.click('[data-act=elect][data-v="1"]')
+            mp.wait_for_selector(f'#finale.p-{pack}.w-{side}', timeout=6000)
+            assert mp.evaluate("window.__APP.S.game.phase") == 'over' and mp.locator('#finale .fin-hero .main svg.art').count() == 1 and mp.locator('#finale .fin-hero .side').count() == (2 if side == 'F' else 0)
+            assert 'venceram' in mp.text_content('#finale .fin-title') and mp.locator('#finale .fin-set > *').count() >= 2 and mp.locator('html.fin-wait').count() == 1 and mp.locator('#confetti i').count() == 0
+            assert mp.evaluate("getComputedStyle(document.querySelector('#phase .cheer .art')).animationPlayState") == 'paused', 'the result holds its motion under the scene'
+            mp.wait_for_function("Number(getComputedStyle(document.querySelector('#finale .fin-title b')).opacity) > .9", timeout=5000)
+            if pack in ('culto', 'esparta'): mp.screenshot(path=str(SHOTS / f'fim-{pack}-{side}-{THEME}.png'))
+            _mclick('#finale')
+            assert mp.locator('html.fin-wait').count() == 0 and mp.locator('#confetti i').count() > 0, 'a tap ends the scene and the confetti falls over the result'
+            mp.wait_for_selector('#finale', state='detached', timeout=3000); assert mp.locator('[data-act=again]').is_visible()
     cov.stop(mp, f'e2e-motion-{THEME}')
     assert not merrs, merrs
     b.close()

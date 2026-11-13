@@ -1,7 +1,7 @@
 /* What shows over the screen for a moment (D143, out of render.ts): the vote stamp, the decree, the powers, the
    confetti, the toasts, the debate sheet, turning a vote, the big rolls and the story. */
 import { Core } from '../core';
-import type { Event, Game, Gov, Law, Party } from '../core';
+import type { Event, Game, Gov, Law, Pack, Party } from '../core';
 import type { Roll } from '../core/dice';
 import type { ItemKey, TrapKey } from '../core/index';
 import { face, portrait, seal } from './art';
@@ -24,16 +24,26 @@ export function stamp(text: string, party: Party): void {
  *  what the rule lets the table know: whether it was the hidden leader. The screen shakes once (an iPhone page cannot
  *  vibrate). Without a name, only the dark. */
 /** A new game closes the elimination screen of the last one: its words belong to that game. */
+/** D157: how long the elimination screen stays, in ms: the same clock as its CSS (`--exec` in styles.css). */
+const EXEC = 4100, EXEC_BOSS = 4800;
+/** D157: Athens sends people away by ostracism: a potsherd with the vote scratched on it, not a gun. */
+const OSTRAKON = '<svg class="gun ostrakon" viewBox="0 0 220 120" aria-hidden="true"><path d="M28 14 L96 4 L170 16 L206 50 L188 96 L120 116 L52 104 L14 62 Z" fill="#b5653a" stroke="#f3e8d0" stroke-width="3" stroke-linejoin="round"/><path d="M28 14 L96 4 L170 16 L160 28 L92 18 L40 26 Z" fill="#d0834f"/><path d="M52 46 l22 -6 M56 62 l96 -14 M60 78 l84 -10 M150 36 l20 4 M66 92 l40 -4" stroke="#3a1d0e" stroke-width="5" stroke-linecap="round" fill="none"/></svg>';
 export function clearFlash(): void { const f = part('flash'); f.hidden = true; f.innerHTML = ''; }
 export function flash(who = '', wasBoss = false, why = ''): void {
   const f = part('flash');
   // a shot (D45): the muzzle flashes, the screen cracks from where it hit, then the name and the stamp
-  f.innerHTML = who ? `<svg class="gun" viewBox="0 0 220 120" aria-hidden="true"><path d="M8 30 h150 l10 -8 h22 v22 h-30 v10 h-60 l-6 18 h-20 l-8 44 h-40 l12 -50 h-30 z" fill="#1a1714" stroke="#f3e8d0" stroke-width="3" stroke-linejoin="round"/><circle cx="96" cy="52" r="9" fill="none" stroke="#f3e8d0" stroke-width="3"/><path class="bang" d="M196 33 l18 -14 -4 14 10 4 -12 6 12 10 -18 -4" fill="#ffd678" stroke="#fff" stroke-width="2"/></svg><div class="muzzle"></div><svg class="crack" viewBox="0 0 400 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><path d="M230 300 L305 299 L378 277 L454 290 L528 275 M230 300 L326 320 L417 358 L517 362 L613 385 M230 300 L314 384 L394 472 L450 580 L494 695 M230 300 L238 390 L285 473 L261 571 L320 652 M230 300 L225 372 L202 443 L221 518 L190 588 M230 300 L171 367 L128 446 L77 519 L16 585 M230 300 L146 339 L57 368 L-26 410 L-105 459 M230 300 L120 297 L10 277 L-100 269 L-205 222 M230 300 L162 250 L78 231 L9 180 L-50 117 M230 300 L155 239 L100 157 L40 81 L-37 19 M230 300 L224 215 L215 130 L206 45 L188 -39 M230 300 L270 180 L320 64 L313 -70 L415 -171 M230 300 L322 209 L390 96 L477 0 L586 -76 M230 300 L304 241 L377 180 L448 117 L558 109 M270 304 L264 321 L252 334 L235 340 L217 338 L202 329 L192 314 L190 296 L196 279 L208 266 L225 260 L243 262 L258 271 L268 286 L270 304 M325 309 L311 350 L282 380 L242 394 L200 390 L164 368 L141 332 L135 291 L149 250 L178 220 L218 206 L260 210 L296 232 L319 268 L325 309"/><circle cx="230" cy="300" r="9"/></svg><div class="exec"><i class="av av-xl out" aria-hidden="true">${face(who, S.game?.region || 'mundo', !S.game?.players.find(p => p.name === who)?.ai)}</i><b class="exec-name">${esc(who)}</b><span class="exec-stamp">Eliminado</span>${why ? `<p class="exec-why">“${esc(why)}”</p>` : ''}</div>${wasBoss ? `<div class="tear-boss" aria-hidden="true"><div class="tb-half l">${portrait('lider', P, R)}</div><div class="tb-half r">${portrait('lider', P, R)}</div></div><div class="fate boss"><div class="rays"></div><div class="birds">${'<i></i>'.repeat(7)}</div><b class="exec-card boss">Era o ${W.boss}!</b><span>Os liberais chegam ao poder</span></div>` : `<div class="fate on"><i class="sweep"></i><b class="exec-card">Não era o ${W.boss}</b><span>O jogo continua</span></div>`}` : '';
-  f.hidden = false; f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
-  freeze(who ? (wasBoss ? 4800 : 3600) : 900);   // D88: shorter; a tap skips it
+  // D157: the one who goes is seen first, in the light; the weapon comes in and aims; the hit knocks the face back and
+  // cracks the glass from it; the stamp lands on top; then the verdict. In Athens nobody is shot: the potsherd of the
+  // ostracism falls on the name
+  const weapon = P === 'esparta' ? OSTRAKON : `<svg class="gun" viewBox="0 0 220 120" aria-hidden="true"><path d="M8 30 h150 l10 -8 h22 v22 h-30 v10 h-60 l-6 18 h-20 l-8 44 h-40 l12 -50 h-30 z" fill="#1a1714" stroke="#f3e8d0" stroke-width="3" stroke-linejoin="round"/><circle cx="96" cy="52" r="9" fill="none" stroke="#f3e8d0" stroke-width="3"/><path class="bang" d="M196 33 l18 -14 -4 14 10 4 -12 6 12 10 -18 -4" fill="#ffd678" stroke="#fff" stroke-width="2"/></svg>`;
+  const victim = `<div class="exec"><div class="exec-who"><i class="av av-xl exec-face" aria-hidden="true">${face(who, S.game?.region || 'mundo', !S.game?.players.find(p => p.name === who)?.ai)}</i></div><b class="exec-name">${esc(who)}</b><span class="exec-stamp">Eliminado</span>${why ? `<p class="exec-why">“${esc(why)}”</p>` : ''}</div>`;
+  const verdict = wasBoss ? `<div class="tear-boss" aria-hidden="true"><div class="tb-half l">${portrait('lider', P, R)}</div><div class="tb-half r">${portrait('lider', P, R)}</div></div><div class="fate boss"><b class="exec-card boss">Era o ${W.boss}!</b><span>Os liberais chegam ao poder</span></div>` : `<div class="fate on"><i class="sweep"></i><b class="exec-card">Não era o ${W.boss}</b><span>O jogo continua</span></div>`;
+  f.innerHTML = who ? `${weapon}<div class="muzzle"></div><svg class="crack" viewBox="-270 -200 1000 1000" aria-hidden="true"><path d="M230 300 L305 299 L378 277 L454 290 L528 275 M230 300 L326 320 L417 358 L517 362 L613 385 M230 300 L314 384 L394 472 L450 580 L494 695 M230 300 L238 390 L285 473 L261 571 L320 652 M230 300 L225 372 L202 443 L221 518 L190 588 M230 300 L171 367 L128 446 L77 519 L16 585 M230 300 L146 339 L57 368 L-26 410 L-105 459 M230 300 L120 297 L10 277 L-100 269 L-205 222 M230 300 L162 250 L78 231 L9 180 L-50 117 M230 300 L155 239 L100 157 L40 81 L-37 19 M230 300 L224 215 L215 130 L206 45 L188 -39 M230 300 L270 180 L320 64 L313 -70 L415 -171 M230 300 L322 209 L390 96 L477 0 L586 -76 M230 300 L304 241 L377 180 L448 117 L558 109 M270 304 L264 321 L252 334 L235 340 L217 338 L202 329 L192 314 L190 296 L196 279 L208 266 L225 260 L243 262 L258 271 L268 286 L270 304 M325 309 L311 350 L282 380 L242 394 L200 390 L164 368 L141 332 L135 291 L149 250 L178 220 L218 206 L260 210 L296 232 L319 268 L325 309"/><circle cx="230" cy="300" r="9"/></svg>${victim}${verdict}` : '';
+  f.hidden = false; f.classList.remove('go'); f.classList.toggle('shard', P === 'esparta'); void f.offsetWidth; f.classList.add('go');
+  freeze(who ? (wasBoss ? EXEC_BOSS : EXEC) : 900);   // D88: short; a tap skips it
   f.classList.toggle('tap', !!who); f.onclick = who ? () => { f.hidden = true; f.innerHTML = ''; ui.frozen = 0; } : null;
   if (who) { const v = part('view'); v.classList.remove('shake'); void v.offsetWidth; v.classList.add('shake'); }   // the page under it shakes, not the body: a moved body would carry the fixed screens with it
-  setTimeout(() => { f.hidden = true; f.innerHTML = ''; }, who ? (wasBoss ? 4800 : 3600) : 900);
+  setTimeout(() => { f.hidden = true; f.innerHTML = ''; }, who ? (wasBoss ? EXEC_BOSS : EXEC) : 900);
 }
 /** A law has just been enacted: who made it, over the screen for a moment (D11). The text comes from the code and the
  *  names go through esc(). */
@@ -65,11 +75,88 @@ export function powerEffect(g: Game, target: number, kind: 'investigate' | 'exec
   clearTimeout(powerTimer); powerTimer = setTimeout(() => { d.hidden = true; }, 1600);
 }
 
-/** Confetti in the colour of the side that won. */
+/** Confetti in the colour of the side that won: paper that flutters down, each piece with its own size, sway and spin. */
+let confettiTimer: ReturnType<typeof setTimeout> | undefined;
 export function confetti(winner: Party): void {
   const c = part('confetti');
-  c.innerHTML = Array.from({ length: 48 }, (_, i) => `<i class="${winner}" style="left:${(i * 37) % 100}%;animation-delay:${(i % 12) * 0.08}s;animation-duration:${1.6 + (i % 5) * 0.25}s;--r:${(i * 53) % 360}deg"></i>`).join('');
-  setTimeout(() => { c.innerHTML = ''; }, 4200);
+  c.innerHTML = Array.from({ length: 48 }, (_, i) => `<i class="${winner}" style="left:${(i * 37) % 100}%;animation-delay:${((i * 7) % 12) * 0.09}s;animation-duration:${2.2 + (i % 5) * 0.3}s;--r:${180 + ((i * 53) % 360)}deg;--sx:${((i * 29) % 90) - 45}px;--w:${7 + (i % 4) * 2}px"></i>`).join('');
+  clearTimeout(confettiTimer); confettiTimer = setTimeout(() => { c.innerHTML = ''; }, 4800);   // an older shower's clock must not sweep this one away
+}
+
+/* ---------- D157: the end has a scene for each theme and each side ---------- */
+/** The outline of a plain star standing on two feet (one point up): `n` points, radius `r`, the notches at `inner`.
+ *  A solid shape, with no lines crossing inside it. */
+const star = (n: number, r: number, inner: number): string => Array.from({ length: n * 2 }, (_, i) => { const a = -Math.PI / 2 + (Math.PI * i) / n, d = i % 2 ? inner : r; return `${(d * Math.cos(a)).toFixed(1)},${(d * Math.sin(a)).toFixed(1)}`; }).join(' ');
+/** The cult's sign, made up here and taken from nowhere: a whirlpool of six arms winding out of the dark, inside a ring
+ *  of marks that are no alphabet (a stroke, a dot, a wave). No star of any kind. */
+const vortex = (): string => {
+  const arm = (k: number): string => `<path d="M${Array.from({ length: 15 }, (_, i) => { const d = 5 + i * 2.6, a = (Math.PI / 3) * k + d * 0.075; return `${(d * Math.cos(a)).toFixed(1)} ${(d * Math.sin(a)).toFixed(1)}`; }).join('L')}"/>`;
+  const mark = (k: number): string => `<g transform="rotate(${k * 30})">${['<path d="M0 -53.5V-48.5"/>', '<circle cy="-51" r="1.7"/>', '<path d="M-3.4 -49.5Q-1.7 -54 0 -51T3.4 -52.5"/>'][k % 3]}</g>`;
+  return `<circle r="57"/><circle r="45"/>${many(12, mark)}<g class="arms">${many(6, arm)}</g>`;
+};
+/** What floats in the scene: each piece with its own place, delay, speed, turn and size; the theme's CSS draws it. */
+const motes = (n: number, how: string): string => `<div class="fin-parts ${how}">${Array.from({ length: n }, (_, i) => `<i style="--x:${(i * 41 + 7) % 100};--d:${((i * 7) % 16) / 8}s;--t:${2.6 + (i % 5) * 0.4}s;--r:${(i * 67) % 360}deg;--s:${(0.7 + (i % 4) * 0.2).toFixed(1)};--sx:${((i * 29) % 80) - 40}px"></i>`).join('')}</div>`;
+const many = (n: number, one: (i: number) => string): string => Array.from({ length: n }, (_, i) => one(i)).join('');
+const SKY = '<i class="fin-sun"></i><i class="fin-rays"></i>';
+const TENT = [[-3, 50, 0], [11, 66, 1], [26, 24, 0], [61, 22, 1], [75, 64, 0], [90, 52, 1]];   // left (%), height (vh), mirrored: tall at the sides, short under the words
+const SHIELD = '<circle r="46" fill="#8a6634" stroke="#15110e" stroke-width="4"/><circle r="38" fill="#a3211a" stroke="#e0bd7a" stroke-width="3"/><path d="M0 -24 L20 22 H9 L0 -2 L-9 22 H-20Z" fill="#15110e"/>';
+const COLUMN = '<path d="M4 0h52v10H4zM10 10h40v8H10zM12 18h36v262H12zM6 280h48v10H6zM0 290h60v10H0z" fill="#f2efe6" stroke="#15110e" stroke-width="3" stroke-linejoin="round"/><path d="M21 22v254M30 22v254M39 22v254" stroke="#bdb6a4" stroke-width="3"/>';
+/** A branch of laurel: a stem bending up and its leaves, drawn once and mirrored for the other side. */
+const laurel = (): string => `<path d="M52 196 C14 160 6 96 40 22" fill="none" stroke="#3d6b2c" stroke-width="4" stroke-linecap="round"/>${many(8, i => { const t = i / 7, x = 52 - 46 * Math.sin(Math.PI * t * 0.9) + 14 * t, y = 190 - 164 * t; return `<ellipse cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" rx="19" ry="7.5" fill="${i % 2 ? '#5f9a3e' : '#7fb850'}" stroke="#15110e" stroke-width="2.4" transform="rotate(${(-150 + 62 * t + (i % 2 ? 46 : -30)).toFixed(0)} ${x.toFixed(0)} ${y.toFixed(0)})"/>`; })}`;
+/** The scene behind and around the winners, by theme and side: only shapes, moved by the CSS (transform and opacity). */
+const SETS: Record<Pack, Record<Law, () => string>> = {
+  culto: {
+    // the ritual is complete: the whirlpool turns behind the High Priest and what was called rises from under the screen
+    F: () => `<i class="fin-vig"></i><svg class="fin-vortex" viewBox="-60 -60 120 120" aria-hidden="true">${vortex()}</svg>${many(TENT.length, i => `<svg class="fin-tent${TENT[i][2] ? ' flip' : ''}" style="left:${TENT[i][0]}%;--h:${TENT[i][1]};--k:${i}" viewBox="0 0 60 300" preserveAspectRatio="none" aria-hidden="true"><path d="M2 300 C-4 236 44 204 24 150 C6 104 44 70 26 22 C22 8 36 2 40 16 C60 72 24 108 44 150 C64 200 40 240 58 300Z" fill="#1f5a45" stroke="#0a0806" stroke-width="3" stroke-linejoin="round"/><path d="M27 60h.1M30 96h.1M33 132h.1M37 170h.1M36 208h.1M34 246h.1M32 280h.1" stroke="#7dd6a6" stroke-width="7" stroke-linecap="round"/></svg>`)}${motes(18, 'rise')}`,
+    // the book is shut and the night ends: the sun comes up behind the investigator
+    L: () => `${SKY}<i class="fin-night"></i><div class="fin-book" aria-hidden="true"><div class="bk-l"></div><div class="bk-r"><div class="bk-page">${seal('F', 'culto')}</div><div class="bk-cover">${seal('L', 'culto')}</div></div></div>${motes(18, 'rise')}`
+  },
+  esparta: {
+    // the phalanx: spears come up and lean forward, the shields lock, the red cloak crosses the screen
+    F: () => `<i class="fin-cloak"></i><div class="fin-spears" aria-hidden="true">${many(7, i => `<i style="--k:${i}"></i>`)}</div><div class="fin-wall" aria-hidden="true">${many(5, i => `<svg viewBox="-50 -50 100 100" style="--k:${i}">${SHIELD}</svg>`)}</div>${motes(16, 'rise')}`,
+    // Athens stands: the columns, the laurel closing around the winner, Athena's owl on top, olive leaves coming down
+    L: () => `${SKY}${many(2, i => `<svg class="fin-col ${i ? 'r' : 'l'}" viewBox="0 0 60 300" preserveAspectRatio="none" aria-hidden="true">${COLUMN}</svg>`)}<div class="fin-laurel" aria-hidden="true">${many(2, i => `<svg class="${i ? 'r' : 'l'}" viewBox="0 0 80 200">${laurel()}</svg>`)}<span class="fin-owl">${seal('L', 'esparta')}</span></div>${motes(20, 'fall')}`
+  },
+  classico: {
+    // the banners come down the wall and the searchlights cross
+    F: () => `${many(2, i => `<i class="fin-beam ${i ? 'r' : 'l'}"></i>`)}<div class="fin-banners" aria-hidden="true">${many(3, i => `<i style="--k:${i}">${seal('F', 'classico')}</i>`)}</div>${motes(18, 'fall')}`,
+    // the day breaks and the scales hang level again
+    L: () => `${SKY}<span class="fin-emblem" aria-hidden="true">${seal('L', 'classico')}</span>${motes(14, 'rise')}`
+  },
+  vermelho: {
+    // the star comes up, upright and still, and the flags with it
+    F: () => `<i class="fin-rays"></i><svg class="fin-star" viewBox="-60 -60 120 120" aria-hidden="true"><polygon points="${star(5, 56, 22)}"/></svg>${many(2, i => `<svg class="fin-flag ${i ? 'r' : 'l'}" viewBox="0 0 120 300" preserveAspectRatio="none" aria-hidden="true"><path d="M8 0v300" stroke="#e8b730" stroke-width="7" stroke-linecap="round"/><path class="cloth" d="M12 8 C40 -4 70 22 112 8 V84 C70 98 40 70 12 84Z" fill="#c8281c" stroke="#15110e" stroke-width="3" stroke-linejoin="round"/></svg>`)}${motes(16, 'rise')}`,
+    // the thaw: the snow thins out and the sun is back
+    L: () => `${SKY}<span class="fin-emblem" aria-hidden="true">${seal('L', 'vermelho')}</span>${motes(22, 'fall')}`
+  }
+};
+/** The line over the winners' name, by theme and side. */
+const KICKER: Record<Pack, Record<Law, string>> = {
+  culto: { L: 'O livro foi fechado', F: 'O ritual se completou' },
+  esparta: { L: 'Atenas resiste', F: 'A falange tomou a Assembleia' },
+  classico: { L: 'O dia nasce de novo', F: 'A noite cai sobre a mesa' },
+  vermelho: { L: 'O degelo chegou', F: 'A bandeira sobe' }
+};
+/** How long the scene of the end stays (ms); a tap ends it at once. */
+export const FINALE = 4800;
+let finLeave: (() => void) | null = null;
+/** D157: the end of the game. Each theme and each side has its own scene, with the winners' drawing in the middle: the
+ *  ritual completed or the book shut and the dawn (Secret Cultist), the laurel and the owl or the phalanx (Secret
+ *  Leônidas), the scales at daybreak or the banners, the thaw or the star (the expansion's themes). It covers the
+ *  screen for a moment, a tap ends it, and `then` runs when it leaves (the confetti over the result). With less motion
+ *  asked there is no scene: `then` runs at once and the result is on screen as always. */
+export function finale(g: Game, then: () => void): void {
+  const w = g.winner as Law;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { then(); return; }
+  const byBoss = w === 'F' && g.laws.F < Core.WIN.F;   // the hidden leader was elected chancellor in the danger zone
+  const el = document.createElement('div'), root = document.documentElement;
+  el.className = `finale p-${P} w-${w}`; el.id = 'finale'; el.setAttribute('role', 'status');
+  el.innerHTML = `<div class="fin-set" aria-hidden="true">${SETS[P][w]()}</div><div class="fin-hero" aria-hidden="true">${w === 'F' ? `<span class="side l">${portrait('cultista', P, R)}</span><span class="side r">${portrait('cultista', P, R)}</span>` : ''}<span class="main">${portrait(w === 'L' ? 'liberal' : 'lider', P, R)}</span></div><div class="fin-title"><small>${byBoss ? `${esc(W.boss)} chanceler!` : KICKER[P][w]}</small><b>${w === 'L' ? 'Os liberais venceram!' : `Os ${esc(W.fs)} venceram!`}</b><span>${esc(g.why || '')}</span></div><em class="fin-skip">toque para seguir</em>`;
+  finLeave?.();   // a scene still on screen (two games ended in a row) leaves first, with what it owed
+  document.body.appendChild(el); root.classList.add('fin-wait');   // the result under it holds its own motion until the scene leaves
+  const timer = setTimeout(() => leave(), FINALE);
+  const leave = (): void => { clearTimeout(timer); finLeave = null; el.classList.add('out'); el.onclick = null; root.classList.remove('fin-wait'); then(); setTimeout(() => el.remove(), 450); };
+  finLeave = leave; el.onclick = leave;
 }
 
 let toastTimer: ReturnType<typeof setTimeout> | undefined;
