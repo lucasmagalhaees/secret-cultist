@@ -254,7 +254,7 @@ export function narrate(g: Game): Game {
       : g.laws.L >= 5 ? `As cinco relíquias se juntaram, e a Lança selou o que ${god.name} quase abriu.`
         : `${boss}, o Sumo Sacerdote, caiu, e o culto a ${god.name} se desfez como fumaça.`;
     const c = g.campaign, wins = c ? { L: c.wins.L + (g.winner === 'L' ? 1 : 0), F: c.wins.F + (g.winner === 'F' ? 1 : 0) } : null;
-    const tail = c && wins && c.ch >= CHAPTERS ? ` Fim da campanha: investigadores ${wins.L} × ${wins.F} culto. ${wins.L > wins.F ? `${god.name} volta a dormir, por enquanto.` : `${god.name} não volta a dormir.`}` : c ? ` Fim do capítulo ${c.ch}.` : '';   // D121
+    const tail = c && wins && (c.ch >= CHAPTERS || Math.max(wins.L, wins.F) > CHAPTERS / 2) ? ` Fim da campanha: investigadores ${wins.L} × ${wins.F} culto. ${wins.L > wins.F ? `${god.name} volta a dormir, por enquanto.` : `${god.name} não volta a dormir.`}` : c ? ` Fim do capítulo ${c.ch}.` : '';   // D121
     return { ...g, log: [...g.log, `📜 Fim. ${end}${tail}`] };
   }
   const act = actOf(g);

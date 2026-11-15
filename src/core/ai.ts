@@ -958,9 +958,13 @@ function cultist(v: View, rand: () => number, allies: number[], lider: number): 
   }
   if (v.ask === 'investigate') {
     rows(pub, o);
-    if (k.plan && o.includes(lider) && lider !== v.me) { why(`Investigou o {boss}, ${P(lider)}, para depois dizer que ele é liberal e abonar.`); return lider; }    // to vouch for him afterwards
-    const mates = o.filter(isAlly);
-    if (mates.length && rand() < 0.4) { const m = best(mates, i => -pub.pF[i], rand); why(`Investigou um aliado sob suspeita, ${P(m)}, para limpar a barra dele.`); return m; }
+    // D158: clearing an ally right after a law of the hidden side is the giveaway the table reads first; never clear the
+    // one who sat in the government that just passed it, and clear anyone else only now and then
+    const lastGov = [...v.hist].reverse().find(e => e.k === 'gov') as { pres: number; chanc: number } | undefined;
+    const fresh = (i: number): boolean => !!lastGov && (lastGov.pres === i || lastGov.chanc === i);
+    if (k.plan && o.includes(lider) && lider !== v.me && !fresh(lider) && rand() < 0.45) { why(`Investigou o {boss}, ${P(lider)}, para depois dizer que ele é liberal e abonar (não estava no governo da lei que acabou de passar).`); return lider; }    // to vouch for him afterwards
+    const mates = o.filter(i => isAlly(i) && !fresh(i));
+    if (mates.length && rand() < 0.2) { const m = best(mates, i => -pub.pF[i], rand); why(`Investigou um aliado sob suspeita, ${P(m)}, para limpar a barra dele.`); return m; }
     const libs = o.filter(i => !isAlly(i)), pick = best(libs.length ? libs : o, i => pub.pF[i], rand);
     why(`Investigou ${P(pick)}, o liberal que a mesa acha mais limpo, e pode incriminá-lo depois.`); return pick;
   }

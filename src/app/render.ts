@@ -833,6 +833,8 @@ export function gateKey(g: Game): { key: string; who: number } | null {
 }
 function gated(g: Game, title: string, inner: () => string): string {
   const gk = gateKey(g) as { key: string; who: number };
+  // D158: alone at a table of app players, there is nobody to hide a hand from: it opens at once, one tap fewer
+  if (g.phase !== 'reveal' && Core.hasAi(g) && Core.humansAlive(g).length === 1 && Core.humansAlive(g)[0] === gk.who && g.players.filter(p => !p.ai).length === 1) ui.open = gk.key;
   if (ui.open === gk.key) {
     const flip = seenOpen !== gk.key; seenOpen = gk.key; flipping = flip;
     return `<section class="card secret${flip ? ' flip' : ''}" id="phase"><span class="label">${title} · só ${name(g, gk.who)} olha</span>${inner()}</section>`;
@@ -857,7 +859,7 @@ function vPhase(g: Game): string {
         const row = (cls: string, label: string, who: string): string => who ? `<div class="ally ${cls}"><small>${label}</small><span>${who}</span></div>` : '';
         const info = me.role === 'cultista' ? `<div class="allies${flipping ? ' go' : ''}" id="allies">${row('H', '{boss}', names('lider'))}${row('F', 'Outros {fs}', names('cultista'))}</div>`
           : me.role === 'lider' ? (mates.length ? `<div class="allies" id="allies">${row('F', 'Seu {f}', names('cultista'))}</div><p class="hint">Ele sabe quem você é.</p>` : '<p>Você não sabe quem são os {fs}. Eles sabem quem você é.</p>') : '<p>Você não sabe quem é quem. Ache o {boss}.</p>';
-        const trained = g.train && !me.ai ? `<p class="hint" id="trained">Treino: você escolheu ser ${role(g.train).toLowerCase()}.</p>` : '';
+        const trained = g.train && !me.ai && !g.campaign?.role ? `<p class="hint" id="trained">Treino: você escolheu ser ${role(g.train).toLowerCase()}.</p>` : '';
         return `${turn(`<div class="role-card ${Core.partyOf(me.role)}${me.role === 'lider' ? ' H' : ''}" id="role">${portrait(me.role, P, R)}<small>Você é</small><b class="${(P === 'culto' ? Core.cultSpeak(role(me.role)) : role(me.role)).length > 9 ? 'long' : ''}">${role(me.role)}</b></div>`)}${info}${trained}<button class="btn block" data-act="hiderole">Entendi, esconder</button>`;
       });
     case 'nominate':
@@ -887,7 +889,13 @@ function vPhase(g: Game): string {
     case 'execute':
       return `<section class="card" id="phase"><span class="label">Poder: eliminar</span><p class="big"><b>${pres}</b>, quem sai do jogo?</p>${pickList(g, i => Core.canTarget(g, i), 'pickp')}<button class="btn block danger" data-act="execute"${ui.pick === null ? ' disabled' : ''}>${ui.pick === null ? 'Escolha alguém' : `Eliminar ${name(g, ui.pick)}`}</button></section>`;
     default:
-      return `<section class="card win ${g.winner}" id="phase"><span class="label">Fim de jogo</span><div class="cheer">${portrait(g.winner === 'L' ? 'liberal' : 'lider', P, R)}</div><p class="big"><b>${g.winner === 'L' ? 'Os liberais venceram!' : 'Os {fs} venceram!'}</b></p><p>${esc(g.why)}</p>
+      return `<section class="card win ${g.winner}" id="phase"><span class="label">Fim de jogo</span><div class="cheer">${portrait(g.winner === 'L' ? 'liberal' : 'lider', P, R)}</div>${(() => {   // D158: a chapter has a winner of its own; the campaign has one only at its end (best of three)
+          const c = g.campaign, w = Core.campaignScore(g);
+          if (!c || !w) return `<p class="big"><b>${g.winner === 'L' ? 'Os liberais venceram!' : 'Os {fs} venceram!'}</b></p>`;
+          const side = (x: Law | null): string => (x === 'L' ? 'os liberais' : 'os {fs}');
+          if (!Core.campaignOver(g)) return `<p class="big"><b>Capítulo ${c.ch}: ${side(g.winner)} levaram.</b></p><p class="hint" id="campscore">Campanha: liberais ${w.L} × ${w.F} {fs}. Melhor de ${Core.CHAPTERS}: ainda não acabou.</p>`;
+          return `<p class="big"><b>Fim da campanha: ${w.L > w.F ? 'os liberais venceram!' : 'os {fs} venceram!'}</b></p><p class="hint" id="campscore">Liberais ${w.L} × ${w.F} {fs}, em ${c.ch} capítulo${c.ch > 1 ? 's' : ''}.</p>`;
+        })()}<p>${esc(g.why)}</p>
         ${(() => { const c = Core.chapterAfter(g); return c ? `<button class="btn block go" data-act="nextch" id="nextch">📖 Próximo capítulo (${c.ch} de ${Core.CHAPTERS}) · investigadores ${c.wins.L} × ${c.wins.F} culto</button>` : ''; })()}        <button class="btn block" data-act="nextgame" id="nextgame">▶ Mais uma</button><button class="btn block" data-act="again">Jogar de novo com a mesma mesa</button><button class="btn ghost block" data-act="table">Voltar ao início</button></section>`;
   }
 }

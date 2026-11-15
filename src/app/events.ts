@@ -274,9 +274,9 @@ function quickGame(prev?: Game | null, only?: Pack, campaign?: NonNullable<Game[
   while (names.length < 7) names = [...names, Core.botName(names, rand, pack, region)];
   // the table set up by hand stays as it was: the quick game is built apart from it
   clearFlash();
-  let r = Core.newGame(names, rand, { ai: names.map((_, i) => i > 0), level: 'dificil', pack, region });
+  let r = Core.newGame(names, rand, { ai: names.map((_, i) => i > 0), level: 'dificil', pack, region, ...(campaign?.role ? { train: campaign.role } : {}) });   // D158: the same role all campaign
   // the same role as last game comes back only now and then (D56): draw the roles again a few times
-  for (let k = 0; lastRole && r.ok && r.game.players[0].role === lastRole && k < 4 && rand() >= Core.REPEAT_KEEP; k++) r = Core.newGame(names, rand, { ai: names.map((_, i) => i > 0), level: 'dificil', pack, region });
+  for (let k = 0; !campaign?.role && lastRole && r.ok && r.game.players[0].role === lastRole && k < 4 && rand() >= Core.REPEAT_KEEP; k++) r = Core.newGame(names, rand, { ai: names.map((_, i) => i > 0), level: 'dificil', pack, region });
   if (!r.ok) return;
   const next = { ...S }; delete next.notes; delete next.noteDetails; delete next.assist; setS(next); saveS();
   ui.msg = ''; ui.help = false; ui.diary = false; ui.endTab = 'res'; play(campaign ? { ...r.game, campaign, ...(prev?.region ? { region: prev.region } : {}) } : r.game, campaign ? `Capítulo ${campaign.ch} de ${Core.CHAPTERS}. Veja seu papel em segredo.` : 'Partida rápida. Veja seu papel em segredo.');

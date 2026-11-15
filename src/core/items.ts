@@ -224,15 +224,25 @@ function hasSign(g: Game, i: number): boolean {
   return found >= 0 && !g.hist.slice(found).some(e => e.k === 'trap' && e.rolls.some(x => x.seat === i && x.sign));
 }
 
+/** D158: the score of a campaign counting the chapter just finished; the campaign ends at the last chapter or as soon
+ *  as one side has won most of them (two of three), and only then is there a winner of the campaign. */
+export function campaignScore(g: Game): { L: number; F: number } | null {
+  const c = g.campaign;
+  return c ? { L: c.wins.L + (g.phase === 'over' && g.winner === 'L' ? 1 : 0), F: c.wins.F + (g.phase === 'over' && g.winner === 'F' ? 1 : 0) } : null;
+}
+export function campaignOver(g: Game): boolean {
+  const c = g.campaign, w = campaignScore(g);
+  return !!c && !!w && g.phase === 'over' && (c.ch >= CHAPTERS || Math.max(w.L, w.F) > CHAPTERS / 2);
+}
 /** D121: the next chapter of a campaign, from a finished one: what the person carries, and the score so far. */
 export function chapterAfter(g: Game): Campaign | null {
   const c = g.campaign;
-  if (!c || g.phase !== 'over' || !g.winner || c.ch >= CHAPTERS) return null;
+  if (!c || g.phase !== 'over' || !g.winner || c.ch >= CHAPTERS || campaignOver(g)) return null;
   const people = g.players.map((p, i) => (p.ai ? -1 : i)).filter(i => i >= 0), me = people.length === 1 ? people[0] : -1;
   const sh = me >= 0 ? sheetOf(g, me) : undefined, san = me >= 0 ? sanity(g, me) : undefined, item = me >= 0 ? itemOf(g, me) : undefined;
   return {
     ch: c.ch + 1, scene: g.scene || c.scene, wins: { L: c.wins.L + (g.winner === 'L' ? 1 : 0), F: c.wins.F + (g.winner === 'F' ? 1 : 0) }, prev: g.winner,
-    names: g.players.map(p => p.name),
+    names: g.players.map(p => p.name), ...(me >= 0 ? { role: c.role ?? g.players[me].role } : {}),   // D158: the person keeps their role
     ...(sh ? { sheet: sh, lost: Math.max(0, (sh.vals.Sanity ?? 50) - (san ?? 0)), mythos: mythosOf(g, me) } : {}), ...(item ? { item } : {})
   };
 }

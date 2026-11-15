@@ -156,7 +156,7 @@ export interface Game {
   /** D120: how heavy the horror is ('pulp', 'classico', 'purista'). */
   horror?: string;
   /** D121: the campaign this game is a chapter of. */
-  campaign?: { ch: number; scene: string; wins: { L: number; F: number }; prev?: 'L' | 'F'; sheet?: Sheet; lost?: number; mythos?: number; item?: string; names?: string[] };
+  campaign?: { ch: number; scene: string; wins: { L: number; F: number }; prev?: 'L' | 'F'; sheet?: Sheet; lost?: number; mythos?: number; item?: string; names?: string[]; role?: Role };
   /** D89: a tutorial game: the tips the person already read (present, even empty, means tutorial). */
   tut?: string[];
   /** The notebook of the one person at the table (D12), as it was when the game ended (D28): seat → the party marked. */
