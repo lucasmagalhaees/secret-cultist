@@ -24,3 +24,4 @@ tests/.build-bench/
 .dlc-key
 bunker/.build/
 bunker/dist/
+bunker/.wrangler/
