@@ -1,0 +1,4 @@
+{
+  "extends": "../tsconfig.json",
+  "include": ["./client.ts", "./room.ts", "./key.ts", "../src/env.d.ts"]
+}

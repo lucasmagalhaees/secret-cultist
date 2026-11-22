@@ -17,7 +17,7 @@ Idioma da interface: português do Brasil, informal. Comentários no código: in
 
 
 - O app é uma página estática, sem backend próprio. O login (D138) é o do Supabase (projeto do lore-enhancer): ninguém joga sem entrar; a conta de visitante (pedestrian) vê só o Secret Cultist; o driver vê tudo, porque só ele recebe a chave da expansão.
-- Um aparelho só, passando de mão: sem partida pela internet, sem um celular por jogador. Os jogadores da IA rodam no próprio aparelho, sem servidor e sem modelo de linguagem: são regras e contas no `src/core/` (D10).
+- Um aparelho só, passando de mão: sem partida pela internet, sem um celular por jogador (a exceção é o bunker, D159, em `bunker/`, à parte). Os jogadores da IA rodam no próprio aparelho, sem servidor e sem modelo de linguagem: são regras e contas no `src/core/` (D10).
 - As regras são as do Secret Cultist original (D6). A única diferença é de meio: a votação é em voz alta e o celular só registra o resultado (com IA na mesa, cada pessoa toca no próprio voto: requisito 20).
 - Chamadas de rede: o login (D138), e as opcionais das fichas (D94) e da lore (D137); sem as opcionais o jogo funciona igual, e uma sessão guardada abre o jogo sem rede.
 - Sem servidor próprio, nem para guardar partidas: as partidas terminadas ficam só no aparelho, e a pessoa exporta um arquivo quando quiser (D23). Fora por enquanto: uma tela de histórico.

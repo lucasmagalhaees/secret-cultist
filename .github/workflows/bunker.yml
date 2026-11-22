@@ -1,0 +1,50 @@
+name: Bunker
+
+# D159: publishes the bunker (bunker/: Secret Hitler and Secret Stalin online, with the shared password) to Cloudflare
+# Workers when it, or the core it plays with, changes on main. Needs CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID in
+# the repository secrets; without them the job says so and stops, green.
+on:
+  push:
+    branches: [main]
+    paths: ['bunker/**', 'src/core/**', '.github/workflows/bunker.yml']
+  pull_request:
+    paths: ['bunker/**', 'src/core/**', '.github/workflows/bunker.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: bunker-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  bunker:
+    name: bunker
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: npm ci
+      - name: Types
+        run: npx tsc --noEmit -p bunker/tsconfig.json && npx tsc --noEmit -p bunker/tsconfig.client.json
+      - name: Rooms (no secret leaks)
+        run: node bunker/test.mjs
+      - name: Page
+        run: npx vite build -c bunker/vite.config.js
+      - name: Deploy to Cloudflare
+        if: github.event_name != 'pull_request'
+        working-directory: bunker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::warning title=bunker::sem CLOUDFLARE_API_TOKEN e CLOUDFLARE_ACCOUNT_ID nos secrets: o bunker não foi publicado"
+            exit 0
+          fi
+          npx -y wrangler@4.145.0 deploy
